@@ -1,0 +1,145 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Celtic.Api.Data;
+using Celtic.Api.DTOs;
+using Celtic.Api.Models;
+
+namespace Celtic.Api.Services;
+
+public class AuthService : IAuthService
+{
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly CelticDbContext _db;
+    private readonly IConfiguration _config;
+
+    public AuthService(
+        UserManager<ApplicationUser> userManager,
+        CelticDbContext db,
+        IConfiguration config)
+    {
+        _userManager = userManager;
+        _db = db;
+        _config = config;
+    }
+
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        var validPassword = await _userManager.CheckPasswordAsync(user, request.Password);
+        if (!validPassword)
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        var token = GenerateJwtToken(user);
+
+        return new LoginResponse(
+            Token: token,
+            UserId: user.Id,
+            Email: user.Email!,
+            FullName: user.FullName,
+            Role: user.Role
+        );
+    }
+
+    public async Task<CreateAccountResponse> CreateAccountAsync(CreateAccountRequest request)
+    {
+        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        if (existingUser != null)
+            throw new InvalidOperationException("An account with this email already exists.");
+
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            FullName = request.FullName,
+            Phone = request.Phone ?? string.Empty,
+            Role = request.Role
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to create account: {errors}");
+        }
+
+        return new CreateAccountResponse(
+            UserId: user.Id,
+            Email: user.Email!,
+            FullName: user.FullName,
+            Role: user.Role
+        );
+    }
+
+    public async Task<UserInfoResponse> GetUserInfoAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new KeyNotFoundException("User not found.");
+
+        var children = await _db.PlayerParents
+            .Where(pp => pp.UserId == userId)
+            .Include(pp => pp.Player)
+            .Select(pp => new LinkedPlayerDto(
+                pp.PlayerId,
+                pp.Player.FirstName,
+                pp.Player.LastName,
+                pp.Relationship
+            ))
+            .ToListAsync();
+
+        return new UserInfoResponse(
+            UserId: user.Id,
+            Email: user.Email!,
+            FullName: user.FullName,
+            Phone: user.Phone,
+            Role: user.Role,
+            Children: children
+        );
+    }
+
+    public async Task ChangePasswordAsync(string userId, ChangePasswordRequest request)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            throw new KeyNotFoundException("User not found.");
+
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to change password: {errors}");
+        }
+    }
+
+    private string GenerateJwtToken(ApplicationUser user)
+    {
+        var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT key not configured");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Email, user.Email!),
+            new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Role, user.Role)
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(24),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}

@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* ===== Celtic Team App - Custom Design System ===== */
+
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+  /* Celtic-inspired color palette */
+  --color-celtic-green: #1B5E20;
+  --color-celtic-green-light: #2E7D32;
+  --color-celtic-green-dark: #0D3B13;
+  --color-celtic-gold: #F9A825;
+  --color-celtic-gold-light: #FDD835;
+  --color-celtic-white: #FAFAFA;
+
+  /* UI Colors */
+  --color-surface: #0F1419;
+  --color-surface-light: #1A2332;
+  --color-surface-card: #1E2A3A;
+  --color-surface-hover: #243447;
+  --color-text-primary: #E8EAED;
+  --color-text-secondary: #9AA0A6;
+  --color-text-muted: #5F6368;
+  --color-border: #2D3748;
+  --color-border-light: #374151;
+
+  /* Status colors */
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-danger: #F87171;
+  --color-info: #60A5FA;
+
+  /* Spacing */
+  --radius-card: 12px;
+  --radius-button: 8px;
+  --radius-input: 8px;
+}
+
+/* Base styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* Custom utility classes */
+.glass {
+  background: rgba(30, 42, 58, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card {
+  background: var(--color-surface-card);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--color-border-light);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-celtic-green), var(--color-celtic-green-light));
+  color: white;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-button);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-celtic-green-light), var(--color-celtic-green));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.4);
+}
+
+.btn-secondary {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-button);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--color-border-light);
+  border-color: var(--color-border-light);
+}
+
+.input {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding: 0.625rem 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-celtic-green);
+  box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.2);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--color-success);
+}
+
+.badge-warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning);
+}
+
+.badge-danger {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--color-danger);
+}

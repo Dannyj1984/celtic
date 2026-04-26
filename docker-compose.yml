@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: celtic-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: celtic
+      POSTGRES_USER: celtic
+      POSTGRES_PASSWORD: celtic_dev_2026
+    volumes:
+      - celtic_data:/var/lib/postgresql/data
+
+volumes:
+  celtic_data:
