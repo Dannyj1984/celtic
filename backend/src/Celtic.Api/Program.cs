@@ -11,7 +11,12 @@ using Celtic.Api.Services;
 // Prevent JWT handler from remapping claim types
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Add environment variables to config explicitly if DotNetEnv loads them globally
+builder.Configuration.AddEnvironmentVariables();
 
 // Database
 builder.Services.AddDbContext<CelticDbContext>(options =>
