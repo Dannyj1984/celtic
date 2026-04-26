@@ -52,6 +52,8 @@ builder.Services.AddAuthentication(options =>
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<ISeasonService, SeasonService>();
 
 // Controllers
 builder.Services.AddControllers();

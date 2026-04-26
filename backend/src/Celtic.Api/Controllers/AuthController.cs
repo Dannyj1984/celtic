@@ -70,6 +70,19 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpGet("parents")]
+    [Authorize]
+    public async Task<ActionResult<List<UserInfoResponse>>> GetParents()
+    {
+        // Only admins can view the list of parents
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can view parent accounts." });
+
+        var parents = await _authService.GetAllParentsAsync();
+        return Ok(parents);
+    }
+
     [HttpPost("change-password")]
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)

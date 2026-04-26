@@ -104,6 +104,39 @@ public class AuthService : IAuthService
         );
     }
 
+    public async Task<List<UserInfoResponse>> GetAllParentsAsync()
+    {
+        var users = await _userManager.Users
+            .Where(u => u.Role == "Parent")
+            .OrderBy(u => u.FullName)
+            .ToListAsync();
+
+        var parentIds = users.Select(u => u.Id).ToList();
+        var allChildren = await _db.PlayerParents
+            .Where(pp => parentIds.Contains(pp.UserId))
+            .Include(pp => pp.Player)
+            .ToListAsync();
+
+        var responses = users.Select(u => new UserInfoResponse(
+            UserId: u.Id,
+            Email: u.Email!,
+            FullName: u.FullName,
+            Phone: u.Phone,
+            Role: u.Role,
+            Children: allChildren
+                .Where(pp => pp.UserId == u.Id)
+                .Select(pp => new LinkedPlayerDto(
+                    pp.PlayerId,
+                    pp.Player.FirstName,
+                    pp.Player.LastName,
+                    pp.Relationship
+                ))
+                .ToList()
+        )).ToList();
+
+        return responses;
+    }
+
     public async Task ChangePasswordAsync(string userId, ChangePasswordRequest request)
     {
         var user = await _userManager.FindByIdAsync(userId);
