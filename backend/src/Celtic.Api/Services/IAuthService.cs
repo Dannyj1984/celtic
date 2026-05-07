@@ -9,4 +9,5 @@ public interface IAuthService
     Task<UserInfoResponse> GetUserInfoAsync(string userId);
     Task<List<UserInfoResponse>> GetAllParentsAsync();
     Task ChangePasswordAsync(string userId, ChangePasswordRequest request);
+    Task LinkPlayerToParentAsync(LinkPlayerRequest request);
 }

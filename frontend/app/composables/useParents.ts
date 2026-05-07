@@ -35,10 +35,25 @@ export function useParents() {
     }
   }
 
+  async function linkPlayer(userId: string, playerId: string, relationship: string) {
+    try {
+      await $fetch('/api/auth/link-player', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: { userId, playerId, relationship },
+      })
+      await fetchParents()
+      return { success: true }
+    } catch (err: any) {
+      return { success: false, error: err?.data?.message || 'Failed to link player' }
+    }
+  }
+
   return {
     parents,
     loading,
     error,
     fetchParents,
+    linkPlayer,
   }
 }

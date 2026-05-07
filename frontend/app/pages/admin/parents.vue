@@ -41,7 +41,12 @@
         </div>
 
         <div class="mt-6 pt-4 border-t border-border">
-          <span class="text-xs text-text-muted uppercase tracking-wide block mb-2">Linked Players</span>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-text-muted uppercase tracking-wide">Linked Players</span>
+            <button @click="openLinkModal(parent)" class="text-[10px] text-celtic-gold hover:text-celtic-gold-light font-bold uppercase transition-colors">
+              + Link Player
+            </button>
+          </div>
           
           <div v-if="parent.children.length === 0" class="text-sm text-text-secondary italic">
             No players linked yet.
@@ -109,30 +114,75 @@
         </form>
       </div>
     </div>
+
+    <!-- Link Player Modal -->
+    <div v-if="isLinkModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div class="card w-full max-w-md p-6 animate-fade-in shadow-2xl border-celtic-green/30">
+        <h2 class="text-xl font-bold text-text-primary mb-2">Link Player</h2>
+        <p class="text-sm text-text-secondary mb-6">
+          Link a player to <span class="font-bold text-text-primary">{{ selectedParentForLink?.fullName }}</span>
+        </p>
+
+        <form @submit.prevent="submitLinkForm" class="space-y-4 text-left">
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Select Player *</label>
+            <select v-model="linkForm.playerId" class="input" required>
+              <option value="" disabled>Choose a player...</option>
+              <option v-for="player in squad" :key="player.id" :value="player.id">
+                {{ player.firstName }} {{ player.lastName }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Relationship *</label>
+            <select v-model="linkForm.relationship" class="input" required>
+              <option value="Father">Father</option>
+              <option value="Mother">Mother</option>
+              <option value="Guardian">Guardian</option>
+              <option value="Step-parent">Step-parent</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div v-if="linkError" class="text-danger text-sm mt-2">
+            {{ linkError }}
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+            <button type="button" @click="closeLinkModal" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary" :disabled="linkSaving">
+              {{ linkSaving ? 'Linking...' : 'Link Player' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useParents } from '~/composables/useParents'
+import { useParents, type ParentAccount } from '~/composables/useParents'
+import { usePlayers } from '~/composables/usePlayers'
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
   layout: 'app',
-  middleware: 'auth',
 })
 
 useHead({
   title: 'Parents - Celtic FC',
 })
 
-const { parents, loading, error, fetchParents } = useParents()
+const { parents, loading, error, fetchParents, linkPlayer } = useParents()
+const { players: squad, fetchPlayers } = usePlayers()
 const { getAuthHeaders } = useAuth()
 
+// Create Account State
 const isModalOpen = ref(false)
 const formSaving = ref(false)
 const formError = ref<string | null>(null)
-
 const form = ref({
   fullName: '',
   email: '',
@@ -140,8 +190,19 @@ const form = ref({
   phone: ''
 })
 
+// Linking State
+const isLinkModalOpen = ref(false)
+const selectedParentForLink = ref<ParentAccount | null>(null)
+const linkSaving = ref(false)
+const linkError = ref<string | null>(null)
+const linkForm = ref({
+  playerId: '',
+  relationship: 'Father'
+})
+
 onMounted(() => {
   fetchParents()
+  fetchPlayers()
 })
 
 function openCreateModal() {
@@ -185,6 +246,42 @@ async function submitForm() {
   } finally {
     formSaving.value = false
   }
+}
+
+// Linking Functions
+function openLinkModal(parent: ParentAccount) {
+  selectedParentForLink.value = parent
+  linkForm.value = {
+    playerId: '',
+    relationship: 'Father'
+  }
+  linkError.value = null
+  isLinkModalOpen.value = true
+}
+
+function closeLinkModal() {
+  isLinkModalOpen.value = false
+}
+
+async function submitLinkForm() {
+  if (!selectedParentForLink.value) return
+  
+  linkSaving.value = true
+  linkError.value = null
+  
+  const result = await linkPlayer(
+    selectedParentForLink.value.userId, 
+    linkForm.value.playerId, 
+    linkForm.value.relationship
+  )
+  
+  if (result.success) {
+    closeLinkModal()
+  } else {
+    linkError.value = result.error || 'An error occurred'
+  }
+  
+  linkSaving.value = false
 }
 </script>
 

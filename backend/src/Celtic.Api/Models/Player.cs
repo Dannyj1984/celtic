@@ -9,7 +9,11 @@ public class Player
     public string? MedicalNotes { get; set; }
     public string? EmergencyContact { get; set; }
     public string? EmergencyPhone { get; set; }
+    public string? EmergencyContact2 { get; set; }
+    public string? EmergencyPhone2 { get; set; }
     public bool IsActive { get; set; } = true;
+    public string SubscriptionStatus { get; set; } = "Active";
+    public string PreferredFoot { get; set; } = "Right";
 
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();

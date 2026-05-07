@@ -1,10 +1,9 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const { isAuthenticated, init } = useAuth()
-
-  init()
+  const { isAuthenticated } = useAuth()
 
   // Public routes that don't need auth
   const publicRoutes = ['/login']
+  
   if (publicRoutes.includes(to.path)) {
     // Redirect to dashboard if already logged in
     if (isAuthenticated.value) {

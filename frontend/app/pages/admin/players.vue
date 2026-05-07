@@ -2,7 +2,7 @@
   <div>
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-text-primary">Team Roster</h1>
+        <h1 class="text-2xl font-bold text-text-primary">Squad Management</h1>
         <p class="text-text-secondary mt-1">Manage team players, status, and emergency contacts</p>
       </div>
       <button @click="openCreateModal" class="btn-primary">
@@ -13,12 +13,12 @@
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin w-8 h-8 rounded-full border-4 border-celtic-green border-t-transparent"></div>
     </div>
-    
+
     <div v-else-if="error" class="bg-danger/10 border border-danger/20 text-danger p-4 rounded-lg">
       {{ error }}
     </div>
 
-    <!-- Roster Grid -->
+    <!-- Squad Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="player in players" :key="player.id" class="card p-5 relative group">
         <div class="absolute top-4 right-4">
@@ -26,17 +26,49 @@
             {{ player.isActive ? 'Active' : 'Inactive' }}
           </span>
         </div>
-        
+
         <h3 class="text-lg font-bold text-text-primary mb-1">{{ player.firstName }} {{ player.lastName }}</h3>
-        
+
         <div class="mt-4 space-y-3">
           <div v-if="player.dateOfBirth">
             <span class="text-xs text-text-muted uppercase tracking-wide">DOB</span>
             <p class="text-sm text-text-secondary">{{ new Date(player.dateOfBirth).toLocaleDateString() }}</p>
           </div>
-          <div v-if="player.emergencyContact">
+          <div v-if="player.emergencyContact || (player.parents && player.parents.length > 0)">
             <span class="text-xs text-text-muted uppercase tracking-wide">Emergency Contact</span>
-            <p class="text-sm text-text-secondary">{{ player.emergencyContact }} <span v-if="player.emergencyPhone">({{ player.emergencyPhone }})</span></p>
+            <div v-if="player.emergencyContact">
+              <p class="text-sm text-text-secondary">{{ player.emergencyContact }} <span
+                  v-if="player.emergencyPhone">({{
+                    player.emergencyPhone }})</span></p>
+            </div>
+            <div v-for="parent in player.parents" :key="parent.userId" class="mt-1">
+              <p class="text-sm text-text-secondary">
+                {{ parent.fullName }} ({{ parent.relationship }})
+                <span v-if="parent.phone">({{ parent.phone }})</span>
+              </p>
+            </div>
+            <div v-if="player.emergencyContact2" class="mt-1 border-t border-border/50 pt-1">
+              <p class="text-sm text-text-secondary">{{ player.emergencyContact2 }} <span
+                  v-if="player.emergencyPhone2">({{
+                    player.emergencyPhone2 }})</span></p>
+            </div>
+          </div>
+          <div v-if="player.attendance">
+            <span class="text-xs text-text-muted uppercase tracking-wide">Attendance (Last 10)</span>
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <div class="bg-surface-hover p-2 rounded border border-border/50">
+                <span class="text-[10px] text-text-muted uppercase block mb-1">Matches</span>
+                <p class="text-sm font-bold text-celtic-gold" data-testid="attendance-match">
+                  {{ player.attendance.matchAttended }} / {{ player.attendance.matchTotal }}
+                </p>
+              </div>
+              <div class="bg-surface-hover p-2 rounded border border-border/50">
+                <span class="text-[10px] text-text-muted uppercase block mb-1">Training</span>
+                <p class="text-sm font-bold text-celtic-green" data-testid="attendance-training">
+                  {{ player.attendance.trainingAttended }} / {{ player.attendance.trainingTotal }}
+                </p>
+              </div>
+            </div>
           </div>
           <div v-if="player.medicalNotes">
             <span class="text-xs text-text-muted uppercase tracking-wide">Medical Notes</span>
@@ -45,7 +77,8 @@
         </div>
 
         <div class="pt-4 mt-4 border-t border-border flex justify-end">
-          <button @click="openEditModal(player)" class="text-sm text-celtic-gold hover:text-celtic-gold-light font-medium transition-colors">
+          <button @click="openEditModal(player)"
+            class="text-sm text-celtic-gold hover:text-celtic-gold-light font-medium transition-colors">
             Edit Details
           </button>
         </div>
@@ -62,7 +95,8 @@
     </div>
 
     <!-- Player Modal (Create / Edit) -->
-    <div v-if="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div v-if="isModalOpen"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div class="card w-full max-w-lg p-6 animate-fade-in shadow-2xl border-celtic-green/30">
         <h2 class="text-xl font-bold text-text-primary mb-6">
           {{ editingPlayer ? 'Edit Player' : 'Add New Player' }}
@@ -96,13 +130,53 @@
             </div>
           </div>
 
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Emergency Contact 2</label>
+              <input v-model="form.emergencyContact2" type="text" class="input" placeholder="Name (e.g. Dad)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Emergency Phone 2</label>
+              <input v-model="form.emergencyPhone2" type="tel" class="input" placeholder="07..." />
+            </div>
+          </div>
+
+          <div v-if="editingPlayer" class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Status</label>
+              <select v-model="form.subscriptionStatus" class="input">
+                <option value="Active">Active</option>
+                <option value="Payment Due">Payment Due</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
+              <select v-model="form.preferredFoot" class="input">
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+                <option value="Both">Both</option>
+              </select>
+            </div>
+          </div>
+          <div v-else>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
+            <select v-model="form.preferredFoot" class="input">
+              <option value="Right">Right</option>
+              <option value="Left">Left</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-text-secondary mb-1">Medical Notes</label>
-            <textarea v-model="form.medicalNotes" class="input min-h-[80px]" placeholder="Allergies, conditions..."></textarea>
+            <textarea v-model="form.medicalNotes" class="input min-h-[80px]"
+              placeholder="Allergies, conditions..."></textarea>
           </div>
 
           <div v-if="editingPlayer" class="flex items-center gap-2 mt-2">
-            <input type="checkbox" id="isActive" v-model="form.isActive" class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4" />
+            <input type="checkbox" id="isActive" v-model="form.isActive"
+              class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4" />
             <label for="isActive" class="text-sm font-medium text-text-secondary">Player is active and playing</label>
           </div>
 
@@ -124,15 +198,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { usePlayers, type Player } from '~/composables/usePlayers'
+import { usePlayers, type Player } from '../../composables/usePlayers'
 
 definePageMeta({
   layout: 'app',
-  middleware: 'auth', // we should have an admin middleware, but doing this via layout
 })
 
 useHead({
-  title: 'Roster - Celtic FC',
+  title: 'Squad - Celtic FC',
 })
 
 const { players, loading, error, fetchPlayers, createPlayer, updatePlayer } = usePlayers()
@@ -155,8 +228,12 @@ const form = ref({
   dateOfBirth: '',
   emergencyContact: '',
   emergencyPhone: '',
+  emergencyContact2: '',
+  emergencyPhone2: '',
   medicalNotes: '',
-  isActive: true
+  isActive: true,
+  subscriptionStatus: '',
+  preferredFoot: 'Right'
 })
 
 onMounted(() => {
@@ -171,8 +248,12 @@ function openCreateModal() {
     dateOfBirth: '',
     emergencyContact: '',
     emergencyPhone: '',
+    emergencyContact2: '',
+    emergencyPhone2: '',
     medicalNotes: '',
-    isActive: true
+    isActive: true,
+    subscriptionStatus: '',
+    preferredFoot: 'Right'
   }
   formError.value = null
   isModalOpen.value = true
@@ -183,11 +264,15 @@ function openEditModal(player: Player) {
   form.value = {
     firstName: player.firstName,
     lastName: player.lastName,
-    dateOfBirth: formatDateForInput(player.dateOfBirth),
+    dateOfBirth: formatDateForInput(player.dateOfBirth)!,
     emergencyContact: player.emergencyContact || '',
     emergencyPhone: player.emergencyPhone || '',
+    emergencyContact2: player.emergencyContact2 || '',
+    emergencyPhone2: player.emergencyPhone2 || '',
     medicalNotes: player.medicalNotes || '',
-    isActive: player.isActive
+    isActive: player.isActive,
+    subscriptionStatus: player.subscriptionStatus || '',
+    preferredFoot: player.preferredFoot || 'Right'
   }
   formError.value = null
   isModalOpen.value = true
@@ -200,11 +285,12 @@ function closeModal() {
 async function submitForm() {
   formSaving.value = true
   formError.value = null
-  
+
   // Format payload
   const payload = {
     ...form.value,
-    dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null
+    dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null,
+    subscriptionStatus: editingPlayer.value?.subscriptionStatus || undefined
   }
 
   const result = editingPlayer.value
@@ -216,7 +302,7 @@ async function submitForm() {
   } else {
     formError.value = result.error || 'An error occurred'
   }
-  
+
   formSaving.value = false
 }
 </script>
@@ -225,8 +311,16 @@ async function submitForm() {
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out forwards;
 }
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>

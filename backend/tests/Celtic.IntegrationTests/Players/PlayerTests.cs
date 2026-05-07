@@ -59,7 +59,7 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
         var parentToken = await GetParentTokenAsync(client);
         
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", parentToken);
-        var request = new CreatePlayerRequest("Test", "Player", null, null, null, null);
+        var request = new CreatePlayerRequest("Test", "Player", null, null, null, null, null, null);
         var response = await client.PostAsJsonAsync("/api/players", request);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -75,7 +75,7 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
         
         // Create
-        var request = new CreatePlayerRequest("John", "Doe", new DateTime(2018, 5, 12, 0, 0, 0, DateTimeKind.Utc), "No nuts", "Jane Doe", "07700900000");
+        var request = new CreatePlayerRequest("John", "Doe", new DateTime(2018, 5, 12, 0, 0, 0, DateTimeKind.Utc), "No nuts", "Jane Doe", "07700900000", null, null);
         var response = await client.PostAsJsonAsync("/api/players", request);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         
@@ -110,12 +110,12 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
         
         // Create
-        var createRequest = new CreatePlayerRequest("John", "Doe", null, null, null, null);
+        var createRequest = new CreatePlayerRequest("John", "Doe", null, null, null, null, null, null);
         var response = await client.PostAsJsonAsync("/api/players", createRequest);
         var created = await response.Content.ReadFromJsonAsync<PlayerDto>();
 
         // Update
-        var updateRequest = new UpdatePlayerRequest("John", "Smith", null, "Updated notes", null, null, false);
+        var updateRequest = new UpdatePlayerRequest("John", "Smith", null, "Updated notes", null, null, null, null, false, "Active");
         var updateResponse = await client.PutAsJsonAsync($"/api/players/{created!.Id}", updateRequest);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 

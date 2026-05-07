@@ -132,6 +132,40 @@ namespace Celtic.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Celtic.Api.Models.ClubSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CoachWhatsAppNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("NextSubPaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TrainingDay")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeSpan>("TrainingEndTime")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("TrainingFocus")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TrainingLocation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<TimeSpan>("TrainingStartTime")
+                        .HasColumnType("interval");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ClubSettings");
+                });
+
             modelBuilder.Entity("Celtic.Api.Models.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -154,7 +188,7 @@ namespace Celtic.Api.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("SeasonId")
+                    b.Property<Guid?>("SeasonId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Type")
@@ -275,10 +309,15 @@ namespace Celtic.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("SeasonId")
+                    b.Property<Guid?>("PlayerOfTheMatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SeasonId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PlayerOfTheMatchId");
 
                     b.HasIndex("SeasonId");
 
@@ -324,7 +363,13 @@ namespace Celtic.Api.Migrations
                     b.Property<string>("EmergencyContact")
                         .HasColumnType("text");
 
+                    b.Property<string>("EmergencyContact2")
+                        .HasColumnType("text");
+
                     b.Property<string>("EmergencyPhone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmergencyPhone2")
                         .HasColumnType("text");
 
                     b.Property<string>("FirstName")
@@ -339,6 +384,14 @@ namespace Celtic.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("MedicalNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PreferredFoot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SubscriptionStatus")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -587,9 +640,7 @@ namespace Celtic.Api.Migrations
 
                     b.HasOne("Celtic.Api.Models.Season", "Season")
                         .WithMany("Events")
-                        .HasForeignKey("SeasonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SeasonId");
 
                     b.Navigation("Match");
 
@@ -634,11 +685,16 @@ namespace Celtic.Api.Migrations
 
             modelBuilder.Entity("Celtic.Api.Models.Match", b =>
                 {
+                    b.HasOne("Celtic.Api.Models.Player", "PlayerOfTheMatch")
+                        .WithMany()
+                        .HasForeignKey("PlayerOfTheMatchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Celtic.Api.Models.Season", "Season")
                         .WithMany("Matches")
-                        .HasForeignKey("SeasonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SeasonId");
+
+                    b.Navigation("PlayerOfTheMatch");
 
                     b.Navigation("Season");
                 });

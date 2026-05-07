@@ -9,7 +9,24 @@ export interface Player {
   medicalNotes?: string | null
   emergencyContact?: string | null
   emergencyPhone?: string | null
+  emergencyContact2?: string | null
+  emergencyPhone2?: string | null
   isActive: boolean
+  parents?: {
+    userId: string
+    fullName: string
+    email: string
+    phone?: string | null
+    relationship: string
+  }[]
+  subscriptionStatus: string
+  attendance?: {
+    trainingAttended: number
+    trainingTotal: number
+    matchAttended: number
+    matchTotal: number
+  }
+  preferredFoot?: string
 }
 
 export function usePlayers() {

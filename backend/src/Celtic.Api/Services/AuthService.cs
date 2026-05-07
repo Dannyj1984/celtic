@@ -151,6 +151,24 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task LinkPlayerToParentAsync(LinkPlayerRequest request)
+    {
+        var existing = await _db.PlayerParents
+            .FirstOrDefaultAsync(pp => pp.PlayerId == request.PlayerId && pp.UserId == request.UserId);
+
+        if (existing != null) return;
+
+        var link = new PlayerParent
+        {
+            PlayerId = request.PlayerId,
+            UserId = request.UserId,
+            Relationship = request.Relationship
+        };
+
+        _db.PlayerParents.Add(link);
+        await _db.SaveChangesAsync();
+    }
+
     private string GenerateJwtToken(ApplicationUser user)
     {
         var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT key not configured");

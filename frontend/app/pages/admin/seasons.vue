@@ -133,7 +133,6 @@ import { useSeasons, type Season } from '~/composables/useSeasons'
 
 definePageMeta({
   layout: 'app',
-  middleware: 'auth',
 })
 
 useHead({

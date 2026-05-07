@@ -105,4 +105,17 @@ public class AuthController : ControllerBase
             return NotFound();
         }
     }
+
+    [HttpPost("link-player")]
+    [Authorize]
+    public async Task<IActionResult> LinkPlayer([FromBody] LinkPlayerRequest request)
+    {
+        // Only admins can link players
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can link players." });
+
+        await _authService.LinkPlayerToParentAsync(request);
+        return Ok(new { message = "Player linked successfully." });
+    }
 }

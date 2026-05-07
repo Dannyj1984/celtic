@@ -18,6 +18,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SubPayment> SubPayments => Set<SubPayment>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<ClubSettings> ClubSettings => Set<ClubSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -54,6 +55,13 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(m => m.Season)
             .WithMany(s => s.Matches)
             .HasForeignKey(m => m.SeasonId);
+
+        // Player of the Match
+        builder.Entity<Match>()
+            .HasOne(m => m.PlayerOfTheMatch)
+            .WithMany()
+            .HasForeignKey(m => m.PlayerOfTheMatchId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Match.Result is computed, ignore it for EF
         builder.Entity<Match>()

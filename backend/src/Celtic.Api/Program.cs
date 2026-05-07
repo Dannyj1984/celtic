@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -51,7 +52,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "celtic-api",
         ValidAudience = builder.Configuration["Jwt:Audience"] ?? "celtic-app",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
@@ -59,6 +62,10 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
+builder.Services.AddScoped<IMatchService, MatchService>();
+builder.Services.AddScoped<IEventService, EventService>();
+
+builder.Services.AddHostedService<TrainingGeneratorService>();
 
 // Controllers
 builder.Services.AddControllers();
@@ -100,16 +107,47 @@ using (var scope = app.Services.CreateScope())
 
     // Seed admin user if none exists
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    if (!await userManager.Users.AnyAsync(u => u.Role == "Admin"))
+    var adminUser = await userManager.FindByEmailAsync("admin@celtic.app");
+    if (adminUser == null)
     {
-        var admin = new ApplicationUser
+        adminUser = new ApplicationUser
         {
             UserName = "admin@celtic.app",
             Email = "admin@celtic.app",
             FullName = "Team Admin",
             Role = "Admin"
         };
-        await userManager.CreateAsync(admin, "Admin123!");
+        await userManager.CreateAsync(adminUser, "Admin123!");
+    }
+    else if (adminUser.Role != "Admin")
+    {
+        adminUser.Role = "Admin";
+        await userManager.UpdateAsync(adminUser);
+    }
+    if (!await userManager.Users.AnyAsync(u => u.UserName == "dannyjebb@gmail.com"))
+    {
+        var user = new ApplicationUser
+        {
+            UserName = "dannyjebb@gmail.com",
+            Email = "dannyjebb@gmail.com",
+            FullName = "Danny Jebb",
+            Role = "User"
+        };
+        await userManager.CreateAsync(user, "user123!");
+    }
+
+    // Seed ClubSettings if none exists
+    if (!await db.ClubSettings.AnyAsync())
+    {
+        db.ClubSettings.Add(new ClubSettings
+        {
+            TrainingDay = DayOfWeek.Tuesday,
+            TrainingStartTime = new TimeSpan(18, 0, 0),
+            TrainingEndTime = new TimeSpan(19, 30, 0),
+            TrainingLocation = "Standard Pitch 1",
+            CoachWhatsAppNumber = "07000000000"
+        });
+        await db.SaveChangesAsync();
     }
 }
 

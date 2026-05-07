@@ -16,11 +16,19 @@
             <span class="font-bold text-text-primary">Celtic FC</span>
           </NuxtLink>
 
-          <!-- Desktop Navigation -->
-          <div class="hidden md:flex items-center gap-6" v-if="isAdmin">
-            <NuxtLink to="/admin/players" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Roster</NuxtLink>
-            <NuxtLink to="/admin/seasons" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Seasons</NuxtLink>
-            <NuxtLink to="/admin/parents" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Parents</NuxtLink>
+          <div class="hidden md:flex items-center gap-6">
+            <template v-if="isAdmin">
+              <NuxtLink to="/admin/players" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Squad</NuxtLink>
+              <NuxtLink to="/admin/schedule" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Schedule</NuxtLink>
+              <NuxtLink to="/admin/matches" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Matches</NuxtLink>
+              <NuxtLink to="/admin/seasons" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Seasons</NuxtLink>
+              <NuxtLink to="/admin/parents" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Parents</NuxtLink>
+              <NuxtLink to="/admin/settings" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Settings</NuxtLink>
+            </template>
+            <template v-else>
+              <NuxtLink to="/dashboard" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Dashboard</NuxtLink>
+              <NuxtLink to="/season" class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors" active-class="text-celtic-green">Season</NuxtLink>
+            </template>
           </div>
 
           <!-- User Info -->
@@ -35,7 +43,25 @@
       </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Bottom Navigation (Mobile Only) -->
+    <nav v-if="!isAdmin" class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-border px-6 py-3 pb-8">
+      <div class="flex items-center justify-between">
+        <NuxtLink to="/dashboard" class="flex flex-col items-center gap-1 text-text-secondary" active-class="text-celtic-green">
+          <UIcon name="i-heroicons-home" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+        </NuxtLink>
+        <NuxtLink to="/season" class="flex flex-col items-center gap-1 text-text-secondary" active-class="text-celtic-green">
+          <UIcon name="i-heroicons-trophy" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Season</span>
+        </NuxtLink>
+        <NuxtLink to="/profile" class="flex flex-col items-center gap-1 text-text-secondary" active-class="text-celtic-green">
+          <UIcon name="i-heroicons-user" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+        </NuxtLink>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20 md:mb-0">
       <slot />
     </main>
   </div>

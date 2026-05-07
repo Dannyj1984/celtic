@@ -3,8 +3,8 @@ namespace Celtic.Api.Models;
 public class Match
 {
     public Guid Id { get; set; }
-    public Guid SeasonId { get; set; }
-    public Season Season { get; set; } = null!;
+    public Guid? SeasonId { get; set; }
+    public Season? Season { get; set; }
 
     public DateTime Date { get; set; }
     public string Opposition { get; set; } = string.Empty;
@@ -13,6 +13,9 @@ public class Match
     public int GoalsAgainst { get; set; }
     public string? MatchReport { get; set; }
     public bool IsPublished { get; set; }
+
+    public Guid? PlayerOfTheMatchId { get; set; }
+    public Player? PlayerOfTheMatch { get; set; }
 
     // Computed
     public string Result => GoalsFor > GoalsAgainst ? "Win"

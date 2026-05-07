@@ -3,8 +3,8 @@ namespace Celtic.Api.Models;
 public class Event
 {
     public Guid Id { get; set; }
-    public Guid SeasonId { get; set; }
-    public Season Season { get; set; } = null!;
+    public Guid? SeasonId { get; set; }
+    public Season? Season { get; set; }
 
     public string Type { get; set; } = "Training"; // "Training" or "Match"
     public DateTime DateTime { get; set; }

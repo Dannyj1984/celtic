@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 interface User {
   userId: string
@@ -23,27 +23,24 @@ interface LoginResponse {
   role: string
 }
 
-const token = ref<string | null>(null)
-const user = ref<User | null>(null)
-const loading = ref(false)
-const error = ref<string | null>(null)
-
 export function useAuth() {
+  // Use cookies for token and user to allow SSR access
+  const token = useCookie<string | null>('celtic_token', {
+    maxAge: 60 * 60 * 24, // 24 hours
+    sameSite: 'lax',
+  })
+
+  const user = useCookie<User | null>('celtic_user', {
+    maxAge: 60 * 60 * 24,
+    sameSite: 'lax',
+  })
+
+  const loading = useState<boolean>('auth_loading', () => false)
+  const error = useState<string | null>('auth_error', () => null)
+
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'Admin')
   const isParent = computed(() => user.value?.role === 'Parent')
-
-  // Initialize from localStorage (client-side only)
-  function init() {
-    if (import.meta.client) {
-      const savedToken = localStorage.getItem('celtic_token')
-      const savedUser = localStorage.getItem('celtic_user')
-      if (savedToken && savedUser) {
-        token.value = savedToken
-        user.value = JSON.parse(savedUser)
-      }
-    }
-  }
 
   async function login(email: string, password: string): Promise<boolean> {
     loading.value = true
@@ -61,12 +58,6 @@ export function useAuth() {
         email: response.email,
         fullName: response.fullName,
         role: response.role,
-      }
-
-      // Persist
-      if (import.meta.client) {
-        localStorage.setItem('celtic_token', response.token)
-        localStorage.setItem('celtic_user', JSON.stringify(user.value))
       }
 
       return true
@@ -93,10 +84,6 @@ export function useAuth() {
         role: response.role,
         children: response.children,
       }
-
-      if (import.meta.client) {
-        localStorage.setItem('celtic_user', JSON.stringify(user.value))
-      }
     } catch {
       logout()
     }
@@ -105,10 +92,6 @@ export function useAuth() {
   function logout() {
     token.value = null
     user.value = null
-    if (import.meta.client) {
-      localStorage.removeItem('celtic_token')
-      localStorage.removeItem('celtic_user')
-    }
     navigateTo('/login')
   }
 
@@ -125,7 +108,6 @@ export function useAuth() {
     isAuthenticated,
     isAdmin,
     isParent,
-    init,
     login,
     fetchMe,
     logout,

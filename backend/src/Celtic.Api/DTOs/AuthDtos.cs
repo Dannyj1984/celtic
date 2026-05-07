@@ -52,3 +52,9 @@ public record LinkedPlayerDto(
     string LastName,
     string Relationship
 );
+
+public record LinkPlayerRequest(
+    [Required] Guid PlayerId,
+    [Required] string UserId,
+    [Required] string Relationship
+);

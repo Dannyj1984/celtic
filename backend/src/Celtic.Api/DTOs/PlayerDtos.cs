@@ -10,7 +10,28 @@ public record PlayerDto(
     string? MedicalNotes,
     string? EmergencyContact,
     string? EmergencyPhone,
-    bool IsActive
+    string? EmergencyContact2,
+    string? EmergencyPhone2,
+    bool IsActive,
+    string SubscriptionStatus,
+    List<PlayerParentDto> Parents,
+    PlayerAttendanceDto? Attendance = null,
+    string PreferredFoot = "Right"
+);
+
+public record PlayerAttendanceDto(
+    int TrainingAttended,
+    int TrainingTotal,
+    int MatchAttended,
+    int MatchTotal
+);
+
+public record PlayerParentDto(
+    string UserId,
+    string FullName,
+    string Email,
+    string? Phone,
+    string Relationship
 );
 
 public record CreatePlayerRequest(
@@ -19,7 +40,10 @@ public record CreatePlayerRequest(
     DateTime? DateOfBirth,
     string? MedicalNotes,
     string? EmergencyContact,
-    string? EmergencyPhone
+    string? EmergencyPhone,
+    string? EmergencyContact2,
+    string? EmergencyPhone2,
+    string PreferredFoot = "Right"
 );
 
 public record UpdatePlayerRequest(
@@ -29,5 +53,9 @@ public record UpdatePlayerRequest(
     string? MedicalNotes,
     string? EmergencyContact,
     string? EmergencyPhone,
-    bool IsActive
+    string? EmergencyContact2,
+    string? EmergencyPhone2,
+    bool IsActive,
+    string SubscriptionStatus,
+    string PreferredFoot = "Right"
 );
