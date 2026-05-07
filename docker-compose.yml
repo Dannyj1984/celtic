@@ -4,14 +4,51 @@ services:
   db:
     image: postgres:16-alpine
     container_name: celtic-db
-    ports:
-      - "5433:5432"
+    restart: always
     environment:
-      POSTGRES_DB: celtic
-      POSTGRES_USER: celtic
-      POSTGRES_PASSWORD: celtic_dev_2026
+      POSTGRES_DB: ${POSTGRES_DB:-celtic}
+      POSTGRES_USER: ${POSTGRES_USER:-celtic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celtic_dev_2026}
     volumes:
       - celtic_data:/var/lib/postgresql/data
+    networks:
+      - celtic-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: celtic-api
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=${POSTGRES_DB:-celtic};Username=${POSTGRES_USER:-celtic};Password=${POSTGRES_PASSWORD:-celtic_dev_2026}
+      - Jwt__Key=${JWT_KEY:-CelticDevKeyThatIsAtLeast32Characters!}
+      - Jwt__Issuer=${JWT_ISSUER:-celtic-api}
+      - Jwt__Audience=${JWT_AUDIENCE:-celtic-app}
+      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:3000,https://footyball.jebbs.online}
+    depends_on:
+      - db
+    networks:
+      - celtic-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://api}
+    container_name: celtic-frontend
+    restart: always
+    environment:
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://celtic-api}
+    depends_on:
+      - api
+    networks:
+      - celtic-network
+
+networks:
+  celtic-network:
+    driver: bridge
 
 volumes:
   celtic_data:

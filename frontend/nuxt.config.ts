@@ -16,18 +16,12 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:5233',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:5233',
     },
   },
 
-  // Proxy API requests to .NET backend in development
+  // Proxy API requests to backend
   routeRules: {
-    '/api/auth/**': { proxy: 'http://localhost:5233/api/auth/**' },
-    '/api/players/**': { proxy: 'http://localhost:5233/api/players/**' },
-    '/api/matches/**': { proxy: 'http://localhost:5233/api/matches/**' },
-    '/api/seasons/**': { proxy: 'http://localhost:5233/api/seasons/**' },
-    '/api/events/**': { proxy: 'http://localhost:5233/api/events/**' },
-    '/api/parent/**': { proxy: 'http://localhost:5233/api/parent/**' },
-    '/api/settings/**': { proxy: 'http://localhost:5233/api/settings/**' },
+    '/api/**': { proxy: `${process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:5233'}/api/**` },
   },
 })
