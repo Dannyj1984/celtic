@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-celtic}
       POSTGRES_USER: ${POSTGRES_USER:-celtic}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-celtic_dev_2026}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - celtic_data:/var/lib/postgresql/data
     networks:
@@ -21,8 +21,8 @@ services:
     container_name: celtic-api
     restart: always
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Database=${POSTGRES_DB:-celtic};Username=${POSTGRES_USER:-celtic};Password=${POSTGRES_PASSWORD:-celtic_dev_2026}
-      - Jwt__Key=${JWT_KEY:-CelticDevKeyThatIsAtLeast32Characters!}
+      - ConnectionStrings__DefaultConnection=Host=db;Database=${POSTGRES_DB:-celtic};Username=${POSTGRES_USER:-celtic};Password=${POSTGRES_PASSWORD}
+      - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER:-celtic-api}
       - Jwt__Audience=${JWT_AUDIENCE:-celtic-app}
       - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:3000,https://footyball.jebbs.online}

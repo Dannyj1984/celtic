@@ -1,14 +1,13 @@
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /src/Celtic.Api
 
 # Copy csproj and restore as distinct layers
-COPY ["src/Celtic.Api/Celtic.Api.csproj", "Celtic.Api/"]
-RUN dotnet restore "Celtic.Api/Celtic.Api.csproj"
+COPY src/Celtic.Api/Celtic.Api.csproj .
+RUN dotnet restore "Celtic.Api.csproj"
 
-# Copy everything else and build
-COPY . .
-WORKDIR "/src/Celtic.Api"
+# Copy project source and build
+COPY src/Celtic.Api/ .
 RUN dotnet build "Celtic.Api.csproj" -c Release -o /app/build
 
 # Publish stage
