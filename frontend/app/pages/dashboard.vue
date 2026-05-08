@@ -11,23 +11,74 @@
         </p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <NuxtLink to="/admin/players" class="card p-5 hover:border-celtic-green transition-colors">
-          <p class="text-white text-md font-medium uppercase tracking-wide">Players</p>
-          <p class="text-2xl font-bold text-text-tertiary mt-1">Squad View &rarr;</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+        <NuxtLink to="/admin/players" class="card p-5 hover:border-celtic-green transition-colors group">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-celtic-green/10 rounded-lg w-fit mb-3 group-hover:bg-celtic-green/20 transition-colors">
+              <UIcon name="i-heroicons-user-group" class="w-6 h-6 text-celtic-green" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Squad</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">Players &rarr;</p>
+          </div>
         </NuxtLink>
-        <NuxtLink to="/admin/seasons" class="card p-5 hover:border-celtic-green transition-colors">
-          <p class="text-white text-md font-medium uppercase tracking-wide">Seasons</p>
-          <p class="text-2xl font-bold text-text-tertiary mt-1">Calendar &rarr;</p>
+
+        <NuxtLink to="/admin/schedule" class="card p-5 hover:border-celtic-green transition-colors group">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-blue-500/10 rounded-lg w-fit mb-3 group-hover:bg-blue-500/20 transition-colors">
+              <UIcon name="i-heroicons-calendar-days" class="w-6 h-6 text-blue-500" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Schedule</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">Events &rarr;</p>
+          </div>
         </NuxtLink>
-        <NuxtLink to="/admin/settings" class="card p-5 hover:border-celtic-green transition-colors">
-          <p class="text-white text-md font-medium uppercase tracking-wide">Club Settings</p>
-          <p class="text-2xl font-bold text-text-tertiary mt-1">Manage &rarr;</p>
+
+        <NuxtLink to="/admin/matches" class="card p-5 hover:border-celtic-green transition-colors group">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-celtic-gold/10 rounded-lg w-fit mb-3 group-hover:bg-celtic-gold/20 transition-colors">
+              <UIcon name="i-heroicons-trophy" class="w-6 h-6 text-celtic-gold" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Matches</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">Results &rarr;</p>
+          </div>
         </NuxtLink>
+
+        <NuxtLink to="/admin/seasons" class="card p-5 hover:border-celtic-green transition-colors group">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-purple-500/10 rounded-lg w-fit mb-3 group-hover:bg-purple-500/20 transition-colors">
+              <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-purple-500" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Seasons</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">History &rarr;</p>
+          </div>
+        </NuxtLink>
+
+        <NuxtLink to="/admin/parents" class="card p-5 hover:border-celtic-green transition-colors group">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-orange-500/10 rounded-lg w-fit mb-3 group-hover:bg-orange-500/20 transition-colors">
+              <UIcon name="i-heroicons-users" class="w-6 h-6 text-orange-500" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Parents</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">Contacts &rarr;</p>
+          </div>
+        </NuxtLink>
+
+        <NuxtLink to="/admin/settings" class="card p-5 hover:border-celtic-green transition-colors group">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-gray-500/10 rounded-lg w-fit mb-3 group-hover:bg-gray-500/20 transition-colors">
+              <UIcon name="i-heroicons-cog-6-tooth" class="w-6 h-6 text-gray-500" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Settings</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">Club &rarr;</p>
+          </div>
+        </NuxtLink>
+
         <NuxtLink to="/admin/players"
-          class="card p-5 hover:border-celtic-green transition-colors border-dashed border-celtic-green/50">
-          <p class="text-white text-md font-medium uppercase tracking-wide">Quick Action</p>
-          <p class="text-2xl font-bold text-celtic-green mt-1">+ Add Player</p>
+          class="card p-5 hover:border-celtic-green transition-colors border-dashed border-celtic-green/50 group bg-celtic-green/5">
+          <div class="flex flex-col h-full justify-center items-center text-center">
+            <UIcon name="i-heroicons-plus-circle"
+              class="w-8 h-8 text-celtic-green mb-2 group-hover:scale-110 transition-transform" />
+            <p class="text-lg font-bold text-celtic-green">Add Player</p>
+          </div>
         </NuxtLink>
       </div>
     </div>
@@ -138,7 +189,7 @@
                     </p>
                   </div>
 
-                  <div v-if="dashboardData.trainingSchedule?.trainingFocus" 
+                  <div v-if="dashboardData.trainingSchedule?.trainingFocus"
                     class="mt-4 p-3 bg-celtic-green/5 border border-celtic-green/10 rounded-lg">
                     <p class="text-[10px] font-bold text-celtic-green uppercase tracking-widest mb-1">Session Focus</p>
                     <p class="text-sm text-text-primary leading-tight font-medium italic">
@@ -164,11 +215,6 @@
                   @click="confirmMatch" :loading="pending">
                   <UIcon name="i-heroicons-calendar-days-20-solid" class="w-6 h-6 text-blue-500" />
                   <span class="text-xs font-medium text-center whitespace-normal">Confirm Availability</span>
-                </UButton>
-                <UButton color="gray" variant="solid"
-                  class="flex flex-col items-center justify-center h-24 gap-2 !bg-bg-card border border-border-color hover:border-red-500 hover:!bg-red-500/5 transition-all">
-                  <UIcon name="i-heroicons-exclamation-triangle-20-solid" class="w-6 h-6 text-red-500" />
-                  <span class="text-xs font-medium text-center whitespace-normal">Report Injury</span>
                 </UButton>
               </div>
             </div>

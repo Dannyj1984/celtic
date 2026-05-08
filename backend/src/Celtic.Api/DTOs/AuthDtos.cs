@@ -50,7 +50,8 @@ public record LinkedPlayerDto(
     Guid PlayerId,
     string FirstName,
     string LastName,
-    string Relationship
+    string Relationship,
+    string SubscriptionStatus
 );
 
 public record LinkPlayerRequest(

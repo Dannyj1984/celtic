@@ -43,7 +43,7 @@
       </div>
     </nav>
 
-    <!-- Bottom Navigation (Mobile Only) -->
+    <!-- Bottom Navigation (Mobile Only) - Parent -->
     <nav v-if="!isAdmin" class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-border px-6 py-3 pb-8">
       <div class="flex items-center justify-between">
         <NuxtLink to="/dashboard" class="flex flex-col items-center gap-1 text-text-secondary" active-class="text-celtic-green">
@@ -60,6 +60,37 @@
         </NuxtLink>
       </div>
     </nav>
+
+    <!-- Bottom Navigation (Mobile Only) - Admin -->
+    <nav v-else class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-xl border-t border-border pb-safe">
+      <div class="flex items-center justify-around px-4 py-2">
+        <NuxtLink to="/dashboard"
+          class="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-secondary transition-colors"
+          active-class="text-celtic-green bg-celtic-green/10">
+          <UIcon name="i-heroicons-home" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/players"
+          class="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-secondary transition-colors"
+          active-class="text-celtic-green bg-celtic-green/10">
+          <UIcon name="i-heroicons-user-group" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Squad</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/matches"
+          class="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-secondary transition-colors"
+          active-class="text-celtic-green bg-celtic-green/10">
+          <UIcon name="i-heroicons-trophy" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Matches</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/settings"
+          class="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-secondary transition-colors"
+          active-class="text-celtic-green bg-celtic-green/10">
+          <UIcon name="i-heroicons-cog-6-tooth" class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Settings</span>
+        </NuxtLink>
+      </div>
+    </nav>
+
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20 md:mb-0">
       <slot />

@@ -12,6 +12,7 @@ export interface ParentAccount {
     firstName: string
     lastName: string
     relationship: string
+    subscriptionStatus: string
   }[]
 }
 

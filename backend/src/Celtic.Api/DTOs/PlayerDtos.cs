@@ -34,6 +34,10 @@ public record PlayerParentDto(
     string Relationship
 );
 
+public record UpdateSubscriptionStatusRequest(
+    [Required] string SubscriptionStatus
+);
+
 public record CreatePlayerRequest(
     [Required] string FirstName,
     [Required] string LastName,

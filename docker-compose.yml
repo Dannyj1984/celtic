@@ -41,10 +41,6 @@ services:
     restart: always
     environment:
       - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://celtic-api}
-      - VIRTUAL_HOST=${DOMAIN:-footy.jebbs.online}
-      - VIRTUAL_PORT=3000
-      - LETSENCRYPT_HOST=${DOMAIN:-footy.jebbs.online}
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
     depends_on:
       - api
     networks:

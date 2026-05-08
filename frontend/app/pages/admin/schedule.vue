@@ -21,6 +21,26 @@
     </div>
 
     <div v-else class="space-y-6">
+      <!-- Tabs -->
+      <div class="flex gap-6 mb-8 border-b border-border/50">
+        <button 
+          @click="activeTab = 'upcoming'"
+          :class="['pb-4 px-1 text-xs font-bold uppercase tracking-widest transition-all border-b-2 relative', 
+            activeTab === 'upcoming' ? 'text-celtic-green border-celtic-green' : 'text-text-muted border-transparent hover:text-text-primary']"
+        >
+          Upcoming Events
+          <span v-if="upcomingEventsList.length" class="ml-2 px-1.5 py-0.5 bg-celtic-green/10 text-[10px] rounded-full">{{ upcomingEventsList.length }}</span>
+        </button>
+        <button 
+          @click="activeTab = 'past'"
+          :class="['pb-4 px-1 text-xs font-bold uppercase tracking-widest transition-all border-b-2 relative', 
+            activeTab === 'past' ? 'text-celtic-green border-celtic-green' : 'text-text-muted border-transparent hover:text-text-primary']"
+        >
+          Past Events
+          <span v-if="pastEventsList.length" class="ml-2 px-1.5 py-0.5 bg-surface-hover text-[10px] rounded-full">{{ pastEventsList.length }}</span>
+        </button>
+      </div>
+
       <!-- Group by Month -->
       <div v-for="(group, month) in groupedEvents" :key="month">
         <h2 class="text-sm font-bold text-text-muted uppercase tracking-widest mb-4 flex items-center gap-4">
@@ -102,15 +122,16 @@
       </div>
 
       <!-- Empty State -->
-      <div v-if="events.length === 0" class="col-span-full card p-12 text-center border-dashed">
-        <h3 class="text-lg font-medium text-text-primary mb-2">No events scheduled</h3>
-        <p class="text-text-muted text-sm mb-6">Events are automatically generated for training sessions and matches.</p>
+      <div v-if="Object.keys(groupedEvents).length === 0" class="col-span-full card p-12 text-center border-dashed">
+        <h3 class="text-lg font-medium text-text-primary mb-2">No {{ activeTab }} events</h3>
+        <p v-if="activeTab === 'upcoming'" class="text-text-muted text-sm mb-6">Events are automatically generated for training sessions and matches.</p>
+        <p v-else class="text-text-muted text-sm mb-6">Past events will appear here once their scheduled time has passed.</p>
       </div>
     </div>
 
     <!-- Event Modal -->
     <div v-if="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="card w-full max-w-md p-6 animate-fade-in shadow-2xl border-celtic-green/30">
+      <div class="card w-full max-md p-6 animate-fade-in shadow-2xl border-celtic-green/30">
         <h2 class="text-xl font-bold text-text-primary mb-6">{{ isEditing ? 'Edit Event' : 'Add One-off Event' }}</h2>
 
         <form @submit.prevent="submitForm" class="space-y-4 text-left">
@@ -172,6 +193,7 @@ useHead({
 
 const { events, loading, error, fetchEvents, createEvent, updateEvent, deleteEvent } = useEvents()
 const expandedEvents = ref<Record<string, boolean>>({})
+const activeTab = ref<'upcoming' | 'past'>('upcoming')
 
 onMounted(() => {
   fetchEvents()
@@ -194,13 +216,28 @@ const form = ref({
   isCancelled: false
 })
 
+const upcomingEventsList = computed(() => {
+  return events.value.filter(e => new Date(e.dateTime) >= new Date())
+})
+
+const pastEventsList = computed(() => {
+  return events.value.filter(e => new Date(e.dateTime) < new Date())
+})
+
+const filteredEvents = computed(() => {
+  return activeTab.value === 'upcoming' ? upcomingEventsList.value : pastEventsList.value
+})
+
 const groupedEvents = computed(() => {
   const groups: Record<string, Event[]> = {}
   
   // Sort events by date
-  const sorted = [...events.value].sort((a, b) => 
-    new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()
-  )
+  const sorted = [...filteredEvents.value].sort((a, b) => {
+    const timeA = new Date(a.dateTime).getTime()
+    const timeB = new Date(b.dateTime).getTime()
+    // Upcoming: soonest first. Past: most recent first.
+    return activeTab.value === 'upcoming' ? timeA - timeB : timeB - timeA
+  })
 
   sorted.forEach(event => {
     const date = new Date(event.dateTime)

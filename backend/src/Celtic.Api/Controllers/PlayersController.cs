@@ -69,4 +69,25 @@ public class PlayersController : ControllerBase
             return NotFound();
         }
     }
+    [HttpPatch("{id}/subscription-status")]
+    public async Task<ActionResult<PlayerDto>> UpdateSubscriptionStatus(Guid id, [FromBody] UpdateSubscriptionStatusRequest request)
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can update subscription status." });
+
+        var validStatuses = new[] { "Active", "Payment Due", "Inactive" };
+        if (!validStatuses.Contains(request.SubscriptionStatus))
+            return BadRequest(new { message = "Invalid subscription status." });
+
+        try
+        {
+            var player = await _playerService.UpdateSubscriptionStatusAsync(id, request.SubscriptionStatus);
+            return Ok(player);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 }

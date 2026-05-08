@@ -90,7 +90,8 @@ public class AuthService : IAuthService
                 pp.PlayerId,
                 pp.Player.FirstName,
                 pp.Player.LastName,
-                pp.Relationship
+                pp.Relationship,
+                pp.Player.SubscriptionStatus
             ))
             .ToListAsync();
 
@@ -129,7 +130,8 @@ public class AuthService : IAuthService
                     pp.PlayerId,
                     pp.Player.FirstName,
                     pp.Player.LastName,
-                    pp.Relationship
+                    pp.Relationship,
+                    pp.Player.SubscriptionStatus
                 ))
                 .ToList()
         )).ToList();

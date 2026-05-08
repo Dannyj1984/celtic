@@ -21,13 +21,19 @@
     <!-- Squad Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="player in players" :key="player.id" class="card p-5 relative group">
-        <div class="absolute top-4 right-4">
-          <span :class="['badge', player.isActive ? 'badge-success' : 'badge-warning']">
-            {{ player.isActive ? 'Active' : 'Inactive' }}
-          </span>
+
+        <!-- Top badges row -->
+        <div class="absolute top-4 right-4 flex items-center gap-2">
+          <!-- Subscription Status Badge (clickable to cycle) -->
+          <button @click="cycleSubStatus(player)" :disabled="updatingSubStatus === player.id"
+            :class="['badge text-xs font-semibold transition-all hover:opacity-80 cursor-pointer', subStatusClass(player.subscriptionStatus)]"
+            :title="'Click to change subscription status'">
+            <span v-if="updatingSubStatus === player.id">...</span>
+            <span v-else>{{ player.subscriptionStatus }}</span>
+          </button>
         </div>
 
-        <h3 class="text-lg font-bold text-text-primary mb-1">{{ player.firstName }} {{ player.lastName }}</h3>
+        <h3 class="text-lg font-bold text-text-primary mb-1 pr-32">{{ player.firstName }} {{ player.lastName }}</h3>
 
         <div class="mt-4 space-y-3">
           <div v-if="player.dateOfBirth">
@@ -96,7 +102,7 @@
 
     <!-- Player Modal (Create / Edit) -->
     <div v-if="isModalOpen"
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      class="fixed inset-0 z-[100] flex justify-center items-start overflow-y-auto bg-black/60 backdrop-blur-sm p-4 py-10 sm:py-20">
       <div class="card w-full max-w-lg p-6 animate-fade-in shadow-2xl border-celtic-green/30">
         <h2 class="text-xl font-bold text-text-primary mb-6">
           {{ editingPlayer ? 'Edit Player' : 'Add New Player' }}
@@ -141,16 +147,16 @@
             </div>
           </div>
 
-          <div v-if="editingPlayer" class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-text-secondary mb-1">Status</label>
+          <div class="grid grid-cols-2 gap-4">
+            <div v-if="editingPlayer">
+              <label class="block text-sm font-medium text-text-secondary mb-1">Subscription Status</label>
               <select v-model="form.subscriptionStatus" class="input">
                 <option value="Active">Active</option>
                 <option value="Payment Due">Payment Due</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
-            <div>
+            <div :class="editingPlayer ? '' : 'col-span-2'">
               <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
               <select v-model="form.preferredFoot" class="input">
                 <option value="Right">Right</option>
@@ -158,14 +164,6 @@
                 <option value="Both">Both</option>
               </select>
             </div>
-          </div>
-          <div v-else>
-            <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
-            <select v-model="form.preferredFoot" class="input">
-              <option value="Right">Right</option>
-              <option value="Left">Left</option>
-              <option value="Both">Both</option>
-            </select>
           </div>
 
           <div>
@@ -198,7 +196,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { usePlayers, type Player } from '../../composables/usePlayers'
+import { usePlayers, type Player } from '~/composables/usePlayers'
+import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
   layout: 'app',
@@ -209,17 +208,47 @@ useHead({
 })
 
 const { players, loading, error, fetchPlayers, createPlayer, updatePlayer } = usePlayers()
+const { getAuthHeaders } = useAuth()
 
 const isModalOpen = ref(false)
 const editingPlayer = ref<Player | null>(null)
 const formSaving = ref(false)
 const formError = ref<string | null>(null)
+const updatingSubStatus = ref<string | null>(null)
+
+const SUB_STATUSES = ['Active', 'Payment Due', 'Inactive']
+
+function subStatusClass(status: string) {
+  if (status === 'Active') return 'bg-success/20 text-success border border-success/30'
+  if (status === 'Payment Due') return 'bg-warning/20 text-warning border border-warning/30'
+  return 'bg-danger/20 text-danger border border-danger/30'
+}
+
+async function cycleSubStatus(player: Player) {
+  const current = SUB_STATUSES.indexOf(player.subscriptionStatus)
+  const next = SUB_STATUSES[(current + 1) % SUB_STATUSES.length]
+
+  updatingSubStatus.value = player.id
+  try {
+    await $fetch(`/api/players/${player.id}/subscription-status`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: { subscriptionStatus: next }
+    })
+    // Update local state immediately
+    player.subscriptionStatus = next
+  } catch (e) {
+    console.error('Failed to update subscription status', e)
+  } finally {
+    updatingSubStatus.value = null
+  }
+}
 
 // Format date for date-input value
-function formatDateForInput(dateStr?: string | null) {
+function formatDateForInput(dateStr?: string | null): string {
   if (!dateStr) return ''
   const d = new Date(dateStr)
-  return d.toISOString().split('T')[0]
+  return d.toISOString().split('T')[0] ?? ''
 }
 
 const form = ref({
@@ -232,7 +261,7 @@ const form = ref({
   emergencyPhone2: '',
   medicalNotes: '',
   isActive: true,
-  subscriptionStatus: '',
+  subscriptionStatus: 'Active',
   preferredFoot: 'Right'
 })
 
@@ -252,7 +281,7 @@ function openCreateModal() {
     emergencyPhone2: '',
     medicalNotes: '',
     isActive: true,
-    subscriptionStatus: '',
+    subscriptionStatus: 'Active',
     preferredFoot: 'Right'
   }
   formError.value = null
@@ -264,14 +293,14 @@ function openEditModal(player: Player) {
   form.value = {
     firstName: player.firstName,
     lastName: player.lastName,
-    dateOfBirth: formatDateForInput(player.dateOfBirth)!,
+    dateOfBirth: formatDateForInput(player.dateOfBirth),
     emergencyContact: player.emergencyContact || '',
     emergencyPhone: player.emergencyPhone || '',
     emergencyContact2: player.emergencyContact2 || '',
     emergencyPhone2: player.emergencyPhone2 || '',
     medicalNotes: player.medicalNotes || '',
     isActive: player.isActive,
-    subscriptionStatus: player.subscriptionStatus || '',
+    subscriptionStatus: player.subscriptionStatus || 'Active',
     preferredFoot: player.preferredFoot || 'Right'
   }
   formError.value = null
@@ -286,11 +315,9 @@ async function submitForm() {
   formSaving.value = true
   formError.value = null
 
-  // Format payload
   const payload = {
     ...form.value,
-    dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null,
-    subscriptionStatus: editingPlayer.value?.subscriptionStatus || undefined
+    dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null
   }
 
   const result = editingPlayer.value

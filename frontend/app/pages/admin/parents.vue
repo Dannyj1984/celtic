@@ -52,12 +52,23 @@
             No players linked yet.
           </div>
           
-          <div v-else class="flex flex-wrap gap-2">
-            <span v-for="child in parent.children" :key="child.playerId" class="badge bg-surface-hover border border-border text-text-primary px-2 py-1 flex items-center gap-2">
-              {{ child.firstName }} {{ child.lastName }}
-              <span class="text-text-muted text-[10px] uppercase">{{ child.relationship }}</span>
-            </span>
+          <div v-else class="space-y-2">
+            <div v-for="child in parent.children" :key="child.playerId"
+              class="flex items-center justify-between p-2 rounded-lg bg-surface-hover border border-border/50">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-text-primary">{{ child.firstName }} {{ child.lastName }}</span>
+                <span class="text-text-muted text-[10px] uppercase">{{ child.relationship }}</span>
+              </div>
+              <button
+                @click="cycleSubStatus(child)"
+                :disabled="updatingSubStatus === child.playerId"
+                :class="['text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all hover:opacity-80', subStatusClass(child.subscriptionStatus)]"
+              >
+                {{ updatingSubStatus === child.playerId ? '...' : child.subscriptionStatus }}
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -128,7 +139,7 @@
             <label class="block text-sm font-medium text-text-secondary mb-1">Select Player *</label>
             <select v-model="linkForm.playerId" class="input" required>
               <option value="" disabled>Choose a player...</option>
-              <option v-for="player in squad" :key="player.id" :value="player.id">
+              <option v-for="player in availablePlayers" :key="player.id" :value="player.id">
                 {{ player.firstName }} {{ player.lastName }}
               </option>
             </select>
@@ -162,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useParents, type ParentAccount } from '~/composables/useParents'
 import { usePlayers } from '~/composables/usePlayers'
 import { useAuth } from '~/composables/useAuth'
@@ -178,6 +189,34 @@ useHead({
 const { parents, loading, error, fetchParents, linkPlayer } = useParents()
 const { players: squad, fetchPlayers } = usePlayers()
 const { getAuthHeaders } = useAuth()
+
+// Subscription status helpers
+const SUB_STATUSES = ['Active', 'Payment Due', 'Inactive']
+const updatingSubStatus = ref<string | null>(null)
+
+function subStatusClass(status: string) {
+  if (status === 'Active') return 'bg-success/20 text-success border-success/30'
+  if (status === 'Payment Due') return 'bg-warning/20 text-warning border-warning/30'
+  return 'bg-danger/20 text-danger border-danger/30'
+}
+
+async function cycleSubStatus(child: { playerId: string; subscriptionStatus: string }) {
+  const current = SUB_STATUSES.indexOf(child.subscriptionStatus)
+  const next = SUB_STATUSES[(current + 1) % SUB_STATUSES.length]
+  updatingSubStatus.value = child.playerId
+  try {
+    await $fetch(`/api/players/${child.playerId}/subscription-status`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: { subscriptionStatus: next }
+    })
+    child.subscriptionStatus = next
+  } catch (e) {
+    console.error('Failed to update subscription status', e)
+  } finally {
+    updatingSubStatus.value = null
+  }
+}
 
 // Create Account State
 const isModalOpen = ref(false)
@@ -198,6 +237,12 @@ const linkError = ref<string | null>(null)
 const linkForm = ref({
   playerId: '',
   relationship: 'Father'
+})
+
+const availablePlayers = computed(() => {
+  if (!selectedParentForLink.value) return squad.value
+  const linkedIds = selectedParentForLink.value.children.map(c => c.playerId)
+  return squad.value.filter(p => !linkedIds.includes(p.id))
 })
 
 onMounted(() => {

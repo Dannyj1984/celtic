@@ -20,48 +20,49 @@
 
     <div v-else class="space-y-4">
       <div v-for="match in matches" :key="match.id" class="card p-4 hover:border-celtic-green/50 transition-all group">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-6">
-            <div class="text-center min-w-[80px]">
-              <div class="text-xs text-text-muted uppercase font-bold">{{ new Date(match.date).toLocaleDateString('en-GB', { weekday: 'short' }) }}</div>
-              <div class="text-xl font-bold text-text-primary">{{ new Date(match.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}</div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-4 sm:gap-6">
+            <div class="text-center min-w-[70px] sm:min-w-[80px]">
+              <div class="text-[10px] sm:text-xs text-text-muted uppercase font-bold">{{ new Date(match.date).toLocaleDateString('en-GB', { weekday: 'short' }) }}</div>
+              <div class="text-lg sm:text-xl font-bold text-text-primary">{{ new Date(match.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}</div>
             </div>
             
             <div class="h-10 w-[1px] bg-border"></div>
-
-            <div>
+ 
+            <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span v-if="!match.seasonId" class="badge bg-orange-500/10 text-orange-500 border-orange-500/20">Friendly</span>
-                <span v-else class="text-xs text-text-muted font-medium">{{ match.seasonName }}</span>
-                <span v-if="match.isPublished" class="text-[10px] text-celtic-green font-bold uppercase tracking-wider">● Published</span>
+                <span v-if="!match.seasonId" class="badge bg-orange-500/10 text-orange-500 border-orange-500/20 text-[10px] px-1.5 py-0.5">Friendly</span>
+                <span v-else class="text-[10px] sm:text-xs text-text-muted font-medium">{{ match.seasonName }}</span>
+                <span v-if="match.isPublished" class="text-[9px] sm:text-[10px] text-celtic-green font-bold uppercase tracking-wider">● Published</span>
               </div>
-              <div class="text-lg font-bold text-text-primary">
-                Celtic FC <span class="text-text-muted mx-2">vs</span> {{ match.opposition }}
+              <div class="text-md sm:text-lg font-bold text-text-primary leading-tight">
+                Celtic FC <span class="text-text-muted mx-1 sm:mx-2">vs</span> {{ match.opposition }}
               </div>
-              <div class="text-sm text-text-secondary flex items-center gap-1">
+              <div class="text-xs sm:text-sm text-text-secondary flex items-center gap-1 mt-0.5">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 {{ match.location || 'TBC' }}
               </div>
             </div>
           </div>
-
-          <div class="flex items-center gap-8">
-            <div v-if="new Date(match.date) < new Date()" class="text-center">
-              <div class="text-2xl font-black text-text-primary tracking-widest">
+ 
+          <div class="flex items-center justify-between sm:justify-end gap-4 sm:gap-8 w-full sm:w-auto pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
+            <div v-if="new Date(match.date) < new Date()" class="flex flex-col sm:items-end">
+              <div class="text-xl sm:text-2xl font-black text-text-primary tracking-widest leading-none">
                 {{ match.goalsFor }} - {{ match.goalsAgainst }}
               </div>
-              <div :class="['text-xs font-bold uppercase tracking-widest', 
+              <div :class="['text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-1', 
                 match.result === 'Win' ? 'text-celtic-green' : 
                 match.result === 'Loss' ? 'text-danger' : 'text-text-muted']">
                 {{ match.result }}
               </div>
             </div>
-
-            <div class="flex items-center gap-2">
-              <button @click="openEditModal(match)" class="p-2 text-text-muted hover:text-celtic-gold transition-colors">
+            <div v-else class="hidden sm:block"></div> <!-- Spacer for upcoming matches on desktop -->
+ 
+            <div class="flex items-center gap-1">
+              <button @click="openEditModal(match)" class="p-2 text-text-muted hover:text-celtic-gold transition-colors rounded-lg hover:bg-celtic-gold/10">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
-              <button @click="confirmDelete(match)" class="p-2 text-text-muted hover:text-danger transition-colors">
+              <button @click="confirmDelete(match)" class="p-2 text-text-muted hover:text-danger transition-colors rounded-lg hover:bg-danger/10">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               </button>
             </div>
