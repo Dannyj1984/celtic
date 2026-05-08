@@ -36,7 +36,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://api}
+        - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://celtic-api}
     container_name: celtic-frontend
     restart: always
     environment:
@@ -45,10 +45,13 @@ services:
       - api
     networks:
       - celtic-network
+      - nginx-proxy-net
 
 networks:
   celtic-network:
     driver: bridge
+  nginx-proxy-net:
+    external: true
 
 volumes:
   celtic_data:
