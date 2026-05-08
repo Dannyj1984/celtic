@@ -25,7 +25,7 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER:-celtic-api}
       - Jwt__Audience=${JWT_AUDIENCE:-celtic-app}
-      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:3000,https://footyball.jebbs.online}
+      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:3000,https://footy.jebbs.online}
     depends_on:
       - db
     networks:
@@ -41,9 +41,9 @@ services:
     restart: always
     environment:
       - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://celtic-api}
-      - VIRTUAL_HOST=${DOMAIN:-footyball.jebbs.online}
+      - VIRTUAL_HOST=${DOMAIN:-footy.jebbs.online}
       - VIRTUAL_PORT=3000
-      - LETSENCRYPT_HOST=${DOMAIN:-footyball.jebbs.online}
+      - LETSENCRYPT_HOST=${DOMAIN:-footy.jebbs.online}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
     depends_on:
       - api
