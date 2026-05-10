@@ -86,8 +86,7 @@
         <NuxtLink to="/admin/players"
           class="card p-5 hover:border-celtic-green transition-colors border-dashed border-celtic-green/50 group bg-celtic-green/5">
           <div class="flex flex-col h-full justify-center items-center text-center">
-            <PlusCircleIcon
-              class="w-8 h-8 text-celtic-green mb-2 group-hover:scale-110 transition-transform" />
+            <PlusCircleIcon class="w-8 h-8 text-celtic-green mb-2 group-hover:scale-110 transition-transform" />
             <p class="text-lg font-bold text-celtic-green">Add Player</p>
           </div>
         </NuxtLink>
@@ -113,7 +112,7 @@
               {{ dashboardData.playerName }}
             </p>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex flex-col items-center gap-3">
             <UButton :color="isSubscribed ? 'green' : 'blue'" :variant="isSubscribed ? 'soft' : 'solid'"
               @click="toggleNotifications" :loading="notificationLoading">
               <template #leading>
@@ -138,7 +137,8 @@
                   <div class="flex items-center gap-3">
                     <span class="text-xl font-bold text-text-primary">{{ dashboardData.subscriptionStatus }}</span>
                     <UBadge v-if="dashboardData.subscriptionStatus === 'Active'" color="green" variant="subtle"
-                      size="sm">Paid</UBadge>
+                      size="sm">Paid
+                    </UBadge>
                     <UBadge v-else-if="dashboardData.subscriptionStatus === 'Payment Due'" color="red" variant="subtle"
                       size="sm">Due</UBadge>
                     <UBadge v-else color="gray" variant="subtle" size="sm">Inactive</UBadge>
@@ -470,10 +470,10 @@
 import { computed, ref, reactive, onMounted } from 'vue'
 import type { IDashboardData } from '~/interfaces/Dashboard'
 import { useNotifications } from '~/composables/useNotifications'
-import { 
-  MegaphoneIcon, 
-  PlusCircleIcon, 
-  XMarkIcon, 
+import {
+  MegaphoneIcon,
+  PlusCircleIcon,
+  XMarkIcon,
   PaperAirplaneIcon,
   CalendarDaysIcon,
   UserGroupIcon,
