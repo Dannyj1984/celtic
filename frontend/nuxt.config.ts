@@ -18,6 +18,11 @@ export default defineNuxtConfig({
       description: 'Celtic FC Team Management',
       theme_color: '#006837',
       background_color: '#111827',
+      display: 'standalone',
+      start_url: '/',
+      scope: '/',
+      lang: 'en',
+      orientation: 'portrait',
       icons: [
         {
           src: 'pwa-192x192.png',
@@ -29,12 +34,16 @@ export default defineNuxtConfig({
           sizes: '512x512',
           type: 'image/png'
         }
-      ]
+      ],
     },
+    registerType: 'autoUpdate',
+
     workbox: {
       importScripts: ['/custom-sw.js'],
       navigateFallback: '/'
     },
+
+    injectRegister: 'auto',
     devOptions: {
       enabled: true,
       type: 'module'

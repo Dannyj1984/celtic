@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-surface">
+    <VitePwaManifest />
     <!-- Top Navigation -->
     <nav class="glass sticky top-0 z-50 border-b border-border">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

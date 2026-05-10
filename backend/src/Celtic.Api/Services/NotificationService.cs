@@ -76,9 +76,11 @@ public class NotificationService : INotificationService
         await _db.SaveChangesAsync();
     }
 
-    public async Task UnsubscribeAsync(string endpoint)
+    public async Task UnsubscribeAsync(string endpoint, string userId)
     {
-        var sub = await _db.UserPushSubscriptions.FirstOrDefaultAsync(s => s.Endpoint == endpoint);
+        var sub = await _db.UserPushSubscriptions
+            .FirstOrDefaultAsync(s => s.Endpoint == endpoint && s.UserId == userId);
+        
         if (sub != null)
         {
             _db.UserPushSubscriptions.Remove(sub);

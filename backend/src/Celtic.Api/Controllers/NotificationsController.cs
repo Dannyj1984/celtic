@@ -33,7 +33,10 @@ public class NotificationsController : ControllerBase
     [HttpPost("unsubscribe")]
     public async Task<IActionResult> Unsubscribe([FromBody] UnsubscribeRequest request)
     {
-        await _notificationService.UnsubscribeAsync(request.Endpoint);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        await _notificationService.UnsubscribeAsync(request.Endpoint, userId);
         return Ok();
     }
 

@@ -8,7 +8,7 @@ namespace Celtic.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // All player endpoints require authentication
+[Authorize(Roles = "Admin")] // Only admins can access player management
 public class PlayersController : ControllerBase
 {
     private readonly IPlayerService _playerService;
