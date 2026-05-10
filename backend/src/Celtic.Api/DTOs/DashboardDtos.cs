@@ -15,6 +15,7 @@ public class DashboardDto
     public string CoachWhatsAppNumber { get; set; } = string.Empty;
     public bool AttendingNextTraining { get; set; }
     public bool AttendingNextMatch { get; set; }
+    public string? CoachNotes { get; set; }
 }
 
 public class DashboardMatchDto

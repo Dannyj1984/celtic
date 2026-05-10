@@ -171,6 +171,28 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
     }
 
+    public async Task AdminResetPasswordAsync(AdminResetPasswordRequest request)
+    {
+        var user = await _userManager.FindByIdAsync(request.UserId);
+        if (user == null)
+            throw new KeyNotFoundException("User not found.");
+
+        // Force reset by removing and re-adding password
+        var removeResult = await _userManager.RemovePasswordAsync(user);
+        if (!removeResult.Succeeded)
+        {
+             var errors = string.Join(", ", removeResult.Errors.Select(e => e.Description));
+             throw new InvalidOperationException($"Failed to remove current password: {errors}");
+        }
+
+        var addResult = await _userManager.AddPasswordAsync(user, request.NewPassword);
+        if (!addResult.Succeeded)
+        {
+            var errors = string.Join(", ", addResult.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to set new password: {errors}");
+        }
+    }
+
     private string GenerateJwtToken(ApplicationUser user)
     {
         var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT key not configured");

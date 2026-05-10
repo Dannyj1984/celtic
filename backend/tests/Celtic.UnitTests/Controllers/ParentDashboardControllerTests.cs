@@ -112,6 +112,41 @@ public class ParentDashboardControllerTests
     }
 
     [Fact]
+    public async Task GetDashboard_IncludesCoachNotes_WhenPresent()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        
+        var userId = Guid.NewGuid().ToString();
+        var user = new ApplicationUser { Id = userId, UserName = "parent@test.com", FullName = "Alex" };
+        var player = new Player 
+        { 
+            Id = Guid.NewGuid(), 
+            FirstName = "Leo", 
+            LastName = "Messi", 
+            SubscriptionStatus = "Active",
+            CoachNotes = "Great focus in training today!"
+        };
+        
+        dbContext.Users.Add(user);
+        dbContext.Players.Add(player);
+        dbContext.PlayerParents.Add(new PlayerParent { UserId = userId, PlayerId = player.Id });
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, userId);
+
+        // Act
+        var result = await controller.GetDashboard();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var dto = okResult.Value as DashboardDto;
+        Assert.NotNull(dto);
+        Assert.Equal("Great focus in training today!", dto.CoachNotes);
+    }
+
+    [Fact]
     public async Task RegisterForTraining_ReturnsOk_CreatesEventResponse()
     {
         // Arrange

@@ -59,3 +59,8 @@ public record LinkPlayerRequest(
     [Required] string UserId,
     [Required] string Relationship
 );
+
+public record AdminResetPasswordRequest(
+    [Required] string UserId,
+    [Required] string NewPassword
+);

@@ -6,6 +6,7 @@ export interface IDashboardData {
     coachWhatsAppNumber: string;
     attendingNextTraining: boolean;
     attendingNextMatch: boolean;
+    coachNotes?: string;
     nextMatch: {
         id: string;
         date: string;

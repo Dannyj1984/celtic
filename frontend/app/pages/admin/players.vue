@@ -80,6 +80,10 @@
             <span class="text-xs text-text-muted uppercase tracking-wide">Medical Notes</span>
             <p class="text-sm text-warning mt-1 bg-warning/10 p-2 rounded">{{ player.medicalNotes }}</p>
           </div>
+          <div v-if="player.coachNotes">
+            <span class="text-xs text-text-muted uppercase tracking-wide">Coach Notes</span>
+            <p class="text-sm text-celtic-green mt-1 bg-celtic-green/10 p-2 rounded">{{ player.coachNotes }}</p>
+          </div>
         </div>
 
         <div class="pt-4 mt-4 border-t border-border flex justify-end">
@@ -172,6 +176,12 @@
               placeholder="Allergies, conditions..."></textarea>
           </div>
 
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Coach Notes (Parents only)</label>
+            <textarea v-model="form.coachNotes" class="input min-h-[80px]"
+              placeholder="Feedback for parents..."></textarea>
+          </div>
+
           <div v-if="editingPlayer" class="flex items-center gap-2 mt-2">
             <input type="checkbox" id="isActive" v-model="form.isActive"
               class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4" />
@@ -262,7 +272,8 @@ const form = ref({
   medicalNotes: '',
   isActive: true,
   subscriptionStatus: 'Active',
-  preferredFoot: 'Right'
+  preferredFoot: 'Right',
+  coachNotes: ''
 })
 
 onMounted(() => {
@@ -282,7 +293,8 @@ function openCreateModal() {
     medicalNotes: '',
     isActive: true,
     subscriptionStatus: 'Active',
-    preferredFoot: 'Right'
+    preferredFoot: 'Right',
+    coachNotes: ''
   }
   formError.value = null
   isModalOpen.value = true
@@ -301,7 +313,8 @@ function openEditModal(player: Player) {
     medicalNotes: player.medicalNotes || '',
     isActive: player.isActive,
     subscriptionStatus: player.subscriptionStatus || 'Active',
-    preferredFoot: player.preferredFoot || 'Right'
+    preferredFoot: player.preferredFoot || 'Right',
+    coachNotes: player.coachNotes || ''
   }
   formError.value = null
   isModalOpen.value = true

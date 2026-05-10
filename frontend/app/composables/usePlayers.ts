@@ -27,6 +27,7 @@ export interface Player {
     matchTotal: number
   }
   preferredFoot?: string
+  coachNotes?: string | null
 }
 
 export function usePlayers() {

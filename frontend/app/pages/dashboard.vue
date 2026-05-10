@@ -93,13 +93,16 @@
       </div>
       <div v-else-if="dashboardData">
         <!-- Welcome Section -->
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold text-text-primary">
-            Welcome, {{ dashboardData.parentName.split(' ')[0] }}
-          </h1>
-          <p class="text-text-secondary mt-1 text-lg">
-            {{ dashboardData.playerName }}
-          </p>
+        <div class="mb-8 flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl font-bold text-text-primary">
+              Welcome, {{ dashboardData.parentName.split(' ')[0] }}
+            </h1>
+            <p class="text-text-secondary mt-1 text-lg">
+              {{ dashboardData.playerName }}
+            </p>
+          </div>
+          <UButton color="blue" variant="solid" @click="changePassword">Change Password</UButton>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -219,6 +222,27 @@
               </div>
             </div>
 
+            <!-- Coach Notes -->
+            <div v-if="dashboardData.coachNotes">
+              <h2 class="text-xl font-bold text-text-primary mb-4">Coach's Notes</h2>
+              <UCard class="bg-celtic-green/5 border border-celtic-green/20 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                  <UIcon name="i-heroicons-chat-bubble-bottom-center-text" class="w-24 h-24 text-celtic-green" />
+                </div>
+                <div class="relative">
+                  <p class="text-text-primary leading-relaxed whitespace-pre-line italic">
+                    "{{ dashboardData.coachNotes }}"
+                  </p>
+                  <div class="mt-4 flex items-center gap-2">
+                    <div
+                      class="w-8 h-8 rounded-full bg-celtic-green flex items-center justify-center text-white font-bold text-xs">
+                      C
+                    </div>
+                    <span class="text-sm font-medium text-text-secondary">Danny</span>
+                  </div>
+                </div>
+              </UCard>
+            </div>
           </div>
 
           <!-- Right Column -->
@@ -346,6 +370,38 @@
           </template>
         </UCard>
       </UModal>
+
+      <!-- Change Password Modal -->
+      <UModal v-model="isChangePasswordModalOpen">
+        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                Change Password
+              </h3>
+              <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1"
+                @click="isChangePasswordModalOpen = false" />
+            </div>
+          </template>
+
+          <form @submit.prevent="submitChangePassword" class="space-y-4" data-testid="change-password-form">
+            <UFormGroup label="Current Password" required>
+              <UInput v-model="passwordForm.currentPassword" type="password" required />
+            </UFormGroup>
+            <UFormGroup label="New Password" required>
+              <UInput v-model="passwordForm.newPassword" type="password" required minlength="6" />
+            </UFormGroup>
+            <UFormGroup label="Confirm New Password" required>
+              <UInput v-model="passwordForm.confirmPassword" type="password" required minlength="6" />
+            </UFormGroup>
+
+            <div class="flex justify-end gap-3 mt-6">
+              <UButton color="gray" variant="ghost" @click="isChangePasswordModalOpen = false">Cancel</UButton>
+              <UButton type="submit" color="blue" :loading="changingPassword">Update Password</UButton>
+            </div>
+          </form>
+        </UCard>
+      </UModal>
     </div>
   </div>
 </template>
@@ -441,6 +497,47 @@ const submitBulkRsvp = async () => {
     toast.add({ title: 'Error', description: 'Could not update attendance.', color: 'red' })
   } finally {
     submittingRsvp.value = false
+  }
+}
+
+// Change Password Logic
+const isChangePasswordModalOpen = ref(false)
+const changingPassword = ref(false)
+const passwordForm = reactive({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const changePassword = () => {
+  passwordForm.currentPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.confirmPassword = ''
+  isChangePasswordModalOpen.value = true
+}
+
+const submitChangePassword = async () => {
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    toast.add({ title: 'Error', description: 'Passwords do not match.', color: 'red' })
+    return
+  }
+
+  changingPassword.value = true
+  try {
+    await $fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      }
+    })
+    toast.add({ title: 'Success', description: 'Password changed successfully.', color: 'green' })
+    isChangePasswordModalOpen.value = false
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err?.data?.message || 'Failed to change password.', color: 'red' })
+  } finally {
+    changingPassword.value = false
   }
 }
 </script>

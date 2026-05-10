@@ -118,4 +118,28 @@ public class AuthController : ControllerBase
         await _authService.LinkPlayerToParentAsync(request);
         return Ok(new { message = "Player linked successfully." });
     }
+
+    [HttpPost("reset-password")]
+    [Authorize]
+    public async Task<IActionResult> ResetPassword([FromBody] AdminResetPasswordRequest request)
+    {
+        // Only admins can reset passwords
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can reset passwords." });
+
+        try
+        {
+            await _authService.AdminResetPasswordAsync(request);
+            return Ok(new { message = "Password reset successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 }

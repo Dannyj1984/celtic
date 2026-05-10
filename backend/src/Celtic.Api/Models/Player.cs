@@ -14,6 +14,7 @@ public class Player
     public bool IsActive { get; set; } = true;
     public string SubscriptionStatus { get; set; } = "Active";
     public string PreferredFoot { get; set; } = "Right";
+    public string? CoachNotes { get; set; }
 
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();

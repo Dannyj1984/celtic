@@ -23,6 +23,12 @@
       <div v-for="parent in parents" :key="parent.userId" class="card p-6 relative">
         <h3 class="text-lg font-bold text-text-primary mb-1">{{ parent.fullName }}</h3>
         
+        <div class="absolute top-6 right-6">
+          <button @click="openResetModal(parent)" class="text-[10px] text-text-muted hover:text-danger font-bold uppercase transition-colors">
+            Reset Password
+          </button>
+        </div>
+        
         <div class="mt-4 space-y-2">
           <div class="flex items-center gap-2 text-sm text-text-secondary">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -169,6 +175,35 @@
         </form>
       </div>
     </div>
+
+    <!-- Reset Password Modal -->
+    <div v-if="isResetModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div class="card w-full max-w-md p-6 animate-fade-in shadow-2xl border-danger/30">
+        <h2 class="text-xl font-bold text-text-primary mb-2">Reset Password</h2>
+        <p class="text-sm text-text-secondary mb-6">
+          Set a new temporary password for <span class="font-bold text-text-primary">{{ selectedParentForReset?.fullName }}</span>
+        </p>
+
+        <form @submit.prevent="submitResetForm" class="space-y-4 text-left">
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">New Password *</label>
+            <input v-model="resetForm.password" type="password" class="input" placeholder="••••••••" required minlength="6" />
+            <p class="text-xs text-text-muted mt-1">Must be at least 6 characters with a number.</p>
+          </div>
+
+          <div v-if="resetError" class="text-danger text-sm mt-2">
+            {{ resetError }}
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+            <button type="button" @click="isResetModalOpen = false" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary" :disabled="resetSaving">
+              {{ resetSaving ? 'Resetting...' : 'Update Password' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -237,6 +272,15 @@ const linkError = ref<string | null>(null)
 const linkForm = ref({
   playerId: '',
   relationship: 'Father'
+})
+
+// Reset Password State
+const isResetModalOpen = ref(false)
+const selectedParentForReset = ref<ParentAccount | null>(null)
+const resetSaving = ref(false)
+const resetError = ref<string | null>(null)
+const resetForm = ref({
+  password: ''
 })
 
 const availablePlayers = computed(() => {
@@ -327,6 +371,39 @@ async function submitLinkForm() {
   }
   
   linkSaving.value = false
+}
+
+// Reset Password Functions
+function openResetModal(parent: ParentAccount) {
+  selectedParentForReset.value = parent
+  resetForm.value.password = ''
+  resetError.value = null
+  isResetModalOpen.value = true
+}
+
+async function submitResetForm() {
+  if (!selectedParentForReset.value) return
+  
+  resetSaving.value = true
+  resetError.value = null
+  
+  try {
+    await $fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: {
+        userId: selectedParentForReset.value.userId,
+        newPassword: resetForm.value.password
+      }
+    })
+    
+    isResetModalOpen.value = false
+    // You could add a toast notification here if you have one
+  } catch (err: any) {
+    resetError.value = err?.data?.message || 'Failed to reset password'
+  } finally {
+    resetSaving.value = false
+  }
 }
 </script>
 

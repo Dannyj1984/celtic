@@ -78,4 +78,25 @@ public class ChangePasswordTests : IClassFixture<CustomWebApplicationFactory>
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task ChangePassword_WithTooShortNewPassword_Returns400()
+    {
+        await using var factory = new CustomWebApplicationFactory();
+        var client = factory.CreateClient();
+
+        // Arrange — login as admin
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login",
+            new LoginRequest("admin@celtic.app", "Admin123!"));
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginResult!.Token);
+
+        var request = new ChangePasswordRequest("Admin123!", "123"); // Too short
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/auth/change-password", request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

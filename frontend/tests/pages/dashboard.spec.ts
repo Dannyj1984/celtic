@@ -7,9 +7,11 @@ import { ref } from 'vue'
 vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
 
+const isAdminMock = ref(false)
+
 vi.stubGlobal('useAuth', vi.fn(() => ({
   user: ref({ fullName: 'Alex', email: 'parent@test.com' }),
-  isAdmin: ref(false),
+  isAdmin: isAdminMock,
   logout: vi.fn(),
   getAuthHeaders: vi.fn(() => ({}))
 })))
@@ -36,10 +38,19 @@ const mockDashboardData = ref({
     location: 'Riverside Sports Complex'
   },
   performance: {
-    totalRecentSessions: 10,
-    attendedSessions: 9
+    training: {
+      totalSessions: 10,
+      attendedSessions: 9,
+      percentage: 90
+    },
+    matches: {
+      totalSessions: 10,
+      attendedSessions: 9,
+      percentage: 90
+    }
   },
   coachWhatsAppNumber: '1234567890'
+
 })
 
 vi.stubGlobal('useFetch', vi.fn(() => ({
@@ -51,6 +62,7 @@ vi.stubGlobal('useFetch', vi.fn(() => ({
 describe('Dashboard Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    isAdminMock.value = false
   })
 
   it('renders dashboard content correctly', () => {
@@ -63,7 +75,10 @@ describe('Dashboard Page', () => {
           UBadge: { template: '<span><slot /></span>' },
           UCard: { template: '<div><slot /></div>' },
           UProgress: { template: '<div><slot /></div>' },
-          UMeter: { template: '<div><slot /></div>' }
+          UMeter: { template: '<div><slot /></div>' },
+          UModal: { template: '<div><slot /></div>' },
+          UFormGroup: { template: '<div><slot /></div>' },
+          UInput: { template: '<input />' }
         }
       }
     })
@@ -88,5 +103,68 @@ describe('Dashboard Page', () => {
     // Check Performance
     expect(wrapper.text()).toContain('Season Performance')
     expect(wrapper.text()).toContain('90%')
+  })
+  it('renders Change Password button for non admin users', () => {
+    const wrapper = mount(Dashboard, {
+      global: {
+        stubs: {
+          NuxtLink: { template: '<a><slot /></a>' },
+          UIcon: { template: '<span></span>' },
+          UButton: { template: '<button><slot /></button>' },
+          UBadge: { template: '<span><slot /></span>' },
+          UCard: { template: '<div><slot /></div>' },
+          UProgress: { template: '<div><slot /></div>' },
+          UMeter: { template: '<div><slot /></div>' },
+          UModal: { template: '<div><slot /></div>' },
+          UFormGroup: { template: '<div><slot /></div>' },
+          UInput: { template: '<input />' }
+        }
+      }
+    })
+    // Check Change Password button
+    expect(wrapper.text()).toContain('Change Password')
+  })
+  it('does not render the Change Password button for admin users', () => {
+    isAdminMock.value = true
+    const wrapper = mount(Dashboard, {
+      global: {
+        stubs: {
+          NuxtLink: { template: '<a><slot /></a>' },
+          UIcon: { template: '<span></span>' },
+          UButton: { template: '<button><slot /></button>' },
+          UBadge: { template: '<span><slot /></span>' },
+          UCard: { template: '<div><slot /></div>' },
+          UProgress: { template: '<div><slot /></div>' },
+          UMeter: { template: '<div><slot /></div>' },
+          UModal: { template: '<div><slot /></div>' },
+          UFormGroup: { template: '<div><slot /></div>' },
+          UInput: { template: '<input />' }
+        }
+      }
+    })
+    // Check Change Password button
+    expect(wrapper.text()).not.toContain('Change Password')
+  })
+  it('opens the change password modal when the Change Password button is clicked', async () => {
+    const wrapper = mount(Dashboard, {
+      global: {
+        stubs: {
+          NuxtLink: { template: '<a><slot /></a>' },
+          UIcon: { template: '<span></span>' },
+          UButton: { template: '<button><slot /></button>' },
+          UBadge: { template: '<span><slot /></span>' },
+          UCard: { template: '<div><slot /></div>' },
+          UProgress: { template: '<div><slot /></div>' },
+          UMeter: { template: '<div><slot /></div>' },
+          UModal: { template: '<div><slot /></div>' },
+          UFormGroup: { template: '<div><slot /></div>' },
+          UInput: { template: '<input />' }
+        }
+      }
+    })
+    // Check Change Password button
+    await wrapper.find('button').trigger('click')
+    const changePasswordForm = wrapper.find('[data-testid="change-password-form"]')
+    expect(changePasswordForm).toBeTruthy()
   })
 })

@@ -16,7 +16,8 @@ public record PlayerDto(
     string SubscriptionStatus,
     List<PlayerParentDto> Parents,
     PlayerAttendanceDto? Attendance = null,
-    string PreferredFoot = "Right"
+    string PreferredFoot = "Right",
+    string? CoachNotes = null
 );
 
 public record PlayerAttendanceDto(
@@ -47,7 +48,8 @@ public record CreatePlayerRequest(
     string? EmergencyPhone,
     string? EmergencyContact2,
     string? EmergencyPhone2,
-    string PreferredFoot = "Right"
+    string PreferredFoot = "Right",
+    string? CoachNotes = null
 );
 
 public record UpdatePlayerRequest(
@@ -61,5 +63,6 @@ public record UpdatePlayerRequest(
     string? EmergencyPhone2,
     bool IsActive,
     string SubscriptionStatus,
-    string PreferredFoot = "Right"
+    string PreferredFoot = "Right",
+    string? CoachNotes = null
 );

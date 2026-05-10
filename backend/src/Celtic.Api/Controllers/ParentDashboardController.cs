@@ -89,7 +89,8 @@ public class ParentDashboardController : ControllerBase
             AttendingNextTraining = nextTrainingEvent != null && await _context.EventResponses
                 .AnyAsync(er => er.EventId == nextTrainingEvent.Id && er.PlayerId == playerParent.PlayerId && er.Status == "Attending"),
             AttendingNextMatch = nextMatchEvent != null && await _context.EventResponses
-                .AnyAsync(er => er.EventId == nextMatchEvent.Id && er.PlayerId == playerParent.PlayerId && er.Status == "Attending")
+                .AnyAsync(er => er.EventId == nextMatchEvent.Id && er.PlayerId == playerParent.PlayerId && er.Status == "Attending"),
+            CoachNotes = playerParent.Player.CoachNotes
         };
 
         if (nextMatchEvent != null && nextMatchEvent.Match != null)
