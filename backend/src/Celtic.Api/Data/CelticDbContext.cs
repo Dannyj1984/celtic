@@ -19,6 +19,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<ClubSettings> ClubSettings => Set<ClubSettings>();
+    public DbSet<UserPushSubscription> UserPushSubscriptions => Set<UserPushSubscription>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

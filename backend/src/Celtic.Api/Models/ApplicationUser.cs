@@ -11,4 +11,5 @@ public class ApplicationUser : IdentityUser
 
     // Navigation
     public ICollection<PlayerParent> PlayerLinks { get; set; } = new List<PlayerParent>();
+    public ICollection<UserPushSubscription> PushSubscriptions { get; set; } = new List<UserPushSubscription>();
 }

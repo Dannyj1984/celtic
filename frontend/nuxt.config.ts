@@ -8,7 +8,38 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxt/ui',
+    '@vite-pwa/nuxt'
   ],
+
+  pwa: {
+    manifest: {
+      name: 'Celtic FC',
+      short_name: 'Celtic',
+      description: 'Celtic FC Team Management',
+      theme_color: '#006837',
+      background_color: '#111827',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        }
+      ]
+    },
+    workbox: {
+      importScripts: ['/custom-sw.js'],
+      navigateFallback: '/'
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module'
+    }
+  },
 
   tailwindcss: {
     configPath: 'tailwind.config.ts',
@@ -17,6 +48,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:5233',
+      vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || 'BCDkFDo1v8ekozayIWpwhOpauvaMTm8AQKq0Yn0XnhIa0SSG4wTqLbcqbAW2FafCKNv_fGy1nTueUZOpysWrjxs'
     },
   },
 

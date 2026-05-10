@@ -15,7 +15,7 @@
         <NuxtLink to="/admin/players" class="card p-5 hover:border-celtic-green transition-colors group">
           <div class="flex flex-col h-full">
             <div class="p-2 bg-celtic-green/10 rounded-lg w-fit mb-3 group-hover:bg-celtic-green/20 transition-colors">
-              <UIcon name="i-heroicons-user-group" class="w-6 h-6 text-celtic-green" />
+              <UserGroupIcon class="w-6 h-6 text-celtic-green" />
             </div>
             <p class="text-white text-sm font-medium uppercase tracking-wide">Squad</p>
             <p class="text-xl font-bold text-text-tertiary mt-1">Players &rarr;</p>
@@ -25,7 +25,7 @@
         <NuxtLink to="/admin/schedule" class="card p-5 hover:border-celtic-green transition-colors group">
           <div class="flex flex-col h-full">
             <div class="p-2 bg-blue-500/10 rounded-lg w-fit mb-3 group-hover:bg-blue-500/20 transition-colors">
-              <UIcon name="i-heroicons-calendar-days" class="w-6 h-6 text-blue-500" />
+              <CalendarDaysIcon class="w-6 h-6 text-blue-500" />
             </div>
             <p class="text-white text-sm font-medium uppercase tracking-wide">Schedule</p>
             <p class="text-xl font-bold text-text-tertiary mt-1">Events &rarr;</p>
@@ -35,7 +35,7 @@
         <NuxtLink to="/admin/matches" class="card p-5 hover:border-celtic-green transition-colors group">
           <div class="flex flex-col h-full">
             <div class="p-2 bg-celtic-gold/10 rounded-lg w-fit mb-3 group-hover:bg-celtic-gold/20 transition-colors">
-              <UIcon name="i-heroicons-trophy" class="w-6 h-6 text-celtic-gold" />
+              <TrophyIcon class="w-6 h-6 text-celtic-gold" />
             </div>
             <p class="text-white text-sm font-medium uppercase tracking-wide">Matches</p>
             <p class="text-xl font-bold text-text-tertiary mt-1">Results &rarr;</p>
@@ -45,7 +45,7 @@
         <NuxtLink to="/admin/seasons" class="card p-5 hover:border-celtic-green transition-colors group">
           <div class="flex flex-col h-full">
             <div class="p-2 bg-purple-500/10 rounded-lg w-fit mb-3 group-hover:bg-purple-500/20 transition-colors">
-              <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-purple-500" />
+              <ChartBarIcon class="w-6 h-6 text-purple-500" />
             </div>
             <p class="text-white text-sm font-medium uppercase tracking-wide">Seasons</p>
             <p class="text-xl font-bold text-text-tertiary mt-1">History &rarr;</p>
@@ -55,7 +55,7 @@
         <NuxtLink to="/admin/parents" class="card p-5 hover:border-celtic-green transition-colors group">
           <div class="flex flex-col h-full">
             <div class="p-2 bg-orange-500/10 rounded-lg w-fit mb-3 group-hover:bg-orange-500/20 transition-colors">
-              <UIcon name="i-heroicons-users" class="w-6 h-6 text-orange-500" />
+              <UsersIcon class="w-6 h-6 text-orange-500" />
             </div>
             <p class="text-white text-sm font-medium uppercase tracking-wide">Parents</p>
             <p class="text-xl font-bold text-text-tertiary mt-1">Contacts &rarr;</p>
@@ -65,17 +65,28 @@
         <NuxtLink to="/admin/settings" class="card p-5 hover:border-celtic-green transition-colors group">
           <div class="flex flex-col h-full">
             <div class="p-2 bg-gray-500/10 rounded-lg w-fit mb-3 group-hover:bg-gray-500/20 transition-colors">
-              <UIcon name="i-heroicons-cog-6-tooth" class="w-6 h-6 text-gray-500" />
+              <Cog6ToothIcon class="w-6 h-6 text-gray-500" />
             </div>
             <p class="text-white text-sm font-medium uppercase tracking-wide">Settings</p>
             <p class="text-xl font-bold text-text-tertiary mt-1">Club &rarr;</p>
           </div>
         </NuxtLink>
 
+        <button @click="showAnnouncementModal"
+          class="card p-5 hover:border-celtic-green transition-colors group text-left">
+          <div class="flex flex-col h-full">
+            <div class="p-2 bg-pink-500/10 rounded-lg w-fit mb-3 group-hover:bg-pink-500/20 transition-colors">
+              <MegaphoneIcon class="w-6 h-6 text-pink-500" />
+            </div>
+            <p class="text-white text-sm font-medium uppercase tracking-wide">Push</p>
+            <p class="text-xl font-bold text-text-tertiary mt-1">Announce &rarr;</p>
+          </div>
+        </button>
+
         <NuxtLink to="/admin/players"
           class="card p-5 hover:border-celtic-green transition-colors border-dashed border-celtic-green/50 group bg-celtic-green/5">
           <div class="flex flex-col h-full justify-center items-center text-center">
-            <UIcon name="i-heroicons-plus-circle"
+            <PlusCircleIcon
               class="w-8 h-8 text-celtic-green mb-2 group-hover:scale-110 transition-transform" />
             <p class="text-lg font-bold text-celtic-green">Add Player</p>
           </div>
@@ -102,7 +113,16 @@
               {{ dashboardData.playerName }}
             </p>
           </div>
-          <UButton color="blue" variant="solid" @click="changePassword">Change Password</UButton>
+          <div class="flex items-center gap-3">
+            <UButton :color="isSubscribed ? 'green' : 'blue'" :variant="isSubscribed ? 'soft' : 'solid'"
+              @click="toggleNotifications" :loading="notificationLoading">
+              <template #leading>
+                <component :is="isSubscribed ? BellSlashIcon : BellIcon" class="w-5 h-5" />
+              </template>
+              {{ isSubscribed ? 'Notifications Enabled' : 'Enable Notifications' }}
+            </UButton>
+            <UButton color="blue" variant="solid" @click="changePassword">Change Password</UButton>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -142,7 +162,7 @@
                   class="bg-bg-card border border-border-color shadow-sm hover:border-celtic-green transition-colors">
                   <div class="flex justify-between items-start mb-4">
                     <div class="p-2 bg-celtic-green/10 rounded-lg">
-                      <UIcon name="i-heroicons-calendar-days-20-solid" class="w-6 h-6 text-celtic-green" />
+                      <CalendarDaysIcon class="w-6 h-6 text-celtic-green" />
                     </div>
                     <UBadge color="primary" variant="subtle">Match</UBadge>
                   </div>
@@ -155,12 +175,12 @@
                   <div class="flex justify-between">
                     <p v-if="dashboardData.nextMatch?.location"
                       class="text-sm text-text-secondary flex items-center gap-1">
-                      <UIcon name="i-heroicons-map-pin-20-solid" class="w-4 h-4" />
+                      <MapPinIcon class="w-4 h-4" />
                       {{ dashboardData.nextMatch.location }}
                     </p>
                     <p v-if="dashboardData.attendingNextMatch"
                       class="text-sm text-text-secondary flex items-center gap-1">
-                      <UIcon name="i-heroicons-check-circle-20-solid" class="w-8 h-8 text-celtic-green" />
+                      <CheckCircleIcon class="w-8 h-8 text-celtic-green" />
                     </p>
                   </div>
                 </UCard>
@@ -170,7 +190,7 @@
                   class="bg-bg-card border border-border-color shadow-sm hover:border-celtic-green transition-colors">
                   <div class="flex justify-between items-start mb-4">
                     <div class="p-2 bg-blue-500/10 rounded-lg">
-                      <UIcon name="i-heroicons-bolt-20-solid" class="w-6 h-6 text-blue-500" />
+                      <BoltIcon class="w-6 h-6 text-blue-500" />
                     </div>
                     <UBadge color="blue" variant="subtle">Training</UBadge>
                   </div>
@@ -183,12 +203,12 @@
                   <div class="flex justify-between">
                     <p v-if="dashboardData.trainingSchedule?.location"
                       class="text-sm text-text-secondary flex items-center gap-1">
-                      <UIcon name="i-heroicons-map-pin-20-solid" class="w-4 h-4" />
+                      <MapPinIcon class="w-4 h-4" />
                       {{ dashboardData.trainingSchedule.location }}
                     </p>
                     <p v-if="dashboardData.attendingNextTraining"
                       class="text-sm text-text-secondary flex items-center gap-1">
-                      <UIcon name="i-heroicons-check-circle-20-solid" class="w-8 h-8 text-celtic-green" />
+                      <CheckCircleIcon class="w-8 h-8 text-celtic-green" />
                     </p>
                   </div>
 
@@ -210,13 +230,13 @@
                 <UButton color="gray" variant="solid"
                   class="flex flex-col items-center justify-center h-24 gap-2 !bg-bg-card border border-border-color hover:border-celtic-green hover:!bg-celtic-green/5 transition-all"
                   @click="registerForTraining" :loading="pending">
-                  <UIcon name="i-heroicons-check-circle-20-solid" class="w-6 h-6 text-celtic-green" />
+                  <CheckCircleIcon class="w-6 h-6 text-celtic-green" />
                   <span class="text-xs font-medium text-center whitespace-normal">Register for Training</span>
                 </UButton>
                 <UButton color="gray" variant="solid"
                   class="flex flex-col items-center justify-center h-24 gap-2 !bg-bg-card border border-border-color hover:border-blue-500 hover:!bg-blue-500/5 transition-all"
                   @click="confirmMatch" :loading="pending">
-                  <UIcon name="i-heroicons-calendar-days-20-solid" class="w-6 h-6 text-blue-500" />
+                  <CalendarDaysIcon class="w-6 h-6 text-blue-500" />
                   <span class="text-xs font-medium text-center whitespace-normal">Confirm Availability</span>
                 </UButton>
               </div>
@@ -227,7 +247,7 @@
               <h2 class="text-xl font-bold text-text-primary mb-4">Coach's Notes</h2>
               <UCard class="bg-celtic-green/5 border border-celtic-green/20 shadow-sm relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
-                  <UIcon name="i-heroicons-chat-bubble-bottom-center-text" class="w-24 h-24 text-celtic-green" />
+                  <ChatBubbleBottomCenterTextIcon class="w-24 h-24 text-celtic-green" />
                 </div>
                 <div class="relative">
                   <p class="text-text-primary leading-relaxed whitespace-pre-line italic">
@@ -402,13 +422,72 @@
           </form>
         </UCard>
       </UModal>
+
+
     </div>
+    <UModal v-model="isAnnouncementModalOpen">
+      <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+              Send Team Announcement
+            </h3>
+            <UButton color="gray" variant="ghost" class="-my-1" @click="isAnnouncementModalOpen = false">
+              <template #leading>
+                <XMarkIcon class="w-5 h-5" />
+              </template>
+            </UButton>
+          </div>
+        </template>
+
+        <form @submit.prevent="sendAnnouncement" class="space-y-4">
+          <UFormGroup label="Title" required>
+            <UInput v-model="announcementForm.title" placeholder="e.g. Training Update" required />
+          </UFormGroup>
+          <UFormGroup label="Message" required>
+            <UTextarea v-model="announcementForm.message" placeholder="Type your message here..." required />
+          </UFormGroup>
+          <UFormGroup label="Link (optional)">
+            <UInput v-model="announcementForm.url" placeholder="/admin/schedule" />
+          </UFormGroup>
+
+          <div class="flex justify-end gap-3 mt-6">
+            <UButton color="gray" variant="ghost" @click="isAnnouncementModalOpen = false">Cancel</UButton>
+            <UButton color="pink" type="submit" :loading="sendingAnnouncement">
+              <template #leading>
+                <PaperAirplaneIcon class="w-5 h-5" />
+              </template>
+              Send to All
+            </UButton>
+          </div>
+        </form>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import type { IDashboardData } from '~/interfaces/Dashboard'
+import { useNotifications } from '~/composables/useNotifications'
+import { 
+  MegaphoneIcon, 
+  PlusCircleIcon, 
+  XMarkIcon, 
+  PaperAirplaneIcon,
+  CalendarDaysIcon,
+  UserGroupIcon,
+  TrophyIcon,
+  ChartBarIcon,
+  UsersIcon,
+  Cog6ToothIcon,
+  BoltIcon,
+  MapPinIcon,
+  CheckCircleIcon,
+  ChatBubbleBottomCenterTextIcon,
+  BellIcon,
+  BellSlashIcon
+} from '@heroicons/vue/24/solid'
 
 definePageMeta({
   layout: 'app',
@@ -422,6 +501,25 @@ useHead({
 })
 
 const { user, isAdmin, getAuthHeaders } = useAuth()
+const { isSubscribed, subscribe, unsubscribe, checkSubscription, loading: notificationLoading } = useNotifications()
+
+onMounted(() => {
+  checkSubscription()
+})
+
+const toggleNotifications = async () => {
+  if (isSubscribed.value) {
+    await unsubscribe()
+    toast.add({ title: 'Notifications Disabled', description: 'You will no longer receive push alerts.', color: 'gray' })
+  } else {
+    try {
+      await subscribe()
+      toast.add({ title: 'Success', description: 'Notifications enabled!', color: 'green' })
+    } catch (e: any) {
+      toast.add({ title: 'Error', description: e.message || 'Failed to enable notifications.', color: 'red' })
+    }
+  }
+}
 
 // Fetch dashboard data
 const { data: dashboardData, pending, error } = useFetch<IDashboardData>('/api/parent/dashboard', {
@@ -444,6 +542,46 @@ const matchPercentage = computed(() => {
 })
 
 const toast = useToast()
+
+// Announcement Logic
+const isAnnouncementModalOpen = ref(false)
+const sendingAnnouncement = ref(false)
+const announcementForm = reactive({
+  title: '',
+  message: '',
+  url: ''
+})
+
+const showAnnouncementModal = () => {
+  if (!isAdmin.value) return
+  announcementForm.title = ''
+  announcementForm.message = ''
+  announcementForm.url = ''
+  isAnnouncementModalOpen.value = true
+}
+
+const sendAnnouncement = async () => {
+  sendingAnnouncement.value = true
+  try {
+    await $fetch('/api/notifications/send-test', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: {
+        ...announcementForm,
+        toAll: true
+      }
+    })
+    toast.add({ title: 'Success', description: 'Announcement sent to all devices!', color: 'green' })
+    isAnnouncementModalOpen.value = false
+    announcementForm.title = ''
+    announcementForm.message = ''
+    announcementForm.url = ''
+  } catch (e) {
+    toast.add({ title: 'Error', description: 'Failed to send announcement.', color: 'red' })
+  } finally {
+    sendingAnnouncement.value = false
+  }
+}
 
 // RSVP Logic
 const isRsvpModalOpen = ref(false)
