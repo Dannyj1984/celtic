@@ -8,8 +8,16 @@
 </template>
 
 <script setup lang="ts">
-// The auth middleware handles redirecting to /login or /dashboard
 definePageMeta({
   layout: 'default',
 })
+
+const { isAuthenticated } = useAuth()
+
+// Redirect immediately based on auth state
+if (isAuthenticated.value) {
+  navigateTo('/dashboard', { replace: true })
+} else {
+  navigateTo('/login', { replace: true })
+}
 </script>
