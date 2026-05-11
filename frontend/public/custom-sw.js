@@ -22,27 +22,27 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    (self as any).registration.showNotification(title, options)
+    self.registration.showNotification(title, options)
   );
 });
 
-self.addEventListener('notificationclick', (event: any) => {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const urlToOpen = event.notification.data.url || '/';
 
   event.waitUntil(
-    (self as any).clients.matchAll({
+    self.clients.matchAll({
       type: 'window',
       includeUncontrolled: true
-    }).then((windowClients: any[]) => {
+    }).then((windowClients) => {
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
         if (client.url === urlToOpen && 'focus' in client) {
           return client.focus();
         }
       }
-      if ((self as any).clients.openWindow) {
-        return (self as any).clients.openWindow(urlToOpen);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
       }
     })
   );

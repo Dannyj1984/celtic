@@ -36,7 +36,7 @@ export default defineNuxtConfig({
         }
       ],
     },
-    registerType: 'autoUpdate',
+    registerType: 'prompt',
 
     workbox: {
       importScripts: ['/custom-sw.js'],
@@ -45,8 +45,7 @@ export default defineNuxtConfig({
 
     injectRegister: 'auto',
     devOptions: {
-      enabled: true,
-      type: 'module'
+      enabled: true
     }
   },
 
