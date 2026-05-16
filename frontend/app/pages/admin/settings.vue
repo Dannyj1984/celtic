@@ -46,8 +46,14 @@
               <UInput v-model="state.trainingEndTime" type="time" />
             </UFormGroup>
           </div>
-          <UFormGroup label="Next Training Focus" name="trainingFocus" class="mt-4" help="Visible to parents on the dashboard">
+          <UFormGroup label="Next Training Focus" name="trainingFocus" class="mt-4"
+            help="Visible to parents on the dashboard">
             <UTextarea v-model="state.trainingFocus" placeholder="e.g. Defensive positioning and 1v1 drills" />
+          </UFormGroup>
+          <UFormGroup label="Good to know details" name="goodToKnow" class="mt-4"
+            help="Visible to parents on the dashboard">
+            <UTextarea v-model="state.goodToKnow" placeholder="e.g. Please bring warm clothes"
+              data-testid="goodToKnow-input" />
           </UFormGroup>
         </div>
 
@@ -106,7 +112,8 @@ const state = ref({
   trainingEndTime: '18:30',
   trainingLocation: '',
   coachWhatsAppNumber: '',
-  trainingFocus: ''
+  trainingFocus: '',
+  goodToKnow: ''
 })
 
 watch(settings, (newVal) => {
@@ -118,6 +125,7 @@ watch(settings, (newVal) => {
     state.value.trainingLocation = newVal.trainingLocation || ''
     state.value.coachWhatsAppNumber = newVal.coachWhatsAppNumber || ''
     state.value.trainingFocus = newVal.trainingFocus || ''
+    state.value.goodToKnow = newVal.goodToKnow || ''
   }
 }, { immediate: true })
 
@@ -131,7 +139,8 @@ const saveSettings = async () => {
       trainingEndTime: state.value.trainingEndTime + ':00',
       trainingLocation: state.value.trainingLocation,
       coachWhatsAppNumber: state.value.coachWhatsAppNumber,
-      trainingFocus: state.value.trainingFocus
+      trainingFocus: state.value.trainingFocus,
+      goodToKnow: state.value.goodToKnow
     }
 
     await $fetch('/api/settings', {

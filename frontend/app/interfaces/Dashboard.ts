@@ -20,6 +20,7 @@ export interface IDashboardData {
         endTime: string;
         location: string;
         trainingFocus?: string;
+        goodToKnow?: string;
     };
     performance: {
         training: {

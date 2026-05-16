@@ -6,6 +6,18 @@ import { ref } from 'vue'
 // Mocking Nuxt and Auth composables
 vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
+vi.stubGlobal('useRuntimeConfig', vi.fn(() => ({ public: { vapidPublicKey: 'test-key' } })))
+
+vi.mock('~/composables/useNotifications', () => ({
+  useNotifications: () => ({
+    isSupported: ref(true),
+    isSubscribed: ref(false),
+    loading: ref(false),
+    checkSubscription: vi.fn(),
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn()
+  })
+}))
 
 const isAdminMock = ref(false)
 
@@ -35,7 +47,8 @@ const mockDashboardData = ref({
     day: 'Wednesday',
     startTime: '17:30',
     endTime: '19:00',
-    location: 'Riverside Sports Complex'
+    location: 'Riverside Sports Complex',
+    goodToKnow: 'Some important info'
   },
   performance: {
     training: {
@@ -103,6 +116,10 @@ describe('Dashboard Page', () => {
     // Check Performance
     expect(wrapper.text()).toContain('Season Performance')
     expect(wrapper.text()).toContain('90%')
+
+    // Check Good to know
+    expect(wrapper.text()).toContain('Good to Know')
+    expect(wrapper.text()).toContain('Some important info')
   })
   it('renders Change Password button for non admin users', () => {
     const wrapper = mount(Dashboard, {

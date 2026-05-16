@@ -147,7 +147,7 @@
                 <div class="text-right" v-if="dashboardData.nextSubPaymentDate">
                   <p class="text-xs text-text-muted mb-1">Next Payment</p>
                   <p class="text-sm font-medium text-text-primary">
-                    {{ new Date(dashboardData.nextSubPaymentDate).toLocaleDateString() }}
+                    {{ new Date(dashboardData.nextSubPaymentDate).toDateString() }}
                   </p>
                 </div>
               </div>
@@ -172,16 +172,34 @@
                     {{ dashboardData.nextMatch ? new Date(dashboardData.nextMatch.date).toLocaleDateString() :
                       'Noupcoming matches' }}
                   </p>
-                  <div class="flex justify-between">
+                  <div class="flex justify-between items-center">
                     <p v-if="dashboardData.nextMatch?.location"
                       class="text-sm text-text-secondary flex items-center gap-1">
                       <MapPinIcon class="w-4 h-4" />
                       {{ dashboardData.nextMatch.location }}
                     </p>
-                    <p v-if="dashboardData.attendingNextMatch"
-                      class="text-sm text-text-secondary flex items-center gap-1">
-                      <CheckCircleIcon class="w-8 h-8 text-celtic-green" />
-                    </p>
+                    <div class="flex items-center gap-1">
+                      <p v-if="dashboardData.attendingNextMatch"
+                        class="text-sm text-text-secondary flex items-center gap-1">
+                        <CheckCircleIcon class="w-8 h-8 text-celtic-green" />
+                      </p>
+                      <UButton v-if="dashboardData.nextMatch?.location" color="gray" variant="ghost" size="xs" square
+                        @click="openInMaps(dashboardData.nextMatch.location)">
+                        <MapPinIcon class="w-4 h-4" />
+                      </UButton>
+                      <UDropdown v-if="dashboardData.nextMatch" :items="matchCalendarMenuItems"
+                        :popper="{ placement: 'bottom-end' }">
+                        <UButton color="gray" variant="ghost" size="xs" square>
+                          <CalendarDaysIcon class="w-4 h-4" />
+                        </UButton>
+                        <template #item="{ item }">
+                          <component :is="item.icon" class="w-4 h-4 mr-2"
+                            v-if="item.icon && typeof item.icon !== 'string'" />
+                          <UIcon :name="item.icon" class="w-4 h-4 mr-2" v-else-if="item.icon" />
+                          <span>{{ item.label }}</span>
+                        </template>
+                      </UDropdown>
+                    </div>
                   </div>
                 </UCard>
 
@@ -319,6 +337,11 @@
                 </p>
               </UCard>
             </NuxtLink>
+
+            <UCard class="bg-bg-card border border-border-color shadow-sm hover:border-celtic-green transition-colors">
+              <h3 class="text-lg font-bold text-text-primary mb-6">Good to Know</h3>
+              <p class="text-sm text-text-secondary">{{ dashboardData.trainingSchedule.goodToKnow }}</p>
+            </UCard>
 
           </div>
         </div>
@@ -470,6 +493,7 @@
 import { computed, ref, reactive, onMounted } from 'vue'
 import type { IDashboardData } from '~/interfaces/Dashboard'
 import { useNotifications } from '~/composables/useNotifications'
+import { useCalendar } from '~/composables/useCalendar'
 import {
   MegaphoneIcon,
   PlusCircleIcon,
@@ -486,7 +510,9 @@ import {
   CheckCircleIcon,
   ChatBubbleBottomCenterTextIcon,
   BellIcon,
-  BellSlashIcon
+  BellSlashIcon,
+  GlobeAltIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/vue/24/solid'
 
 definePageMeta({
@@ -502,6 +528,7 @@ useHead({
 
 const { user, isAdmin, getAuthHeaders } = useAuth()
 const { isSubscribed, subscribe, unsubscribe, checkSubscription, loading: notificationLoading } = useNotifications()
+const { downloadIcs, openGoogleCalendar } = useCalendar()
 
 onMounted(() => {
   checkSubscription()
@@ -522,7 +549,7 @@ const toggleNotifications = async () => {
 }
 
 // Fetch dashboard data
-const { data: dashboardData, pending, error } = useFetch<IDashboardData>('/api/parent/dashboard', {
+const { data: dashboardData, pending, error, refresh: refreshDashboard } = useFetch<IDashboardData>('/api/parent/dashboard', {
   key: 'parent-dashboard',
   server: false, // only fetch on client
   immediate: !isAdmin.value,
@@ -542,6 +569,40 @@ const matchPercentage = computed(() => {
 })
 
 const toast = useToast()
+
+const getMatchCalendarEvent = () => {
+  if (!dashboardData.value?.nextMatch) return null
+  const match = dashboardData.value.nextMatch
+  return {
+    title: `Celtic FC vs ${match.opposition || 'TBD'}`,
+    dateTime: match.date,
+    location: match.location,
+    description: `Match: Celtic FC vs ${match.opposition || 'TBD'}`
+  }
+}
+
+const matchCalendarMenuItems = computed(() => [[
+  {
+    label: 'Google Calendar',
+    icon: GlobeAltIcon,
+    click: () => {
+      const event = getMatchCalendarEvent()
+      if (event) openGoogleCalendar(event)
+    }
+  },
+  {
+    label: 'Download .ics',
+    icon: ArrowDownTrayIcon,
+    click: () => {
+      const event = getMatchCalendarEvent()
+      if (event) downloadIcs(event)
+    }
+  }
+]])
+
+const openInMaps = (location: string) => {
+  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`, '_blank')
+}
 
 // Announcement Logic
 const isAnnouncementModalOpen = ref(false)
@@ -631,6 +692,7 @@ const submitBulkRsvp = async () => {
 
     toast.add({ title: 'Success', description: 'Attendance updated successfully.', color: 'green' })
     isRsvpModalOpen.value = false
+    refreshDashboard()
   } catch (e) {
     toast.add({ title: 'Error', description: 'Could not update attendance.', color: 'red' })
   } finally {

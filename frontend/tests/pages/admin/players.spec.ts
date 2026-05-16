@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
-import SquadManagement from '~/app/pages/admin/players.vue'
+import SquadManagement from '~/pages/admin/players.vue'
 
 // Mocking Nuxt and Auth composables
 vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
+vi.stubGlobal('$fetch', vi.fn())
+
+vi.mock('~/composables/useAuth', () => ({
+  useAuth: () => ({
+    getAuthHeaders: vi.fn(() => ({}))
+  })
+}))
 
 const mockPlayers = ref([
   {
@@ -27,7 +34,7 @@ const mockFetchPlayers = vi.fn()
 const mockCreatePlayer = vi.fn(() => Promise.resolve({ success: true }))
 const mockUpdatePlayer = vi.fn(() => Promise.resolve({ success: true }))
 
-vi.mock('../../../app/composables/usePlayers', () => ({
+vi.mock('~/composables/usePlayers', () => ({
   usePlayers: () => ({
     players: mockPlayers,
     loading: ref(false),

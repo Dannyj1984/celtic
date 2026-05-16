@@ -112,7 +112,8 @@ public class ParentDashboardController : ControllerBase
                 StartTime = settings.TrainingStartTime.ToString(@"hh\:mm"),
                 EndTime = settings.TrainingEndTime.ToString(@"hh\:mm"),
                 Location = settings.TrainingLocation,
-                TrainingFocus = settings.TrainingFocus
+                TrainingFocus = settings.TrainingFocus,
+                GoodToKnow = settings.GoodToKnow
             };
         }
 

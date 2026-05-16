@@ -65,8 +65,31 @@
             </div>
           </div>
 
-          <div class="hidden sm:block">
-            <UButton v-if="activeTab === 'upcoming'" color="gray" variant="ghost" icon="i-heroicons-calendar-20-solid" label="Add to Calendar" size="xs" />
+          <div v-if="activeTab === 'upcoming'" class="flex items-center gap-1">
+            <UButton v-if="event.location" color="gray" variant="ghost" size="xs" class="hidden sm:inline-flex" label="Maps" @click="openInMaps(event.location)">
+              <template #leading>
+                <MapPinIcon class="w-4 h-4" />
+              </template>
+            </UButton>
+            <UButton v-if="event.location" color="gray" variant="ghost" size="xs" class="sm:hidden" square @click="openInMaps(event.location)">
+              <MapPinIcon class="w-4 h-4" />
+            </UButton>
+
+            <UDropdown :items="calendarMenuItems(event)" :popper="{ placement: 'bottom-end' }">
+              <UButton color="gray" variant="ghost" size="xs" class="hidden sm:inline-flex" label="Calendar">
+                <template #leading>
+                  <CalendarDaysIcon class="w-4 h-4" />
+                </template>
+              </UButton>
+              <UButton color="gray" variant="ghost" size="xs" class="sm:hidden" square>
+                <CalendarDaysIcon class="w-4 h-4" />
+              </UButton>
+              <template #item="{ item }">
+                <component :is="item.icon" class="w-4 h-4 mr-2" v-if="item.icon && typeof item.icon !== 'string'" />
+                <UIcon :name="item.icon" class="w-4 h-4 mr-2" v-else-if="item.icon" />
+                <span>{{ item.label }}</span>
+              </template>
+            </UDropdown>
           </div>
         </div>
 
@@ -101,6 +124,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { MapPinIcon, CalendarDaysIcon, GlobeAltIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/solid'
 
 definePageMeta({
   layout: 'app',
@@ -141,6 +165,32 @@ async function fetchFixtures() {
   } finally {
     loading.value = false
   }
+}
+
+const { downloadIcs, openGoogleCalendar } = useCalendar()
+
+const getCalendarEvent = (event: any) => ({
+  title: `Celtic FC vs ${event.opposition || 'TBD'}`,
+  dateTime: event.dateTime,
+  location: event.location,
+  description: `Match: Celtic FC vs ${event.opposition || 'TBD'}`
+})
+
+const calendarMenuItems = (event: any) => [[
+  {
+    label: 'Google Calendar',
+    icon: GlobeAltIcon,
+    click: () => openGoogleCalendar(getCalendarEvent(event))
+  },
+  {
+    label: 'Download .ics',
+    icon: ArrowDownTrayIcon,
+    click: () => downloadIcs(getCalendarEvent(event))
+  }
+]]
+
+const openInMaps = (location: string) => {
+  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`, '_blank')
 }
 
 onMounted(() => {

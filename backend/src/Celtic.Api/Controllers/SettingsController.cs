@@ -48,6 +48,7 @@ public class SettingsController : ControllerBase
             settings.TrainingLocation = updatedSettings.TrainingLocation;
             settings.CoachWhatsAppNumber = updatedSettings.CoachWhatsAppNumber;
             settings.TrainingFocus = updatedSettings.TrainingFocus;
+            settings.GoodToKnow = updatedSettings.GoodToKnow;
         }
 
         await _context.SaveChangesAsync();

@@ -33,6 +33,7 @@ public class DashboardTrainingDto
     public string EndTime { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public string? TrainingFocus { get; set; }
+    public string? GoodToKnow { get; set; }
 }
 
 public class DashboardPerformanceDto
