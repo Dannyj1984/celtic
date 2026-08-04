@@ -16,6 +16,12 @@ public class DashboardDto
     public bool AttendingNextTraining { get; set; }
     public bool AttendingNextMatch { get; set; }
     public string? CoachNotes { get; set; }
+    public bool AllowPhotos { get; set; }
+}
+
+public class UpdatePhotoConsentRequest
+{
+    public bool AllowPhotos { get; set; }
 }
 
 public class DashboardMatchDto

@@ -18,6 +18,7 @@ public class Player
     public string? FanNumber { get; set; }
     public string? ShirtSize { get; set; }
     public string? Allergies { get; set; }
+    public bool AllowPhotos { get; set; } = false;
 
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();

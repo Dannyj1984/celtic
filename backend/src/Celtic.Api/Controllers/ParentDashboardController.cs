@@ -90,7 +90,8 @@ public class ParentDashboardController : ControllerBase
                 .AnyAsync(er => er.EventId == nextTrainingEvent.Id && er.PlayerId == playerParent.PlayerId && er.Status == "Attending"),
             AttendingNextMatch = nextMatchEvent != null && await _context.EventResponses
                 .AnyAsync(er => er.EventId == nextMatchEvent.Id && er.PlayerId == playerParent.PlayerId && er.Status == "Attending"),
-            CoachNotes = playerParent.Player.CoachNotes
+            CoachNotes = playerParent.Player.CoachNotes,
+            AllowPhotos = playerParent.Player.AllowPhotos
         };
 
         if (nextMatchEvent != null && nextMatchEvent.Match != null)
@@ -132,6 +133,24 @@ public class ParentDashboardController : ControllerBase
         };
 
         return Ok(dto);
+    }
+
+    [HttpPost("actions/photo-consent")]
+    public async Task<ActionResult> UpdatePhotoConsent([FromBody] UpdatePhotoConsentRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var playerParent = await _context.PlayerParents
+            .Include(pp => pp.Player)
+            .FirstOrDefaultAsync(pp => pp.UserId == userId);
+
+        if (playerParent == null) return NotFound("No linked player found for this parent");
+
+        playerParent.Player.AllowPhotos = request.AllowPhotos;
+        await _context.SaveChangesAsync();
+
+        return Ok();
     }
 
     [HttpPost("actions/training")]

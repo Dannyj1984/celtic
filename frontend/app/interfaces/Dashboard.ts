@@ -7,6 +7,7 @@ export interface IDashboardData {
     attendingNextTraining: boolean;
     attendingNextMatch: boolean;
     coachNotes?: string;
+    allowPhotos?: boolean;
     nextMatch: {
         id: string;
         date: string;

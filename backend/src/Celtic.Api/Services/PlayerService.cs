@@ -74,7 +74,8 @@ public class PlayerService : IPlayerService
             CoachNotes = request.CoachNotes,
             FanNumber = request.FanNumber,
             ShirtSize = request.ShirtSize,
-            Allergies = request.Allergies
+            Allergies = request.Allergies,
+            AllowPhotos = request.AllowPhotos
         };
 
         _db.Players.Add(player);
@@ -109,6 +110,7 @@ public class PlayerService : IPlayerService
         player.FanNumber = request.FanNumber;
         player.ShirtSize = request.ShirtSize;
         player.Allergies = request.Allergies;
+        player.AllowPhotos = request.AllowPhotos;
 
         await _db.SaveChangesAsync();
 
@@ -177,7 +179,8 @@ public class PlayerService : IPlayerService
             p.CoachNotes,
             p.FanNumber,
             p.ShirtSize,
-            p.Allergies
+            p.Allergies,
+            p.AllowPhotos
         );
     }
 }

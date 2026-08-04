@@ -10,6 +10,20 @@ public class TrainingService : ITrainingService
     private readonly CelticDbContext _db;
     private readonly ILogger<TrainingService> _logger;
 
+    public static readonly TimeZoneInfo UkTimeZone = GetUkTimeZone();
+
+    private static TimeZoneInfo GetUkTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+        }
+        catch
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Europe/London");
+        }
+    }
+
     public TrainingService(CelticDbContext db, ILogger<TrainingService> logger)
     {
         _db = db;
@@ -69,19 +83,25 @@ public class TrainingService : ITrainingService
     public static List<DateTime> GetUpcomingTrainingStartTimes(ClubSettings settings, DateTime now)
     {
         var validStartTimes = new List<DateTime>();
-        var today = now.Date;
-        var firstDate = GetNextWeekday(today, settings.TrainingDay);
-        var firstStartTime = firstDate.Add(settings.TrainingStartTime);
+        var ukNow = TimeZoneInfo.ConvertTimeFromUtc(now, UkTimeZone);
+        var ukToday = ukNow.Date;
+
+        var firstDate = GetNextWeekday(ukToday, settings.TrainingDay);
+        var firstLocalStartTime = DateTime.SpecifyKind(firstDate.Add(settings.TrainingStartTime), DateTimeKind.Unspecified);
+        var firstUtcStartTime = TimeZoneInfo.ConvertTimeToUtc(firstLocalStartTime, UkTimeZone);
 
         // If the calculated first session for today has already passed, move to next week's session
-        if (firstStartTime <= now)
+        if (firstUtcStartTime <= now)
         {
-            firstDate = GetNextWeekday(today.AddDays(1), settings.TrainingDay);
+            firstDate = GetNextWeekday(ukToday.AddDays(1), settings.TrainingDay);
         }
 
         for (int i = 0; i < 4; i++)
         {
-            validStartTimes.Add(firstDate.AddDays(i * 7).Add(settings.TrainingStartTime));
+            var localDate = firstDate.AddDays(i * 7);
+            var localDateTime = DateTime.SpecifyKind(localDate.Add(settings.TrainingStartTime), DateTimeKind.Unspecified);
+            var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(localDateTime, UkTimeZone);
+            validStartTimes.Add(utcDateTime);
         }
 
         return validStartTimes;

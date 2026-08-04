@@ -153,6 +153,29 @@
               </div>
             </UCard>
 
+            <!-- Photo & Social Media Consent -->
+            <UCard class="bg-bg-card border border-border-color shadow-sm rounded-xl overflow-hidden">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-celtic-gold/10 rounded-lg">
+                    <CameraIcon class="w-6 h-6 text-celtic-gold" />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <h3 class="text-sm font-semibold text-text-primary">Photo & Social Media Consent</h3>
+                      <UTooltip text="Consent for photos taken during matches may be shown on social media" :ui="{ base: 'h-auto max-w-[280px] sm:max-w-xs whitespace-normal break-words text-xs px-3 py-2 leading-relaxed', container: 'z-50' }">
+                        <InformationCircleIcon class="w-4 h-4 text-text-muted hover:text-text-primary cursor-help transition-colors" />
+                      </UTooltip>
+                    </div>
+                    <p class="text-xs text-text-secondary mt-0.5">
+                      Allow match & training photos on social media
+                    </p>
+                  </div>
+                </div>
+                <UToggle v-model="photoConsent" :loading="updatingConsent" @update:model-value="togglePhotoConsent" color="green" />
+              </div>
+            </UCard>
+
             <!-- Upcoming Activities -->
             <div>
               <h2 class="text-xl font-bold text-text-primary mb-4">Upcoming Activities</h2>
@@ -490,7 +513,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, watch, onMounted } from 'vue'
 import type { IDashboardData } from '~/interfaces/Dashboard'
 import { useNotifications } from '~/composables/useNotifications'
 import { useCalendar } from '~/composables/useCalendar'
@@ -512,7 +535,9 @@ import {
   BellIcon,
   BellSlashIcon,
   GlobeAltIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  CameraIcon,
+  InformationCircleIcon
 } from '@heroicons/vue/24/solid'
 
 definePageMeta({
@@ -555,6 +580,38 @@ const { data: dashboardData, pending, error, refresh: refreshDashboard } = useFe
   immediate: !isAdmin.value,
   headers: getAuthHeaders()
 })
+
+// Photo Consent Logic
+const photoConsent = ref(false)
+const updatingConsent = ref(false)
+
+watch(() => dashboardData.value?.allowPhotos, (val) => {
+  if (val !== undefined) {
+    photoConsent.value = val
+  }
+}, { immediate: true })
+
+const togglePhotoConsent = async (val: boolean) => {
+  updatingConsent.value = true
+  try {
+    await $fetch('/api/parent/actions/photo-consent', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: { allowPhotos: val }
+    })
+    toast.add({
+      title: 'Consent Updated',
+      description: val ? 'Photo and social media consent enabled.' : 'Photo consent disabled.',
+      color: val ? 'green' : 'gray'
+    })
+    refreshDashboard()
+  } catch (e) {
+    photoConsent.value = !val // revert toggle on failure
+    toast.add({ title: 'Error', description: 'Failed to update photo consent.', color: 'red' })
+  } finally {
+    updatingConsent.value = false
+  }
+}
 
 const trainingPercentage = computed(() => {
   if (!dashboardData.value?.performance?.training?.totalSessions) return 0;

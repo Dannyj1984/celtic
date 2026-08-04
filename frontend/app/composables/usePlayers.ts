@@ -31,6 +31,7 @@ export interface Player {
   fanNumber?: string | null
   shirtSize?: string | null
   allergies?: string | null
+  allowPhotos?: boolean
 }
 
 export function usePlayers() {

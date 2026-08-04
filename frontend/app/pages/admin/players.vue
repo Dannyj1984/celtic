@@ -34,12 +34,17 @@
         </div>
 
         <h3 class="text-lg font-bold text-text-primary mb-1 pr-32">{{ player.firstName }} {{ player.lastName }}</h3>
-        <div v-if="player.fanNumber || player.shirtSize" class="flex flex-wrap gap-2 mt-1">
+        <div class="flex flex-wrap items-center gap-2 mt-1">
           <span v-if="player.fanNumber" class="text-xs font-semibold px-2 py-0.5 rounded bg-surface-hover border border-border/60 text-text-secondary">
             FAN: {{ player.fanNumber }}
           </span>
           <span v-if="player.shirtSize" class="text-xs font-semibold px-2 py-0.5 rounded bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
             Shirt: {{ player.shirtSize }}
+          </span>
+          <span :class="['text-xs font-semibold px-2 py-0.5 rounded inline-flex items-center gap-1 border', player.allowPhotos ? 'bg-success/10 border-success/30 text-success' : 'bg-danger/10 border-danger/30 text-danger']"
+            :title="player.allowPhotos ? 'Photo & Social Media consent granted by parent' : 'No photo consent granted'">
+            <component :is="player.allowPhotos ? CheckCircleIcon : XCircleIcon" class="w-3.5 h-3.5" />
+            <span>Photos</span>
           </span>
         </div>
 
@@ -210,6 +215,17 @@
               placeholder="Feedback for parents..."></textarea>
           </div>
 
+          <div v-if="editingPlayer" class="p-3 rounded-lg bg-surface-hover border border-border/50 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-text-muted uppercase tracking-wider block">Photo & Social Media Consent</span>
+              <span class="text-xs text-text-secondary">Managed by parent on parent dashboard</span>
+            </div>
+            <span :class="['text-xs font-bold px-2.5 py-1 rounded-md inline-flex items-center gap-1.5 border', form.allowPhotos ? 'bg-success/10 border-success/30 text-success' : 'bg-danger/10 border-danger/30 text-danger']">
+              <component :is="form.allowPhotos ? CheckCircleIcon : XCircleIcon" class="w-4 h-4" />
+              {{ form.allowPhotos ? 'Allowed' : 'Not Allowed' }}
+            </span>
+          </div>
+
           <div v-if="editingPlayer" class="flex items-center gap-2 mt-2">
             <input type="checkbox" id="isActive" v-model="form.isActive"
               class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4" />
@@ -234,6 +250,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/solid'
 import { usePlayers, type Player } from '~/composables/usePlayers'
 import { useAuth } from '~/composables/useAuth'
 
@@ -304,7 +321,8 @@ const form = ref({
   coachNotes: '',
   fanNumber: '',
   shirtSize: '',
-  allergies: ''
+  allergies: '',
+  allowPhotos: false
 })
 
 onMounted(() => {
@@ -328,7 +346,8 @@ function openCreateModal() {
     coachNotes: '',
     fanNumber: '',
     shirtSize: '',
-    allergies: ''
+    allergies: '',
+    allowPhotos: false
   }
   formError.value = null
   isModalOpen.value = true
@@ -351,7 +370,8 @@ function openEditModal(player: Player) {
     coachNotes: player.coachNotes || '',
     fanNumber: player.fanNumber || '',
     shirtSize: player.shirtSize || '',
-    allergies: player.allergies || ''
+    allergies: player.allergies || '',
+    allowPhotos: player.allowPhotos ?? false
   }
   formError.value = null
   isModalOpen.value = true
