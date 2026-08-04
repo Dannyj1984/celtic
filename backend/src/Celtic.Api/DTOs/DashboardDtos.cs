@@ -57,6 +57,7 @@ public class UpcomingEventDto
     public string Location { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public string Status { get; set; } = "No Response"; // Attending, Not Attending, No Response
+    public bool Played { get; set; }
     public string? Opposition { get; set; } // For matches
     public string? Score { get; set; }
     public string? Result { get; set; }

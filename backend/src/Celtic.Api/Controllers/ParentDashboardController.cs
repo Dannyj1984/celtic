@@ -174,6 +174,7 @@ public class ParentDashboardController : ControllerBase
             Location = e.Location,
             Notes = e.Notes,
             Status = responses.ContainsKey(e.Id) ? responses[e.Id] : "No Response",
+            Played = responses.ContainsKey(e.Id) && responses[e.Id] == "Attending",
             Opposition = e.Match?.Opposition
         }).ToList();
 
@@ -209,6 +210,7 @@ public class ParentDashboardController : ControllerBase
             Location = e.Location,
             Notes = e.Notes,
             Status = responses.ContainsKey(e.Id) ? responses[e.Id] : "No Response",
+            Played = responses.ContainsKey(e.Id) && responses[e.Id] == "Attending",
             Opposition = e.Match?.Opposition,
             Score = e.Match != null ? $"{e.Match.GoalsFor} - {e.Match.GoalsAgainst}" : null,
             Result = e.Match != null ? (e.Match.GoalsFor > e.Match.GoalsAgainst ? "Win" : e.Match.GoalsFor < e.Match.GoalsAgainst ? "Loss" : "Draw") : null,

@@ -65,7 +65,11 @@
             </div>
           </div>
 
-          <div v-if="activeTab === 'upcoming'" class="flex items-center gap-1">
+          <div v-if="activeTab === 'upcoming'" class="flex items-center gap-2">
+            <span v-if="event.played || event.status === 'Attending'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
+              <CheckCircleIcon class="w-4 h-4 text-celtic-green" />
+              Playing
+            </span>
             <UButton v-if="event.location" color="gray" variant="ghost" size="xs" class="hidden sm:inline-flex" label="Maps" @click="openInMaps(event.location)">
               <template #leading>
                 <MapPinIcon class="w-4 h-4" />
@@ -90,6 +94,13 @@
                 <span>{{ item.label }}</span>
               </template>
             </UDropdown>
+          </div>
+
+          <div v-else-if="activeTab === 'past' && (event.played || event.status === 'Attending')" class="flex items-center gap-1 mt-4">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
+              <CheckCircleIcon class="w-4 h-4 text-celtic-green" />
+              Played
+            </span>
           </div>
         </div>
 
@@ -124,7 +135,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { MapPinIcon, CalendarDaysIcon, GlobeAltIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/solid'
+import { MapPinIcon, CalendarDaysIcon, GlobeAltIcon, ArrowDownTrayIcon, CheckCircleIcon } from '@heroicons/vue/24/solid'
 
 definePageMeta({
   layout: 'app',
