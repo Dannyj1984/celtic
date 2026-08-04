@@ -4,8 +4,77 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Celtic Team App - Custom Design System ===== */
+/* ===== Celtic Team App - Dynamic Light & Dark Mode Tokens ===== */
 
+:root {
+  /* Default Light Mode Theme */
+  --color-surface: #F8FAFC;
+  --color-surface-light: #FFFFFF;
+  --color-surface-card: #FFFFFF;
+  --color-surface-hover: #F1F5F9;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #0284C7;
+  --color-text-neutral: #64748B;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --color-border-light: #CBD5E1;
+  --color-glass-bg: rgba(255, 255, 255, 0.85);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+}
+
+/* Automatic System Dark Mode Preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #0F1419;
+    --color-surface-light: #1A2332;
+    --color-surface-card: #1E2A3A;
+    --color-surface-hover: #243447;
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #CBD5E1;
+    --color-text-tertiary: #00E0FF;
+    --color-text-neutral: #94A3B8;
+    --color-text-muted: #64748B;
+    --color-border: #2D3748;
+    --color-border-light: #374151;
+    --color-glass-bg: rgba(30, 42, 58, 0.8);
+    --color-glass-border: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* Class-based Dark Mode */
+.dark {
+  --color-surface: #0F1419;
+  --color-surface-light: #1A2332;
+  --color-surface-card: #1E2A3A;
+  --color-surface-hover: #243447;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary: #00E0FF;
+  --color-text-neutral: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-border: #2D3748;
+  --color-border-light: #374151;
+  --color-glass-bg: rgba(30, 42, 58, 0.8);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Class-based Light Mode */
+.light {
+  --color-surface: #F8FAFC;
+  --color-surface-light: #FFFFFF;
+  --color-surface-card: #FFFFFF;
+  --color-surface-hover: #F1F5F9;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #0284C7;
+  --color-text-neutral: #64748B;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --color-border-light: #CBD5E1;
+  --color-glass-bg: rgba(255, 255, 255, 0.85);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+}
 
 @layer base {
   body {
@@ -17,9 +86,9 @@
 
   /* Custom utility classes */
   .glass {
-    background: rgba(30, 42, 58, 0.8);
+    background: var(--color-glass-bg);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-glass-border);
   }
 
   .card {
@@ -28,7 +97,7 @@
 
   .card:hover {
     @apply border-border-light;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   }
 
   .btn-primary {

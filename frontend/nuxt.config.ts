@@ -11,6 +11,12 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt'
   ],
 
+  colorMode: {
+    preference: 'system',
+    fallback: 'dark',
+    classSuffix: ''
+  },
+
   pwa: {
     manifest: {
       name: 'Celtic FC',
