@@ -34,6 +34,14 @@
         </div>
 
         <h3 class="text-lg font-bold text-text-primary mb-1 pr-32">{{ player.firstName }} {{ player.lastName }}</h3>
+        <div v-if="player.fanNumber || player.shirtSize" class="flex flex-wrap gap-2 mt-1">
+          <span v-if="player.fanNumber" class="text-xs font-semibold px-2 py-0.5 rounded bg-surface-hover border border-border/60 text-text-secondary">
+            FAN: {{ player.fanNumber }}
+          </span>
+          <span v-if="player.shirtSize" class="text-xs font-semibold px-2 py-0.5 rounded bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
+            Shirt: {{ player.shirtSize }}
+          </span>
+        </div>
 
         <div class="mt-4 space-y-3">
           <div v-if="player.dateOfBirth">
@@ -75,6 +83,10 @@
                 </p>
               </div>
             </div>
+          </div>
+          <div v-if="player.allergies">
+            <span class="text-xs text-text-muted uppercase tracking-wide">Allergies</span>
+            <p class="text-sm text-danger mt-1 bg-danger/10 p-2 rounded font-medium">{{ player.allergies }}</p>
           </div>
           <div v-if="player.medicalNotes">
             <span class="text-xs text-text-muted uppercase tracking-wide">Medical Notes</span>
@@ -124,9 +136,30 @@
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1">Date of Birth</label>
-            <input v-model="form.dateOfBirth" type="date" class="input" />
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Date of Birth</label>
+              <input v-model="form.dateOfBirth" type="date" class="input" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">FAN Number</label>
+              <input v-model="form.fanNumber" type="text" class="input" placeholder="e.g. 12345678" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Shirt Size</label>
+              <input v-model="form.shirtSize" type="text" class="input" placeholder="e.g. YS, YM, S, M" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
+              <select v-model="form.preferredFoot" class="input">
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+                <option value="Both">Both</option>
+              </select>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -151,29 +184,24 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div v-if="editingPlayer">
-              <label class="block text-sm font-medium text-text-secondary mb-1">Subscription Status</label>
-              <select v-model="form.subscriptionStatus" class="input">
-                <option value="Active">Active</option>
-                <option value="Payment Due">Payment Due</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-            <div :class="editingPlayer ? '' : 'col-span-2'">
-              <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
-              <select v-model="form.preferredFoot" class="input">
-                <option value="Right">Right</option>
-                <option value="Left">Left</option>
-                <option value="Both">Both</option>
-              </select>
-            </div>
+          <div v-if="editingPlayer">
+            <label class="block text-sm font-medium text-text-secondary mb-1">Subscription Status</label>
+            <select v-model="form.subscriptionStatus" class="input">
+              <option value="Active">Active</option>
+              <option value="Payment Due">Payment Due</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Allergies</label>
+            <input v-model="form.allergies" type="text" class="input" placeholder="e.g. Nuts, Dairy, Penicillin" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-text-secondary mb-1">Medical Notes</label>
             <textarea v-model="form.medicalNotes" class="input min-h-[80px]"
-              placeholder="Allergies, conditions..."></textarea>
+              placeholder="Medical conditions, inhalers..."></textarea>
           </div>
 
           <div>
@@ -246,7 +274,7 @@ async function cycleSubStatus(player: Player) {
       body: { subscriptionStatus: next }
     })
     // Update local state immediately
-    player.subscriptionStatus = next
+    player.subscriptionStatus = next ?? ''
   } catch (e) {
     console.error('Failed to update subscription status', e)
   } finally {
@@ -273,7 +301,10 @@ const form = ref({
   isActive: true,
   subscriptionStatus: 'Active',
   preferredFoot: 'Right',
-  coachNotes: ''
+  coachNotes: '',
+  fanNumber: '',
+  shirtSize: '',
+  allergies: ''
 })
 
 onMounted(() => {
@@ -294,7 +325,10 @@ function openCreateModal() {
     isActive: true,
     subscriptionStatus: 'Active',
     preferredFoot: 'Right',
-    coachNotes: ''
+    coachNotes: '',
+    fanNumber: '',
+    shirtSize: '',
+    allergies: ''
   }
   formError.value = null
   isModalOpen.value = true
@@ -314,7 +348,10 @@ function openEditModal(player: Player) {
     isActive: player.isActive,
     subscriptionStatus: player.subscriptionStatus || 'Active',
     preferredFoot: player.preferredFoot || 'Right',
-    coachNotes: player.coachNotes || ''
+    coachNotes: player.coachNotes || '',
+    fanNumber: player.fanNumber || '',
+    shirtSize: player.shirtSize || '',
+    allergies: player.allergies || ''
   }
   formError.value = null
   isModalOpen.value = true

@@ -15,6 +15,9 @@ public class Player
     public string SubscriptionStatus { get; set; } = "Active";
     public string PreferredFoot { get; set; } = "Right";
     public string? CoachNotes { get; set; }
+    public string? FanNumber { get; set; }
+    public string? ShirtSize { get; set; }
+    public string? Allergies { get; set; }
 
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();

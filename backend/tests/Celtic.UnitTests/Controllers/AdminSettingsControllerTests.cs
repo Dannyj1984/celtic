@@ -23,7 +23,8 @@ public class SettingsControllerTests
 
     private SettingsController CreateController(CelticDbContext dbContext)
     {
-        var controller = new SettingsController(dbContext);
+        var trainingService = new Celtic.Api.Services.TrainingService(dbContext, Microsoft.Extensions.Logging.Abstractions.NullLogger<Celtic.Api.Services.TrainingService>.Instance);
+        var controller = new SettingsController(dbContext, trainingService);
         var userClaims = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
         {
             new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),

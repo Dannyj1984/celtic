@@ -66,6 +66,7 @@ builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ITrainingService, TrainingService>();
 
 builder.Services.AddHostedService<TrainingGeneratorService>();
 
@@ -158,6 +159,10 @@ using (var scope = app.Services.CreateScope())
         });
         await db.SaveChangesAsync();
     }
+
+    // Run training generation & cleanup on startup
+    var trainingService = scope.ServiceProvider.GetRequiredService<ITrainingService>();
+    await trainingService.GenerateTrainingSessionsAsync();
 }
 
 app.Run();

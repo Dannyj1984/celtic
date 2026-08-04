@@ -208,8 +208,8 @@ public class AuthService : IAuthService
         };
 
         var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
+            issuer: _config["Jwt:Issuer"] ?? "celtic-api",
+            audience: _config["Jwt:Audience"] ?? "celtic-app",
             claims: claims,
             expires: DateTime.UtcNow.AddHours(24),
             signingCredentials: creds

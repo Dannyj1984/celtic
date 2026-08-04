@@ -66,6 +66,7 @@ public class ParentDashboardControllerTests
 
         var nextMatch = new Match { Id = Guid.NewGuid(), SeasonId = season.Id, Date = DateTime.UtcNow.AddDays(2), Opposition = "JNR Tigers", Location = "Riverside Pitch 4" };
         dbContext.Matches.Add(nextMatch);
+        dbContext.Events.Add(new Event { Id = Guid.NewGuid(), SeasonId = season.Id, Type = "Match", DateTime = nextMatch.Date, Location = nextMatch.Location, MatchId = nextMatch.Id, Match = nextMatch });
 
         // Add 20 training events in the past, Leo attended 18
         for (int i = 0; i < 20; i++)

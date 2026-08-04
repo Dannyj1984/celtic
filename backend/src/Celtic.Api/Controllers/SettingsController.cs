@@ -1,5 +1,6 @@
 using Celtic.Api.Data;
 using Celtic.Api.Models;
+using Celtic.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace Celtic.Api.Controllers;
 public class SettingsController : ControllerBase
 {
     private readonly CelticDbContext _context;
+    private readonly ITrainingService _trainingService;
 
-    public SettingsController(CelticDbContext context)
+    public SettingsController(CelticDbContext context, ITrainingService trainingService)
     {
         _context = context;
+        _trainingService = trainingService;
     }
 
     [HttpGet]
@@ -52,6 +55,10 @@ public class SettingsController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
+
+        // Immediately update future training sessions in DB to match new settings
+        await _trainingService.GenerateTrainingSessionsAsync();
+
         return Ok(settings ?? updatedSettings);
     }
 }

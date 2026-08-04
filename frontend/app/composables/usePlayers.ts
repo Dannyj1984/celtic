@@ -28,6 +28,9 @@ export interface Player {
   }
   preferredFoot?: string
   coachNotes?: string | null
+  fanNumber?: string | null
+  shirtSize?: string | null
+  allergies?: string | null
 }
 
 export function usePlayers() {

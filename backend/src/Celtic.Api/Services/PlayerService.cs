@@ -71,7 +71,10 @@ public class PlayerService : IPlayerService
             EmergencyPhone2 = request.EmergencyPhone2,
             IsActive = true,
             PreferredFoot = request.PreferredFoot,
-            CoachNotes = request.CoachNotes
+            CoachNotes = request.CoachNotes,
+            FanNumber = request.FanNumber,
+            ShirtSize = request.ShirtSize,
+            Allergies = request.Allergies
         };
 
         _db.Players.Add(player);
@@ -103,6 +106,9 @@ public class PlayerService : IPlayerService
         player.SubscriptionStatus = request.SubscriptionStatus;
         player.PreferredFoot = request.PreferredFoot;
         player.CoachNotes = request.CoachNotes;
+        player.FanNumber = request.FanNumber;
+        player.ShirtSize = request.ShirtSize;
+        player.Allergies = request.Allergies;
 
         await _db.SaveChangesAsync();
 
@@ -168,7 +174,10 @@ public class PlayerService : IPlayerService
             )).ToList(),
             attendance,
             p.PreferredFoot,
-            p.CoachNotes
+            p.CoachNotes,
+            p.FanNumber,
+            p.ShirtSize,
+            p.Allergies
         );
     }
 }

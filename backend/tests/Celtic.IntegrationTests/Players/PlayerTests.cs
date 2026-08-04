@@ -18,6 +18,11 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
     {
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login",
             new LoginRequest("admin@celtic.app", "Admin123!"));
+        if (!loginResponse.IsSuccessStatusCode)
+        {
+            var err = await loginResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Admin login failed with status {loginResponse.StatusCode}: {err}");
+        }
         var result = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
         return result!.Token;
     }
@@ -54,12 +59,11 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task CreatePlayer_AsParent_Returns403()
     {
-        await using var factory = new CustomWebApplicationFactory();
-        var client = factory.CreateClient();
+        var client = _factory.CreateClient();
         var parentToken = await GetParentTokenAsync(client);
         
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", parentToken);
-        var request = new CreatePlayerRequest("Test", "Player", null, null, null, null, null, null);
+        var request = new CreatePlayerRequest("Test", "Player", null, null, null, null, null, null, "Right", null, null, null, null);
         var response = await client.PostAsJsonAsync("/api/players", request);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -68,14 +72,13 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task CreateAndGetPlayer_AsAdmin_ReturnsSuccess()
     {
-        await using var factory = new CustomWebApplicationFactory();
-        var client = factory.CreateClient();
+        var client = _factory.CreateClient();
         var adminToken = await GetAdminTokenAsync(client);
         
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
         
         // Create
-        var request = new CreatePlayerRequest("John", "Doe", new DateTime(2018, 5, 12, 0, 0, 0, DateTimeKind.Utc), "No nuts", "Jane Doe", "07700900000", null, null);
+        var request = new CreatePlayerRequest("John", "Doe", new DateTime(2018, 5, 12, 0, 0, 0, DateTimeKind.Utc), "Asthma", "Jane Doe", "07700900000", null, null, "Right", null, "FAN123456", "YM", "Peanuts");
         var response = await client.PostAsJsonAsync("/api/players", request);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         
@@ -84,6 +87,9 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal("John", created!.FirstName);
         Assert.Equal("Doe", created.LastName);
         Assert.True(created.IsActive);
+        Assert.Equal("FAN123456", created.FanNumber);
+        Assert.Equal("YM", created.ShirtSize);
+        Assert.Equal("Peanuts", created.Allergies);
 
         // Get by ID
         var getResponse = await client.GetAsync($"/api/players/{created.Id}");
@@ -92,6 +98,9 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
         var fetched = await getResponse.Content.ReadFromJsonAsync<PlayerDto>();
         Assert.NotNull(fetched);
         Assert.Equal(created.Id, fetched!.Id);
+        Assert.Equal("FAN123456", fetched.FanNumber);
+        Assert.Equal("YM", fetched.ShirtSize);
+        Assert.Equal("Peanuts", fetched.Allergies);
 
         // Get all
         var getAllResponse = await client.GetAsync("/api/players");
@@ -103,19 +112,18 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task UpdatePlayer_AsAdmin_ReturnsSuccess()
     {
-        await using var factory = new CustomWebApplicationFactory();
-        var client = factory.CreateClient();
+        var client = _factory.CreateClient();
         var adminToken = await GetAdminTokenAsync(client);
         
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
         
         // Create
-        var createRequest = new CreatePlayerRequest("John", "Doe", null, null, null, null, null, null);
+        var createRequest = new CreatePlayerRequest("John", "Doe", null, null, null, null, null, null, "Right", null, null, null, null);
         var response = await client.PostAsJsonAsync("/api/players", createRequest);
         var created = await response.Content.ReadFromJsonAsync<PlayerDto>();
 
         // Update
-        var updateRequest = new UpdatePlayerRequest("John", "Smith", null, "Updated notes", null, null, null, null, false, "Active");
+        var updateRequest = new UpdatePlayerRequest("John", "Smith", null, "Updated notes", null, null, null, null, false, "Active", "Right", null, "FAN999", "YXL", "None");
         var updateResponse = await client.PutAsJsonAsync($"/api/players/{created!.Id}", updateRequest);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
@@ -124,5 +132,8 @@ public class PlayerTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal("Smith", updated!.LastName);
         Assert.False(updated.IsActive);
         Assert.Equal("Updated notes", updated.MedicalNotes);
+        Assert.Equal("FAN999", updated.FanNumber);
+        Assert.Equal("YXL", updated.ShirtSize);
+        Assert.Equal("None", updated.Allergies);
     }
 }
