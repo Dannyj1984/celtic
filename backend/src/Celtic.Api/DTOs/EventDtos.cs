@@ -34,3 +34,7 @@ public record UpdateEventRequest(
     string? Notes,
     bool IsCancelled
 );
+
+public record UpdateEventAttendanceRequest(
+    [Required] List<Guid> PlayerIds
+);

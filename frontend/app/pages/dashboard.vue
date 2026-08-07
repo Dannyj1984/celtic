@@ -545,9 +545,9 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Dashboard - Celtic FC',
+  title: 'Dashboard - Stalybridge Celtic U7',
   meta: [
-    { name: 'description', content: 'Celtic FC team management dashboard' },
+    { name: 'description', content: 'Stalybridge Celtic U7 team management dashboard' },
   ],
 })
 
@@ -631,10 +631,10 @@ const getMatchCalendarEvent = () => {
   if (!dashboardData.value?.nextMatch) return null
   const match = dashboardData.value.nextMatch
   return {
-    title: `Celtic FC vs ${match.opposition || 'TBD'}`,
+    title: `Stalybridge Celtic U7 vs ${match.opposition || 'TBD'}`,
     dateTime: match.date,
     location: match.location,
-    description: `Match: Celtic FC vs ${match.opposition || 'TBD'}`
+    description: `Match: Stalybridge Celtic U7 vs ${match.opposition || 'TBD'}`
   }
 }
 

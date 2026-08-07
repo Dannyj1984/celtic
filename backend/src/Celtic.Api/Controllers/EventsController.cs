@@ -68,6 +68,26 @@ public class EventsController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/attendance")]
+    public async Task<ActionResult<EventDto>> UpdateAttendance(Guid id, [FromBody] UpdateEventAttendanceRequest request)
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can update event attendance." });
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        try
+        {
+            var updated = await _eventService.UpdateEventAttendanceAsync(id, request.PlayerIds, userId);
+            return Ok(updated);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEvent(Guid id)
     {

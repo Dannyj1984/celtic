@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex items-center justify-center">
     <div class="text-center">
-      <h1 class="text-2xl font-bold text-text-primary">Celtic FC</h1>
+      <h1 class="text-2xl font-bold text-text-primary">Stalybridge Celtic U7</h1>
       <p class="text-text-secondary mt-2">Redirecting...</p>
     </div>
   </div>

@@ -54,7 +54,7 @@
                   Date(event.dateTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}</span>
               </div>
               <div class="text-lg font-bold text-text-primary uppercase tracking-tight">
-                Celtic FC 
+                Stalybridge Celtic U7 
                 <span class="text-text-muted mx-2">{{ activeTab === 'past' ? event.score : 'vs' }}</span> 
                 {{ event.opposition || 'TBD' }}
               </div>
@@ -142,7 +142,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Season Fixtures - Celtic FC',
+  title: 'Season Fixtures - Stalybridge Celtic U7',
 })
 
 const { getAuthHeaders } = useAuth()
@@ -181,10 +181,10 @@ async function fetchFixtures() {
 const { downloadIcs, openGoogleCalendar } = useCalendar()
 
 const getCalendarEvent = (event: any) => ({
-  title: `Celtic FC vs ${event.opposition || 'TBD'}`,
+  title: `Stalybridge Celtic U7 vs ${event.opposition || 'TBD'}`,
   dateTime: event.dateTime,
   location: event.location,
-  description: `Match: Celtic FC vs ${event.opposition || 'TBD'}`
+  description: `Match: Stalybridge Celtic U7 vs ${event.opposition || 'TBD'}`
 })
 
 const calendarMenuItems = (event: any) => [[

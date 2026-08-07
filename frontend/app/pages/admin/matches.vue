@@ -36,7 +36,7 @@
                 <span v-if="match.isPublished" class="text-[9px] sm:text-[10px] text-celtic-green font-bold uppercase tracking-wider">● Published</span>
               </div>
               <div class="text-md sm:text-lg font-bold text-text-primary leading-tight">
-                Celtic FC <span class="text-text-muted mx-1 sm:mx-2">vs</span> {{ match.opposition }}
+                Stalybridge Celtic U7 <span class="text-text-muted mx-1 sm:mx-2">vs</span> {{ match.opposition }}
               </div>
               <div class="text-xs sm:text-sm text-text-secondary flex items-center gap-1 mt-0.5">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -177,7 +177,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Matches - Celtic FC',
+  title: 'Matches - Stalybridge Celtic U7',
 })
 
 const { matches, loading, error, fetchMatches, createMatch, updateMatch, deleteMatch } = useMatches()

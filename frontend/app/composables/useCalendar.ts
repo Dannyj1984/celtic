@@ -15,7 +15,7 @@ export function useCalendar() {
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Celtic FC//Match Calendar//EN',
+      'PRODID:-//Stalybridge Celtic U7//Match Calendar//EN',
       'BEGIN:VEVENT',
       `DTSTART:${formatIcsDate(start)}`,
       `DTEND:${formatIcsDate(end)}`,

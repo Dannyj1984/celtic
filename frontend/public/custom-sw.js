@@ -7,7 +7,7 @@ self.addEventListener('push', (event) => {
 
   const data = event.data?.json() ?? {
     notification: {
-      title: 'Celtic FC Update',
+      title: 'Stalybridge Celtic U7 Update',
       body: 'You have a new update from the team.',
       icon: '/pwa-192x192.png'
     }

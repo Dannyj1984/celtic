@@ -49,7 +49,7 @@
         </h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="event in group" :key="event.id" :class="['card p-4 border-l-4 relative group', 
+          <div v-for="event in group" :key="event.id" :class="['card p-4 border-l-4 relative group flex flex-col justify-between', 
             event.isCancelled ? 'opacity-60 border-danger/50' : 
             event.type === 'Match' ? 'border-celtic-gold' : 'border-celtic-green']">
             
@@ -57,58 +57,71 @@
               <span class="bg-danger text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest -rotate-12">Cancelled</span>
             </div>
 
-            <div class="flex justify-between items-start mb-3">
-              <div class="flex items-center gap-2">
-                <span :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded', 
-                  event.type === 'Match' ? 'bg-celtic-gold/20 text-celtic-gold' : 'bg-celtic-green/20 text-celtic-green']">
-                  {{ event.type }}
-                </span>
-                <span v-if="event.seasonName" class="text-[10px] text-text-muted font-medium">{{ event.seasonName }}</span>
+            <div>
+              <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-2">
+                  <span :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded', 
+                    event.type === 'Match' ? 'bg-celtic-gold/20 text-celtic-gold' : 'bg-celtic-green/20 text-celtic-green']">
+                    {{ event.type }}
+                  </span>
+                  <span v-if="event.seasonName" class="text-[10px] text-text-muted font-medium">{{ event.seasonName }}</span>
+                </div>
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button @click="openEditModal(event)" title="Edit Event" class="p-1.5 text-text-muted hover:text-celtic-gold">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button v-if="event.type !== 'Match'" @click="confirmDelete(event)" title="Delete Event" class="p-1.5 text-text-muted hover:text-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
               </div>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button @click="openEditModal(event)" class="p-1.5 text-text-muted hover:text-celtic-gold">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button v-if="event.type !== 'Match'" @click="confirmDelete(event)" class="p-1.5 text-text-muted hover:text-danger">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
+
+              <div class="text-sm font-bold text-text-primary mb-1">
+                {{ new Date(event.dateTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}
+                <span class="text-text-muted mx-1">•</span>
+                {{ new Date(event.dateTime).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) }}
               </div>
-            </div>
 
-            <div class="text-sm font-bold text-text-primary mb-1">
-              {{ new Date(event.dateTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}
-              <span class="text-text-muted mx-1">•</span>
-              {{ new Date(event.dateTime).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) }}
-            </div>
+              <div class="text-text-secondary text-sm mb-3">
+                {{ event.location }}
+              </div>
 
-            <div class="text-text-secondary text-sm mb-3">
-              {{ event.location }}
-            </div>
-
-            <div v-if="event.notes" class="text-xs text-text-muted italic bg-surface-hover p-2 rounded border border-border/50">
-              {{ event.notes }}
+              <div v-if="event.notes" class="text-xs text-text-muted italic bg-surface-hover p-2 rounded border border-border/50 mb-3">
+                {{ event.notes }}
+              </div>
             </div>
             
             <!-- Attendance Section -->
             <div class="mt-4 pt-3 border-t border-border">
-              <div class="flex items-center justify-between group/attendance">
+              <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                   <UIcon name="i-heroicons-users" class="w-4 h-4 text-text-muted" />
                   <span class="text-xs font-bold text-text-primary">
                     {{ event.attendingPlayers?.length || 0 }} Attending
                   </span>
                 </div>
-                <button v-if="event.attendingPlayers?.length > 0" 
-                  @click="toggleAttendance(event.id)"
-                  class="text-[10px] uppercase font-bold text-celtic-green hover:underline">
-                  {{ expandedEvents[event.id] ? 'Hide' : 'View List' }}
-                </button>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    @click="openAttendanceModal(event)"
+                    class="text-[10px] uppercase font-bold text-celtic-gold hover:underline bg-celtic-gold/10 px-2 py-1 rounded border border-celtic-gold/20"
+                  >
+                    Manage Squad
+                  </button>
+                  <button 
+                    v-if="event.attendingPlayers?.length > 0" 
+                    @click="toggleAttendance(event.id)"
+                    class="text-[10px] uppercase font-bold text-celtic-green hover:underline"
+                  >
+                    {{ expandedEvents[event.id] ? 'Hide' : 'View' }}
+                  </button>
+                </div>
               </div>
               
-              <div v-if="expandedEvents[event.id]" class="mt-3 space-y-1 animate-fade-in">
+              <div v-if="expandedEvents[event.id]" class="mt-3 space-y-1 animate-fade-in max-h-40 overflow-y-auto pr-1">
                 <div v-for="player in event.attendingPlayers" :key="player.playerId" 
-                  class="text-[11px] text-text-secondary flex items-center gap-2">
-                  <div class="w-1 h-1 rounded-full bg-celtic-green"></div>
+                  class="text-[11px] text-text-secondary flex items-center gap-2 py-0.5">
+                  <div class="w-1.5 h-1.5 rounded-full bg-celtic-green shrink-0"></div>
                   {{ player.fullName }}
                 </div>
               </div>
@@ -129,9 +142,9 @@
       </div>
     </div>
 
-    <!-- Event Modal -->
+    <!-- Event Modal (Create / Edit Event) -->
     <div v-if="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="card w-full max-md p-6 animate-fade-in shadow-2xl border-celtic-green/30">
+      <div class="card w-full max-w-md p-6 animate-fade-in shadow-2xl border-celtic-green/30">
         <h2 class="text-xl font-bold text-text-primary mb-6">{{ isEditing ? 'Edit Event' : 'Add One-off Event' }}</h2>
 
         <form @submit.prevent="submitForm" class="space-y-4 text-left">
@@ -176,32 +189,129 @@
         </form>
       </div>
     </div>
+
+    <!-- Attendance Management Modal -->
+    <div v-if="isAttendanceModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div class="card w-full max-w-lg p-6 animate-fade-in shadow-2xl border-celtic-gold/30">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-xl font-bold text-text-primary">Manage Attending Squad</h2>
+            <p class="text-xs text-text-secondary mt-0.5">
+              Select attending players for {{ attendanceEvent?.type }} on {{ new Date(attendanceEvent?.dateTime || '').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
+            </p>
+          </div>
+          <button @click="isAttendanceModalOpen = false" class="text-text-muted hover:text-text-primary p-1">
+            ✕
+          </button>
+        </div>
+
+        <!-- Quick Controls: Search & Multi-Select Helpers -->
+        <div class="my-4 space-y-3">
+          <input 
+            v-model="attendanceSearchQuery" 
+            type="text" 
+            placeholder="Search active squad players..." 
+            class="input text-sm py-2" 
+          />
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-text-secondary font-medium">
+              {{ selectedPlayerIds.length }} of {{ activePlayers.length }} players selected
+            </span>
+            <div class="flex items-center gap-2">
+              <button @click="selectAllActivePlayers" class="text-celtic-green hover:underline font-semibold">
+                Select All
+              </button>
+              <span class="text-text-muted">•</span>
+              <button @click="clearAllAttendance" class="text-text-muted hover:text-danger font-semibold">
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Squad Players List -->
+        <div class="max-h-72 overflow-y-auto border border-border rounded-xl divide-y divide-border bg-surface-hover/30 p-1 mb-6">
+          <div 
+            v-for="player in filteredActivePlayers" 
+            :key="player.id"
+            @click="togglePlayerSelection(player.id)"
+            class="flex items-center justify-between p-3 rounded-lg hover:bg-surface-hover cursor-pointer transition-colors"
+          >
+            <div class="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                :checked="selectedPlayerIds.includes(player.id)"
+                @click.stop="togglePlayerSelection(player.id)"
+                class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4"
+              />
+              <div>
+                <span class="text-sm font-semibold text-text-primary block">{{ player.firstName }} {{ player.lastName }}</span>
+                <span v-if="wasParentAttending(player.id)" class="text-[10px] text-celtic-green font-medium">● Marked by Parent</span>
+              </div>
+            </div>
+
+            <span 
+              v-if="selectedPlayerIds.includes(player.id)" 
+              class="badge badge-success text-xs"
+            >
+              Attending
+            </span>
+            <span v-else class="text-xs text-text-muted">Not Attending</span>
+          </div>
+
+          <div v-if="filteredActivePlayers.length === 0" class="p-6 text-center text-text-muted text-sm">
+            No active players found matching "{{ attendanceSearchQuery }}"
+          </div>
+        </div>
+
+        <div v-if="attendanceError" class="text-danger text-sm mb-4">
+          {{ attendanceError }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-border">
+          <button type="button" @click="isAttendanceModalOpen = false" class="btn-secondary">Cancel</button>
+          <button @click="saveAttendance" class="btn-primary" :disabled="attendanceSaving">
+            {{ attendanceSaving ? 'Saving...' : 'Save Attendance' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useEvents, type Event } from '~/composables/useEvents'
+import { usePlayers } from '~/composables/usePlayers'
 
 definePageMeta({
   layout: 'app',
 })
 
 useHead({
-  title: 'Schedule - Celtic FC',
+  title: 'Schedule - Stalybridge Celtic U7',
 })
 
-const { events, loading, error, fetchEvents, createEvent, updateEvent, deleteEvent } = useEvents()
+const { events, loading, error, fetchEvents, createEvent, updateEvent, updateEventAttendance, deleteEvent } = useEvents()
+const { players, fetchPlayers } = usePlayers()
+
 const expandedEvents = ref<Record<string, boolean>>({})
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
 
 onMounted(() => {
   fetchEvents()
+  fetchPlayers()
+})
+
+const activePlayers = computed(() => {
+  return players.value.filter(p => p.isActive)
 })
 
 const toggleAttendance = (id: string) => {
   expandedEvents.value[id] = !expandedEvents.value[id]
 }
+
+// --- Create / Edit Event Modal ---
 const isModalOpen = ref(false)
 const isEditing = ref(false)
 const editingEvent = ref<Event | null>(null)
@@ -216,6 +326,70 @@ const form = ref({
   isCancelled: false
 })
 
+// --- Attendance Management Modal ---
+const isAttendanceModalOpen = ref(false)
+const attendanceEvent = ref<Event | null>(null)
+const selectedPlayerIds = ref<string[]>([])
+const attendanceSearchQuery = ref('')
+const attendanceSaving = ref(false)
+const attendanceError = ref<string | null>(null)
+
+const filteredActivePlayers = computed(() => {
+  if (!attendanceSearchQuery.value.trim()) return activePlayers.value
+  const q = attendanceSearchQuery.value.toLowerCase()
+  return activePlayers.value.filter(p => 
+    `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
+  )
+})
+
+function openAttendanceModal(event: Event) {
+  attendanceEvent.value = event
+  attendanceSearchQuery.value = ''
+  attendanceError.value = null
+  // Pre-check players who are already marked as attending (by parent or previous admin edit)
+  selectedPlayerIds.value = event.attendingPlayers ? event.attendingPlayers.map(p => p.playerId) : []
+  isAttendanceModalOpen.value = true
+}
+
+function wasParentAttending(playerId: string): boolean {
+  return attendanceEvent.value?.attendingPlayers?.some(p => p.playerId === playerId) ?? false
+}
+
+function togglePlayerSelection(playerId: string) {
+  const index = selectedPlayerIds.value.indexOf(playerId)
+  if (index === -1) {
+    selectedPlayerIds.value.push(playerId)
+  } else {
+    selectedPlayerIds.value.splice(index, 1)
+  }
+}
+
+function selectAllActivePlayers() {
+  selectedPlayerIds.value = activePlayers.value.map(p => p.id)
+}
+
+function clearAllAttendance() {
+  selectedPlayerIds.value = []
+}
+
+async function saveAttendance() {
+  if (!attendanceEvent.value) return
+  attendanceSaving.value = true
+  attendanceError.value = null
+
+  const result = await updateEventAttendance(attendanceEvent.value.id, selectedPlayerIds.value)
+  if (result.success) {
+    isAttendanceModalOpen.value = false
+    // Ensure expanded state shows the updated list
+    expandedEvents.value[attendanceEvent.value.id] = true
+  } else {
+    attendanceError.value = result.error || 'Failed to save attendance'
+  }
+
+  attendanceSaving.value = false
+}
+
+// --- Events Filtering & Grouping ---
 const upcomingEventsList = computed(() => {
   return events.value.filter(e => new Date(e.dateTime) >= new Date())
 })
@@ -231,11 +405,9 @@ const filteredEvents = computed(() => {
 const groupedEvents = computed(() => {
   const groups: Record<string, Event[]> = {}
   
-  // Sort events by date
   const sorted = [...filteredEvents.value].sort((a, b) => {
     const timeA = new Date(a.dateTime).getTime()
     const timeB = new Date(b.dateTime).getTime()
-    // Upcoming: soonest first. Past: most recent first.
     return activeTab.value === 'upcoming' ? timeA - timeB : timeB - timeA
   })
 

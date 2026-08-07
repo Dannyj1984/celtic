@@ -16,7 +16,7 @@
                 <path d="M12 2c2.5 4.5 2.5 9 0 14" />
               </svg>
             </div>
-            <span class="font-bold text-text-primary">Celtic FC</span>
+            <span class="font-bold text-text-primary">Stalybridge Celtic U7</span>
           </NuxtLink>
 
           <div class="hidden md:flex items-center gap-6">
@@ -33,6 +33,9 @@
               <NuxtLink to="/admin/seasons"
                 class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
                 active-class="text-celtic-green">Seasons</NuxtLink>
+              <NuxtLink to="/admin/payments"
+                class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
+                active-class="text-celtic-green">Payments</NuxtLink>
               <NuxtLink to="/admin/parents"
                 class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
                 active-class="text-celtic-green">Parents</NuxtLink>
@@ -100,6 +103,12 @@
           <UserGroupIcon class="w-6 h-6" />
           <span class="text-[10px] font-medium uppercase tracking-wider">Squad</span>
         </NuxtLink>
+        <NuxtLink to="/admin/payments"
+          class="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-secondary transition-colors"
+          active-class="text-celtic-green bg-celtic-green/10">
+          <BanknotesIcon class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Payments</span>
+        </NuxtLink>
         <NuxtLink to="/admin/matches"
           class="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-secondary transition-colors"
           active-class="text-celtic-green bg-celtic-green/10">
@@ -125,6 +134,6 @@
 </template>
 
 <script setup lang="ts">
-import { HomeIcon, TrophyIcon, UserIcon, UserGroupIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
+import { HomeIcon, TrophyIcon, UserIcon, UserGroupIcon, Cog6ToothIcon, BanknotesIcon } from '@heroicons/vue/24/outline'
 const { user, isAdmin, logout } = useAuth()
 </script>

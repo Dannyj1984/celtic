@@ -19,9 +19,9 @@ export default defineNuxtConfig({
 
   pwa: {
     manifest: {
-      name: 'Celtic FC',
-      short_name: 'Celtic',
-      description: 'Celtic FC Team Management',
+      name: 'Stalybridge Celtic Juniors',
+      short_name: 'SBC Juniors',
+      description: 'Stalybridge Celtic Juniors Team Management',
       theme_color: '#006837',
       background_color: '#111827',
       display: 'standalone',

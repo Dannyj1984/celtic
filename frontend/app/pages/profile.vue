@@ -109,7 +109,7 @@
                       <UBadge v-if="match.wasPlayerOfTheMatch" color="yellow" variant="solid" size="xs" class="font-black uppercase tracking-tighter">POTM</UBadge>
                     </div>
                     <div class="text-lg font-black text-text-primary uppercase tracking-tight">
-                      Celtic FC <span class="text-text-muted mx-2">vs</span> {{ match.opposition }}
+                      Stalybridge Celtic U7 <span class="text-text-muted mx-2">vs</span> {{ match.opposition }}
                     </div>
                   </div>
                 </div>
@@ -161,7 +161,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Player Profile - Celtic FC',
+  title: 'Player Profile - Stalybridge Celtic U7',
 })
 
 const { getAuthHeaders } = useAuth()

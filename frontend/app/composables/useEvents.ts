@@ -81,6 +81,23 @@ export function useEvents() {
     }
   }
 
+  async function updateEventAttendance(eventId: string, playerIds: string[]) {
+    try {
+      const updatedEvent = await $fetch<Event>(`/api/events/${eventId}/attendance`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: { playerIds },
+      })
+      const index = events.value.findIndex(e => e.id === eventId)
+      if (index !== -1) {
+        events.value[index] = updatedEvent
+      }
+      return { success: true, event: updatedEvent }
+    } catch (err: any) {
+      return { success: false, error: err?.data?.message || 'Failed to update attendance' }
+    }
+  }
+
   return {
     events,
     loading,
@@ -88,6 +105,7 @@ export function useEvents() {
     fetchEvents,
     createEvent,
     updateEvent,
+    updateEventAttendance,
     deleteEvent,
   }
 }

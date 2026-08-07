@@ -259,7 +259,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Squad - Celtic FC',
+  title: 'Squad - Stalybridge Celtic U7',
 })
 
 const { players, loading, error, fetchPlayers, createPlayer, updatePlayer } = usePlayers()

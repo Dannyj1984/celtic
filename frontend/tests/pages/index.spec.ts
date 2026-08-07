@@ -33,6 +33,6 @@ describe('Index Page', () => {
     mockIsAuthenticated.value = true
     const wrapper = mount(IndexPage)
     expect(wrapper.text()).toContain('Redirecting')
-    expect(wrapper.text()).toContain('Celtic FC')
+    expect(wrapper.text()).toContain('Stalybridge Celtic U7')
   })
 })

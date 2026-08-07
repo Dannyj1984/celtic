@@ -136,7 +136,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Seasons - Celtic FC',
+  title: 'Seasons - Stalybridge Celtic U7',
 })
 
 const { seasons, loading, error, fetchSeasons, createSeason, updateSeason } = useSeasons()

@@ -218,7 +218,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Parents - Celtic FC',
+  title: 'Parents - Stalybridge Celtic U7',
 })
 
 const { parents, loading, error, fetchParents, linkPlayer } = useParents()
