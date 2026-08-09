@@ -24,6 +24,9 @@
               <NuxtLink to="/admin/players"
                 class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
                 active-class="text-celtic-green">Squad</NuxtLink>
+              <NuxtLink to="/admin/teams"
+                class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
+                active-class="text-celtic-green">Teams</NuxtLink>
               <NuxtLink to="/admin/schedule"
                 class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
                 active-class="text-celtic-green">Schedule</NuxtLink>

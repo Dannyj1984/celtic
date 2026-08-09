@@ -72,6 +72,7 @@ public class PaymentService : IPaymentService
         }
 
         var players = await _context.Players
+            .Include(p => p.Team)
             .Where(p => p.IsActive)
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
@@ -126,7 +127,9 @@ public class PaymentService : IPaymentService
                 Periods = periodStatuses,
                 TotalPaidThisSeason = totalPaid,
                 TotalDueThisSeason = totalDue,
-                IsUpToDate = isUpToDate
+                IsUpToDate = isUpToDate,
+                TeamId = player.TeamId,
+                TeamName = player.Team?.Name
             });
         }
 

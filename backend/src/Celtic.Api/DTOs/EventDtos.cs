@@ -12,7 +12,9 @@ public record EventDto(
     string? Notes,
     bool IsCancelled,
     Guid? MatchId,
-    List<AttendingPlayerDto> AttendingPlayers
+    List<AttendingPlayerDto> AttendingPlayers,
+    Guid? TeamId = null,
+    string? TeamName = null
 );
 
 public record AttendingPlayerDto(
@@ -25,14 +27,16 @@ public record CreateEventRequest(
     [Required] string Type, // "Training" or "Match"
     [Required] DateTime DateTime,
     [Required] string Location,
-    string? Notes
+    string? Notes,
+    Guid? TeamId = null
 );
 
 public record UpdateEventRequest(
     [Required] DateTime DateTime,
     [Required] string Location,
     string? Notes,
-    bool IsCancelled
+    bool IsCancelled,
+    Guid? TeamId = null
 );
 
 public record UpdateEventAttendanceRequest(

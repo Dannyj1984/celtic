@@ -6,6 +6,9 @@ public class Event
     public Guid? SeasonId { get; set; }
     public Season? Season { get; set; }
 
+    public Guid? TeamId { get; set; }
+    public Team? Team { get; set; }
+
     public string Type { get; set; } = "Training"; // "Training" or "Match"
     public DateTime DateTime { get; set; }
     public string Location { get; set; } = string.Empty;

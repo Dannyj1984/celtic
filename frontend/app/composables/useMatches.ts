@@ -16,6 +16,8 @@ export interface Match {
   eventId?: string | null
   playerOfTheMatchId?: string | null
   playerOfTheMatchName?: string | null
+  teamId?: string | null
+  teamName?: string | null
 }
 
 export function useMatches() {

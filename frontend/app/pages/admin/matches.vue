@@ -1,13 +1,22 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-bold text-text-primary">Matches</h1>
         <p class="text-text-secondary mt-1">Manage results and upcoming fixtures</p>
       </div>
-      <button @click="openCreateModal" class="btn-primary">
-        + Add Match
-      </button>
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <select v-model="selectedTeamFilter" class="input text-sm py-2 bg-surface max-w-[160px]">
+          <option value="All">All Teams</option>
+          <option value="AllTeamsOnly">All-Team Matches</option>
+          <option v-for="team in teams" :key="team.id" :value="team.id">
+            {{ team.name }}
+          </option>
+        </select>
+        <button @click="openCreateModal" class="btn-primary whitespace-nowrap">
+          + Add Match
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
@@ -19,7 +28,7 @@
     </div>
 
     <div v-else class="space-y-4">
-      <div v-for="match in matches" :key="match.id" class="card p-4 hover:border-celtic-green/50 transition-all group">
+      <div v-for="match in filteredMatches" :key="match.id" class="card p-4 hover:border-celtic-green/50 transition-all group">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-4 sm:gap-6">
             <div class="text-center min-w-[70px] sm:min-w-[80px]">
@@ -31,6 +40,12 @@
  
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
+                <span v-if="match.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5">
+                  {{ match.teamName }}
+                </span>
+                <span v-else class="badge bg-surface-hover text-text-secondary border border-border text-[10px] px-1.5 py-0.5">
+                  All Teams
+                </span>
                 <span v-if="!match.seasonId" class="badge bg-orange-500/10 text-orange-500 border-orange-500/20 text-[10px] px-1.5 py-0.5">Friendly</span>
                 <span v-else class="text-[10px] sm:text-xs text-text-muted font-medium">{{ match.seasonName }}</span>
                 <span v-if="match.isPublished" class="text-[9px] sm:text-[10px] text-celtic-green font-bold uppercase tracking-wider">● Published</span>
@@ -119,6 +134,16 @@
             <input v-model="form.location" type="text" class="input" placeholder="e.g. Home, Away Ground Name" />
           </div>
 
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Sub-Team Assignment</label>
+            <select v-model="form.teamId" class="input bg-surface">
+              <option value="">All Teams (Visible to All Squad)</option>
+              <option v-for="team in teams" :key="team.id" :value="team.id">
+                {{ team.name }}
+              </option>
+            </select>
+          </div>
+
           <div v-if="isEditing">
              <div class="bg-surface-hover p-4 rounded-lg border border-border">
                 <span class="text-xs text-text-muted uppercase font-bold block mb-3">Match Result</span>
@@ -171,6 +196,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useMatches, type Match } from '~/composables/useMatches'
 import { useSeasons } from '~/composables/useSeasons'
 import { usePlayers } from '~/composables/usePlayers'
+import { useTeams } from '~/composables/useTeams'
 
 definePageMeta({
   layout: 'app',
@@ -183,12 +209,20 @@ useHead({
 const { matches, loading, error, fetchMatches, createMatch, updateMatch, deleteMatch } = useMatches()
 const { seasons, fetchSeasons } = useSeasons()
 const { players, fetchPlayers } = usePlayers()
+const { teams, fetchTeams } = useTeams()
 
+const selectedTeamFilter = ref<string>('All')
 const isModalOpen = ref(false)
 const isEditing = ref(false)
 const editingMatch = ref<Match | null>(null)
 const saving = ref(false)
 const formError = ref<string | null>(null)
+
+const filteredMatches = computed(() => {
+  if (selectedTeamFilter.value === 'All') return matches.value
+  if (selectedTeamFilter.value === 'AllTeamsOnly') return matches.value.filter(m => !m.teamId)
+  return matches.value.filter(m => m.teamId === selectedTeamFilter.value)
+})
 
 const form = ref({
   matchType: 'friendly',
@@ -201,13 +235,15 @@ const form = ref({
   goalsAgainst: 0,
   matchReport: '',
   isPublished: false,
-  playerOfTheMatchId: null as string | null
+  playerOfTheMatchId: null as string | null,
+  teamId: ''
 })
 
 onMounted(() => {
   fetchMatches()
   fetchSeasons()
   fetchPlayers()
+  fetchTeams()
 })
 
 function openCreateModal() {
@@ -224,7 +260,8 @@ function openCreateModal() {
     goalsAgainst: 0,
     matchReport: '',
     isPublished: false,
-    playerOfTheMatchId: null
+    playerOfTheMatchId: null,
+    teamId: ''
   }
   formError.value = null
   isModalOpen.value = true
@@ -244,7 +281,8 @@ function openEditModal(match: Match) {
     goalsAgainst: match.goalsAgainst,
     matchReport: match.matchReport || '',
     isPublished: match.isPublished,
-    playerOfTheMatchId: match.playerOfTheMatchId || null
+    playerOfTheMatchId: match.playerOfTheMatchId || null,
+    teamId: match.teamId || ''
   }
   formError.value = null
   isModalOpen.value = true
@@ -268,7 +306,8 @@ async function submitForm() {
     goalsAgainst: form.value.goalsAgainst,
     matchReport: form.value.matchReport,
     isPublished: form.value.isPublished,
-    playerOfTheMatchId: form.value.playerOfTheMatchId
+    playerOfTheMatchId: form.value.playerOfTheMatchId,
+    teamId: form.value.teamId ? form.value.teamId : null
   }
 
   let result

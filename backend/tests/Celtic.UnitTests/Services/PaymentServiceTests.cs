@@ -177,4 +177,49 @@ public class PaymentServiceTests
         var expensesAfterDelete = await service.GetExpensesAsync(season.Id);
         Assert.Empty(expensesAfterDelete);
     }
+
+    [Fact]
+    public async Task GetPlayerSubStatusesAsync_IncludesTeamDetails()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+
+        var season = new Season
+        {
+            Id = Guid.NewGuid(),
+            Name = "2026-27",
+            StartDate = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc),
+            EndDate = new DateTime(2027, 5, 31, 0, 0, 0, DateTimeKind.Utc),
+            SubAmount = 30m,
+            SubFrequency = "Monthly"
+        };
+        dbContext.Seasons.Add(season);
+
+        var team = new Team { Id = Guid.NewGuid(), Name = "Hoops", ColorHex = "#F59E0B" };
+        dbContext.Teams.Add(team);
+
+        var player = new Player
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Leo",
+            LastName = "Messi",
+            IsActive = true,
+            TeamId = team.Id,
+            Team = team
+        };
+        dbContext.Players.Add(player);
+        await dbContext.SaveChangesAsync();
+
+        var service = new PaymentService(dbContext);
+
+        // Act
+        var statuses = await service.GetPlayerSubStatusesAsync(season.Id, 2026, 8);
+
+        // Assert
+        Assert.Single(statuses);
+        var pStatus = statuses.First();
+        Assert.Equal(team.Id, pStatus.TeamId);
+        Assert.Equal("Hoops", pStatus.TeamName);
+    }
 }

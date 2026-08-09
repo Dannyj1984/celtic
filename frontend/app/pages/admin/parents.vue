@@ -61,9 +61,15 @@
           <div v-else class="space-y-2">
             <div v-for="child in parent.children" :key="child.playerId"
               class="flex items-center justify-between p-2 rounded-lg bg-surface-hover border border-border/50">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-sm font-medium text-text-primary">{{ child.firstName }} {{ child.lastName }}</span>
-                <span class="text-text-muted text-[10px] uppercase">{{ child.relationship }}</span>
+                <span v-if="child.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-semibold">
+                  {{ child.teamName }}
+                </span>
+                <span v-else class="badge bg-surface text-text-muted border border-border text-[10px] px-1.5 py-0.5">
+                  Unassigned
+                </span>
+                <span class="text-text-muted text-[10px] uppercase font-semibold">• {{ child.relationship }}</span>
               </div>
               <button
                 @click="cycleSubStatus(child)"

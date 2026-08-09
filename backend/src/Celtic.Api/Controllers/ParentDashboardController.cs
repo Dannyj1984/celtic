@@ -73,9 +73,17 @@ public class ParentDashboardController : ControllerBase
             .FirstOrDefaultAsync();
 
         // Next Match Event
-        var nextMatchEvent = await _context.Events
+        var nextMatchQuery = _context.Events
             .Include(e => e.Match)
-            .Where(e => e.Type == "Match" && e.DateTime > DateTime.UtcNow && !e.IsCancelled)
+            .Where(e => e.Type == "Match" && e.DateTime > DateTime.UtcNow && !e.IsCancelled);
+
+        if (playerParent.Player.TeamId.HasValue)
+        {
+            var childTeamId = playerParent.Player.TeamId.Value;
+            nextMatchQuery = nextMatchQuery.Where(e => e.TeamId == null || e.TeamId == childTeamId);
+        }
+
+        var nextMatchEvent = await nextMatchQuery
             .OrderBy(e => e.DateTime)
             .FirstOrDefaultAsync();
 
@@ -171,12 +179,22 @@ public class ParentDashboardController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
 
-        var playerParent = await _context.PlayerParents.FirstOrDefaultAsync(pp => pp.UserId == userId);
+        var playerParent = await _context.PlayerParents
+            .Include(pp => pp.Player)
+            .FirstOrDefaultAsync(pp => pp.UserId == userId);
         if (playerParent == null) return NotFound("No linked player found for this parent");
 
-        var events = await _context.Events
+        var query = _context.Events
             .Include(e => e.Match)
-            .Where(e => e.Type == type && e.DateTime > DateTime.UtcNow)
+            .Where(e => e.Type == type && e.DateTime > DateTime.UtcNow);
+
+        if (type == "Match" && playerParent.Player.TeamId.HasValue)
+        {
+            var childTeamId = playerParent.Player.TeamId.Value;
+            query = query.Where(e => e.TeamId == null || e.TeamId == childTeamId);
+        }
+
+        var events = await query
             .OrderBy(e => e.DateTime)
             .ToListAsync();
 
@@ -206,13 +224,23 @@ public class ParentDashboardController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
 
-        var playerParent = await _context.PlayerParents.FirstOrDefaultAsync(pp => pp.UserId == userId);
+        var playerParent = await _context.PlayerParents
+            .Include(pp => pp.Player)
+            .FirstOrDefaultAsync(pp => pp.UserId == userId);
         if (playerParent == null) return NotFound("No linked player found for this parent");
 
-        var events = await _context.Events
+        var query = _context.Events
             .Include(e => e.Match)
                 .ThenInclude(m => m.PlayerOfTheMatch)
-            .Where(e => e.Type == type && e.DateTime <= DateTime.UtcNow)
+            .Where(e => e.Type == type && e.DateTime <= DateTime.UtcNow);
+
+        if (type == "Match" && playerParent.Player.TeamId.HasValue)
+        {
+            var childTeamId = playerParent.Player.TeamId.Value;
+            query = query.Where(e => e.TeamId == null || e.TeamId == childTeamId);
+        }
+
+        var events = await query
             .OrderByDescending(e => e.DateTime)
             .ToListAsync();
 

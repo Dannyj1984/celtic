@@ -32,6 +32,7 @@ export interface Player {
   shirtSize?: string | null
   allergies?: string | null
   allowPhotos?: boolean
+  teamId: string
 }
 
 export function usePlayers() {

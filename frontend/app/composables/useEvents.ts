@@ -15,6 +15,8 @@ export interface Event {
     playerId: string
     fullName: string
   }[]
+  teamId?: string | null
+  teamName?: string | null
 }
 
 export function useEvents() {
