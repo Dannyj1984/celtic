@@ -66,11 +66,11 @@
                   </span>
                   <span v-if="event.seasonName" class="text-[10px] text-text-muted font-medium">{{ event.seasonName }}</span>
                 </div>
-                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button @click="openEditModal(event)" title="Edit Event" class="p-1.5 text-text-muted hover:text-celtic-gold">
+                <div class="flex items-center gap-1 text-text-muted">
+                  <button @click="openEditModal(event)" title="Edit Event" class="p-1.5 hover:text-celtic-gold transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   </button>
-                  <button v-if="event.type !== 'Match'" @click="confirmDelete(event)" title="Delete Event" class="p-1.5 text-text-muted hover:text-danger">
+                  <button v-if="event.type !== 'Match'" @click="confirmDelete(event)" title="Delete Event" class="p-1.5 hover:text-danger transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </button>
                 </div>
@@ -180,11 +180,23 @@
             {{ formError }}
           </div>
 
-          <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
-            <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
-            <button type="submit" class="btn-primary" :disabled="saving">
-              {{ saving ? 'Saving...' : (isEditing ? 'Update Event' : 'Create Event') }}
+          <div class="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-border">
+            <button 
+              v-if="isEditing && editingEvent && editingEvent.type !== 'Match'" 
+              type="button" 
+              @click="handleDeleteFromModal" 
+              class="px-3 py-1.5 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Delete Event
             </button>
+            <div v-else></div>
+            <div class="flex gap-3">
+              <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
+              <button type="submit" class="btn-primary" :disabled="saving">
+                {{ saving ? 'Saving...' : (isEditing ? 'Update Event' : 'Create Event') }}
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -276,6 +288,49 @@
         </div>
       </div>
     </div>
+
+    <!-- Custom Delete Confirmation Modal -->
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div class="card w-full max-w-md p-6 animate-fade-in shadow-2xl border-danger/40 text-left">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-danger/10 border border-danger/20 flex items-center justify-center text-danger shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-text-primary">Delete {{ eventToDelete?.type || 'Event' }} Session?</h2>
+            <p class="text-xs text-text-muted">This action cannot be undone.</p>
+          </div>
+        </div>
+
+        <div v-if="eventToDelete" class="bg-surface-hover/60 border border-border/60 rounded-lg p-3 text-sm space-y-1.5 mb-6">
+          <div class="font-bold text-text-primary">
+            {{ new Date(eventToDelete.dateTime).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
+          </div>
+          <div class="text-text-secondary text-xs flex items-center gap-2">
+            <span>{{ new Date(eventToDelete.dateTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}</span>
+            <span>•</span>
+            <span>{{ eventToDelete.location }}</span>
+          </div>
+          <div v-if="eventToDelete.attendingPlayers?.length" class="text-[11px] text-celtic-gold font-medium pt-1">
+            ⚠️ {{ eventToDelete.attendingPlayers.length }} player(s) currently marked as attending
+          </div>
+        </div>
+
+        <div v-if="deleteError" class="text-danger text-xs mb-4 bg-danger/10 p-2.5 rounded border border-danger/20">
+          {{ deleteError }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-border">
+          <button type="button" @click="closeDeleteModal" class="btn-secondary" :disabled="deleting">
+            Cancel
+          </button>
+          <button @click="executeDelete" class="px-4 py-2 bg-danger hover:bg-danger/90 text-white font-bold rounded-lg text-xs tracking-wide uppercase shadow-lg shadow-danger/20 transition-all flex items-center gap-2" :disabled="deleting">
+            <svg v-if="deleting" class="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            {{ deleting ? 'Deleting...' : 'Delete Session' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -294,6 +349,7 @@ useHead({
 
 const { events, loading, error, fetchEvents, createEvent, updateEvent, updateEventAttendance, deleteEvent } = useEvents()
 const { players, fetchPlayers } = usePlayers()
+const toast = useToast()
 
 const expandedEvents = ref<Record<string, boolean>>({})
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
@@ -481,10 +537,45 @@ async function submitForm() {
   saving.value = false
 }
 
-async function confirmDelete(event: Event) {
-  if (confirm('Are you sure you want to delete this event? This cannot be undone.')) {
-    await deleteEvent(event.id)
+// --- Delete Confirmation Modal ---
+const isDeleteModalOpen = ref(false)
+const eventToDelete = ref<Event | null>(null)
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
+
+function confirmDelete(event: Event) {
+  eventToDelete.value = event
+  deleteError.value = null
+  isDeleteModalOpen.value = true
+}
+
+function handleDeleteFromModal() {
+  if (!editingEvent.value) return
+  eventToDelete.value = editingEvent.value
+  deleteError.value = null
+  closeModal()
+  isDeleteModalOpen.value = true
+}
+
+function closeDeleteModal() {
+  isDeleteModalOpen.value = false
+  eventToDelete.value = null
+  deleteError.value = null
+}
+
+async function executeDelete() {
+  if (!eventToDelete.value) return
+  deleting.value = true
+  deleteError.value = null
+
+  const result = await deleteEvent(eventToDelete.value.id)
+  if (result?.success) {
+    closeDeleteModal()
+    toast.add({ title: 'Event deleted', description: 'The event has been deleted.', color: 'gray' })
+  } else {
+    deleteError.value = result?.error || 'Failed to delete event'
   }
+  deleting.value = false
 }
 </script>
 

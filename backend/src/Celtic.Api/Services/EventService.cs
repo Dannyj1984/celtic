@@ -72,7 +72,10 @@ public class EventService : IEventService
 
     public async Task DeleteEventAsync(Guid id)
     {
-        var e = await _db.Events.FindAsync(id);
+        var e = await _db.Events
+            .Include(e => e.Responses)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
         if (e != null)
         {
             _db.Events.Remove(e);

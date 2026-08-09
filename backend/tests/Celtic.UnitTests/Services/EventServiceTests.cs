@@ -72,4 +72,46 @@ public class EventServiceTests
         Assert.Contains(updated.AttendingPlayers, p => p.PlayerId == player1.Id);
         Assert.Contains(updated.AttendingPlayers, p => p.PlayerId == player2.Id);
     }
+
+    [Fact]
+    public async Task DeleteEventAsync_RemovesEventAndResponses()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+
+        var player = new Player { Id = Guid.NewGuid(), FirstName = "Frank", LastName = "Lampard", IsActive = true };
+        dbContext.Players.Add(player);
+
+        var evt = new Event
+        {
+            Id = Guid.NewGuid(),
+            Type = "Training",
+            DateTime = DateTime.UtcNow.AddDays(-3),
+            Location = "Training Complex"
+        };
+        dbContext.Events.Add(evt);
+
+        dbContext.EventResponses.Add(new EventResponse
+        {
+            Id = Guid.NewGuid(),
+            EventId = evt.Id,
+            PlayerId = player.Id,
+            Status = "Attending"
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new EventService(dbContext);
+
+        // Act
+        await service.DeleteEventAsync(evt.Id);
+
+        // Assert
+        var deletedEvent = await dbContext.Events.FindAsync(evt.Id);
+        Assert.Null(deletedEvent);
+
+        var remainingResponses = await dbContext.EventResponses.Where(r => r.EventId == evt.Id).ToListAsync();
+        Assert.Empty(remainingResponses);
+    }
 }
