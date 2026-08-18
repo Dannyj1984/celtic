@@ -113,8 +113,8 @@ describe('Dashboard Page', () => {
     expect(wrapper.text()).toContain('Wednesday')
     expect(wrapper.text()).toContain('17:30')
 
-    // Check Performance
-    expect(wrapper.text()).toContain('Season Performance')
+    // Check Performance / Attendance
+    expect(wrapper.text()).toContain('Season Attendance')
     expect(wrapper.text()).toContain('90%')
 
     // Check Good to know
