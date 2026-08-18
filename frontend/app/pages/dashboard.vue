@@ -154,7 +154,7 @@
             </UCard>
 
             <!-- Photo & Social Media Consent -->
-            <UCard class="bg-bg-card border border-border-color shadow-sm rounded-xl overflow-hidden">
+            <!-- <UCard class="bg-bg-card border border-border-color shadow-sm rounded-xl overflow-hidden">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="p-2 bg-celtic-gold/10 rounded-lg">
@@ -174,7 +174,7 @@
                 </div>
                 <UToggle v-model="photoConsent" :loading="updatingConsent" @update:model-value="togglePhotoConsent" color="green" />
               </div>
-            </UCard>
+            </UCard> -->
 
             <!-- Upcoming Activities -->
             <div>
@@ -585,33 +585,33 @@ const { data: dashboardData, pending, error, refresh: refreshDashboard } = useFe
 const photoConsent = ref(false)
 const updatingConsent = ref(false)
 
-watch(() => dashboardData.value?.allowPhotos, (val) => {
-  if (val !== undefined) {
-    photoConsent.value = val
-  }
-}, { immediate: true })
+// watch(() => dashboardData.value?.allowPhotos, (val) => {
+//   if (val !== undefined) {
+//     photoConsent.value = val
+//   }
+// }, { immediate: true })
 
-const togglePhotoConsent = async (val: boolean) => {
-  updatingConsent.value = true
-  try {
-    await $fetch('/api/parent/actions/photo-consent', {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: { allowPhotos: val }
-    })
-    toast.add({
-      title: 'Consent Updated',
-      description: val ? 'Photo and social media consent enabled.' : 'Photo consent disabled.',
-      color: val ? 'green' : 'gray'
-    })
-    refreshDashboard()
-  } catch (e) {
-    photoConsent.value = !val // revert toggle on failure
-    toast.add({ title: 'Error', description: 'Failed to update photo consent.', color: 'red' })
-  } finally {
-    updatingConsent.value = false
-  }
-}
+// const togglePhotoConsent = async (val: boolean) => {
+//   updatingConsent.value = true
+//   try {
+//     await $fetch('/api/parent/actions/photo-consent', {
+//       method: 'POST',
+//       headers: getAuthHeaders(),
+//       body: { allowPhotos: val }
+//     })
+//     toast.add({
+//       title: 'Consent Updated',
+//       description: val ? 'Photo and social media consent enabled.' : 'Photo consent disabled.',
+//       color: val ? 'green' : 'gray'
+//     })
+//     refreshDashboard()
+//   } catch (e) {
+//     photoConsent.value = !val // revert toggle on failure
+//     toast.add({ title: 'Error', description: 'Failed to update photo consent.', color: 'red' })
+//   } finally {
+//     updatingConsent.value = false
+//   }
+// }
 
 const trainingPercentage = computed(() => {
   if (!dashboardData.value?.performance?.training?.totalSessions) return 0;
