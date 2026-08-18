@@ -23,7 +23,7 @@
           <div class="text-center md:text-left">
             <h1 class="text-3xl font-black text-text-primary mb-2 uppercase tracking-tight">{{ profile.fullName }}</h1>
             <div class="flex flex-wrap justify-center md:justify-start gap-4">
-              <div @click="openFootModal" class="foot-toggle flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm cursor-pointer hover:border-celtic-gold/50 transition-all select-none" title="Double click to change foot">
+              <div @dblclick="openFootModal" @click="openFootModal" class="foot-toggle flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm cursor-pointer hover:border-celtic-gold/50 transition-all select-none" title="Click to change foot">
                 <UIcon name="i-heroicons-sparkles-20-solid" class="w-4 h-4 text-celtic-gold" />
                 <span class="text-sm font-bold uppercase tracking-wider">{{ profile.preferredFoot }} {{  profile.preferredFoot.toLowerCase() === 'both' ? 'Feet' : 'Foot' }}</span>
               </div>

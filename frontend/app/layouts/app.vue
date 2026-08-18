@@ -53,6 +53,9 @@
               <NuxtLink to="/profile"
                 class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
                 active-class="text-celtic-green">Profile</NuxtLink>
+              <NuxtLink to="/settings"
+                class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
+                active-class="text-celtic-green">Settings</NuxtLink>
             </template>
           </div>
 
@@ -86,6 +89,11 @@
           active-class="text-celtic-green">
           <UserIcon class="w-6 h-6" />
           <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+        </NuxtLink>
+        <NuxtLink to="/settings" class="flex flex-col items-center gap-1 text-text-secondary"
+          active-class="text-celtic-green">
+          <Cog6ToothIcon class="w-6 h-6" />
+          <span class="text-[10px] font-medium uppercase tracking-wider">Settings</span>
         </NuxtLink>
       </div>
     </nav>

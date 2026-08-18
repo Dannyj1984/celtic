@@ -120,7 +120,6 @@
               </template>
               {{ isSubscribed ? 'Notifications Enabled' : 'Enable Notifications' }}
             </UButton>
-            <UButton color="blue" variant="solid" @click="changePassword">Change Password</UButton>
           </div>
         </div>
 
@@ -313,7 +312,7 @@
             <NuxtLink to="/season" class="block">
               <UCard
                 class="bg-bg-card border border-border-color shadow-sm hover:border-celtic-green transition-colors">
-                <h3 class="text-lg font-bold text-text-primary mb-6">Season Performance</h3>
+                <h3 class="text-lg font-bold text-text-primary mb-6">Season Attendance</h3>
                 <div class="grid grid-cols-2 gap-4">
                   <div class="flex flex-col items-center">
                     <div class="relative w-24 h-24 mb-2">
@@ -356,7 +355,7 @@
                   </div>
                 </div>
                 <p class="text-center text-xs text-text-secondary mt-6 pt-4 border-t border-border/50">
-                  Performance tracking since Sep 1st
+                  Attendance tracking since August
                 </p>
               </UCard>
             </NuxtLink>
@@ -437,37 +436,6 @@
         </UCard>
       </UModal>
 
-      <!-- Change Password Modal -->
-      <UModal v-model="isChangePasswordModalOpen">
-        <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                Change Password
-              </h3>
-              <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1"
-                @click="isChangePasswordModalOpen = false" />
-            </div>
-          </template>
-
-          <form @submit.prevent="submitChangePassword" class="space-y-4" data-testid="change-password-form">
-            <UFormGroup label="Current Password" required>
-              <UInput v-model="passwordForm.currentPassword" type="password" required />
-            </UFormGroup>
-            <UFormGroup label="New Password" required>
-              <UInput v-model="passwordForm.newPassword" type="password" required minlength="6" />
-            </UFormGroup>
-            <UFormGroup label="Confirm New Password" required>
-              <UInput v-model="passwordForm.confirmPassword" type="password" required minlength="6" />
-            </UFormGroup>
-
-            <div class="flex justify-end gap-3 mt-6">
-              <UButton color="gray" variant="ghost" @click="isChangePasswordModalOpen = false">Cancel</UButton>
-              <UButton type="submit" color="blue" :loading="changingPassword">Update Password</UButton>
-            </div>
-          </form>
-        </UCard>
-      </UModal>
 
 
     </div>
@@ -757,44 +725,5 @@ const submitBulkRsvp = async () => {
   }
 }
 
-// Change Password Logic
-const isChangePasswordModalOpen = ref(false)
-const changingPassword = ref(false)
-const passwordForm = reactive({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
 
-const changePassword = () => {
-  passwordForm.currentPassword = ''
-  passwordForm.newPassword = ''
-  passwordForm.confirmPassword = ''
-  isChangePasswordModalOpen.value = true
-}
-
-const submitChangePassword = async () => {
-  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    toast.add({ title: 'Error', description: 'Passwords do not match.', color: 'red' })
-    return
-  }
-
-  changingPassword.value = true
-  try {
-    await $fetch('/api/auth/change-password', {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: {
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword
-      }
-    })
-    toast.add({ title: 'Success', description: 'Password changed successfully.', color: 'green' })
-    isChangePasswordModalOpen.value = false
-  } catch (err: any) {
-    toast.add({ title: 'Error', description: err?.data?.message || 'Failed to change password.', color: 'red' })
-  } finally {
-    changingPassword.value = false
-  }
-}
 </script>

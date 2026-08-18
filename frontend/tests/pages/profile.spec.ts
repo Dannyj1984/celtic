@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
+vi.stubGlobal('useToast', vi.fn(() => ({ add: vi.fn() })))
 
 const mockGetAuthHeaders = vi.fn(() => ({ Authorization: 'Bearer test-token' }))
 vi.stubGlobal('useAuth', () => ({ getAuthHeaders: mockGetAuthHeaders }))
