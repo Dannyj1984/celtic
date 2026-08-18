@@ -327,6 +327,7 @@ public class ParentDashboardController : ControllerBase
 
         var playerParent = await _context.PlayerParents
             .Include(pp => pp.Player)
+            .Include(pp => pp.User)
             .FirstOrDefaultAsync(pp => pp.UserId == userId);
 
         if (playerParent == null) return NotFound("No linked player found");
@@ -405,11 +406,17 @@ public class ParentDashboardController : ControllerBase
         else if (potmCount >= 5) badges.Add(new BadgeDto { Type = "PotM", Tier = "Silver", Name = "Top Performer" });
         else if (potmCount >= 1) badges.Add(new BadgeDto { Type = "PotM", Tier = "Bronze", Name = "Star Player" });
 
+        var createdYear = playerParent.User != null && playerParent.User.CreatedAt.Year > 2000
+            ? playerParent.User.CreatedAt.Year
+            : DateTime.UtcNow.Year;
+
         return Ok(new PlayerProfileDto
         {
             PlayerId = player.Id,
             FullName = player.FullName,
             PreferredFoot = player.PreferredFoot,
+            JoinedYear = createdYear,
+            CreatedYear = createdYear,
             MatchAttendance = new PerformanceStatsDto
             {
                 TotalSessions = matchEvents.Count,

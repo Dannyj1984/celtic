@@ -87,6 +87,8 @@ public class PlayerProfileDto
     public Guid PlayerId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? PreferredFoot { get; set; }
+    public int JoinedYear { get; set; }
+    public int CreatedYear { get; set; }
     public PerformanceStatsDto MatchAttendance { get; set; } = new();
     public int PlayerOfTheMatchCount { get; set; }
     public List<BadgeDto> Badges { get; set; } = new();

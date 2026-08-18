@@ -29,7 +29,7 @@
               </div>
               <div class="flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm">
                 <UIcon name="i-heroicons-calendar-days-20-solid" class="w-4 h-4 text-celtic-green" />
-                <span class="text-sm font-bold uppercase tracking-wider">Since 2024</span>
+                <span class="text-sm font-bold uppercase tracking-wider">Class of {{ createdYear }}</span>
               </div>
             </div>
           </div>
@@ -175,6 +175,8 @@ const attendancePercentage = computed(() => {
   return Math.round((attendedSessions / totalSessions) * 100)
 })
 
+const createdYear = computed(() => profile.value?.createdYear || profile.value?.joinedYear || 2024)
+
 onMounted(async () => {
   loading.value = true
   try {
@@ -182,6 +184,7 @@ onMounted(async () => {
       headers: getAuthHeaders()
     })
     profile.value = data
+    console.log(profile.value)
   } catch (err: any) {
     error.value = 'Failed to load player profile.'
   } finally {

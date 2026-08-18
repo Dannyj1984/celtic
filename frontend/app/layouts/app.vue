@@ -50,6 +50,9 @@
               <NuxtLink to="/season"
                 class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
                 active-class="text-celtic-green">Season</NuxtLink>
+              <NuxtLink to="/profile"
+                class="text-sm font-medium hover:text-celtic-green text-text-secondary transition-colors"
+                active-class="text-celtic-green">Profile</NuxtLink>
             </template>
           </div>
 
