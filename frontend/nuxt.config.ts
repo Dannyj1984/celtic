@@ -11,6 +11,26 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt'
   ],
 
+  icon: {
+    serverBundle: 'local',
+    clientBundle: {
+      scan: true,
+      icons: [
+        'i-heroicons-star-20-solid',
+        'i-heroicons-fire-20-solid',
+        'i-heroicons-user-20-solid',
+        'i-heroicons-sparkles-20-solid',
+        'i-heroicons-calendar-days-20-solid',
+        'i-heroicons-chevron-right-20-solid',
+        'i-heroicons-x-mark-20-solid',
+        'i-heroicons-map-pin-20-solid',
+        'i-heroicons-users',
+        'i-heroicons-check-20-solid',
+        'i-heroicons-chevron-down-20-solid'
+      ]
+    }
+  },
+
   colorMode: {
     preference: 'system',
     fallback: 'dark',

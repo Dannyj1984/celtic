@@ -6,6 +6,7 @@ vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
 vi.stubGlobal('useCookie', vi.fn(() => ref(null)))
 vi.stubGlobal('$fetch', vi.fn())
+vi.stubGlobal('useToast', vi.fn(() => ({ add: vi.fn() })))
 
 const futureDate = new Date(Date.now() + 86400000 * 7).toISOString()
 const pastDate = new Date(Date.now() - 86400000 * 7).toISOString()
