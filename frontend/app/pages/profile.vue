@@ -23,9 +23,9 @@
           <div class="text-center md:text-left">
             <h1 class="text-3xl font-black text-text-primary mb-2 uppercase tracking-tight">{{ profile.fullName }}</h1>
             <div class="flex flex-wrap justify-center md:justify-start gap-4">
-              <div class="flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm">
+              <div @click="openFootModal" class="foot-toggle flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm cursor-pointer hover:border-celtic-gold/50 transition-all select-none" title="Double click to change foot">
                 <UIcon name="i-heroicons-sparkles-20-solid" class="w-4 h-4 text-celtic-gold" />
-                <span class="text-sm font-bold uppercase tracking-wider">{{ profile.preferredFoot }} Foot</span>
+                <span class="text-sm font-bold uppercase tracking-wider">{{ profile.preferredFoot }} {{  profile.preferredFoot.toLowerCase() === 'both' ? 'Feet' : 'Foot' }}</span>
               </div>
               <div class="flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm">
                 <UIcon name="i-heroicons-calendar-days-20-solid" class="w-4 h-4 text-celtic-green" />
@@ -150,6 +150,31 @@
         </div>
       </div>
     </div>
+
+    <!-- Preferred Foot Modal -->
+    <div v-if="showFootModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div class="card p-6 max-w-sm w-full bg-surface border border-border shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-black text-text-primary uppercase tracking-tight">Select foot</h3>
+          <button @click="showFootModal = false" class="text-text-muted hover:text-text-primary text-xl font-bold">&times;</button>
+        </div>
+        <p class="text-xs text-text-secondary font-medium">Choose the player's preferred foot:</p>
+        <div class="grid grid-cols-3 gap-3">
+          <button v-for="option in ['Right', 'Left', 'Both']" :key="option"
+            @click="selectedFoot = option"
+            :class="['py-2 px-3 rounded-lg text-sm font-bold border transition-all', 
+              selectedFoot === option ? 'bg-celtic-green text-white border-celtic-green shadow-md' : 'bg-surface-hover border-border text-text-primary hover:border-celtic-green/50']">
+            {{ option }}
+          </button>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button @click="showFootModal = false" class="px-4 py-2 text-xs font-bold uppercase text-text-muted hover:text-text-primary">Cancel</button>
+          <button @click="saveFoot" :disabled="savingFoot" class="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-celtic-green text-white hover:bg-celtic-green-light transition-all shadow-md disabled:opacity-50">
+            {{ savingFoot ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -177,6 +202,35 @@ const attendancePercentage = computed(() => {
 
 const createdYear = computed(() => profile.value?.createdYear || profile.value?.joinedYear || 2024)
 
+const showFootModal = ref(false)
+const selectedFoot = ref('Right')
+const savingFoot = ref(false)
+const toast = useToast()
+
+function openFootModal() {
+  selectedFoot.value = profile.value?.preferredFoot || 'Right'
+  showFootModal.value = true
+}
+
+async function saveFoot() {
+  if (!profile.value) return
+  savingFoot.value = true
+  try {
+    await $fetch('/api/parent/preferred-foot', {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: { preferredFoot: selectedFoot.value }
+    })
+    profile.value.preferredFoot = selectedFoot.value
+    showFootModal.value = false
+    toast.add({ title: 'Success', description: 'Preferred foot updated.', color: 'green' })
+  } catch (err: any) {
+    console.error('Failed to update preferred foot:', err)
+  } finally {
+    savingFoot.value = false
+  }
+}
+
 onMounted(async () => {
   loading.value = true
   try {
@@ -184,7 +238,6 @@ onMounted(async () => {
       headers: getAuthHeaders()
     })
     profile.value = data
-    console.log(profile.value)
   } catch (err: any) {
     error.value = 'Failed to load player profile.'
   } finally {

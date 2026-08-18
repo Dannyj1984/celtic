@@ -211,7 +211,7 @@ public class ParentDashboardController : ControllerBase
 
         var events = await _context.Events
             .Include(e => e.Match)
-                .ThenInclude(m => m.PlayerOfTheMatch)
+                .ThenInclude(m => m!.PlayerOfTheMatch)
             .Where(e => e.Type == type && e.DateTime <= DateTime.UtcNow)
             .OrderByDescending(e => e.DateTime)
             .ToListAsync();
@@ -425,6 +425,90 @@ public class ParentDashboardController : ControllerBase
             PlayerOfTheMatchCount = potmCount,
             Badges = badges,
             RecentMatches = recentMatches
+        });
+    }
+
+    [HttpPut("preferred-foot")]
+    public async Task<IActionResult> UpdatePreferredFoot([FromBody] UpdatePreferredFootDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var playerParent = await _context.PlayerParents
+            .Include(pp => pp.Player)
+            .FirstOrDefaultAsync(pp => pp.UserId == userId);
+
+        if (playerParent == null) return NotFound("No linked player found");
+
+        if (string.IsNullOrWhiteSpace(request.PreferredFoot))
+        {
+            return BadRequest("Preferred foot is required.");
+        }
+
+        playerParent.Player.PreferredFoot = request.PreferredFoot;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { preferredFoot = playerParent.Player.PreferredFoot });
+    }
+
+    [HttpGet("account")]
+    public async Task<ActionResult<ParentAccountDto>> GetAccount()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound("User not found");
+
+        return Ok(new ParentAccountDto
+        {
+            FullName = user.FullName,
+            Email = user.Email ?? string.Empty,
+            Phone = user.Phone ?? user.PhoneNumber ?? string.Empty
+        });
+    }
+
+    [HttpPut("account")]
+    public async Task<IActionResult> UpdateAccount([FromBody] UpdateParentAccountDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound("User not found");
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+            return BadRequest(new { message = "Full name is required." });
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new { message = "Email address is required." });
+
+        var newEmail = request.Email.Trim();
+        if (!string.Equals(user.Email, newEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingUser = await _context.Users.AnyAsync(u => u.Id != userId && u.Email == newEmail);
+            if (existingUser)
+            {
+                return BadRequest(new { message = "An account with this email address already exists." });
+            }
+
+            user.Email = newEmail;
+            user.NormalizedEmail = newEmail.ToUpperInvariant();
+            user.UserName = newEmail;
+            user.NormalizedUserName = newEmail.ToUpperInvariant();
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Phone = (request.Phone ?? "").Trim();
+        user.PhoneNumber = (request.Phone ?? "").Trim();
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new ParentAccountDto
+        {
+            FullName = user.FullName,
+            Email = user.Email ?? string.Empty,
+            Phone = user.Phone ?? string.Empty
         });
     }
 }

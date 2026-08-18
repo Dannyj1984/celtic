@@ -111,3 +111,22 @@ public class ProfileMatchDto
     public string Score { get; set; } = string.Empty;
     public bool WasPlayerOfTheMatch { get; set; }
 }
+
+public class UpdatePreferredFootDto
+{
+    public string PreferredFoot { get; set; } = "Right";
+}
+
+public class ParentAccountDto
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+}
+
+public class UpdateParentAccountDto
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+}
