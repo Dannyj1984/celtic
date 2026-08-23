@@ -12,7 +12,11 @@ public record EventDto(
     string? Notes,
     bool IsCancelled,
     Guid? MatchId,
-    List<AttendingPlayerDto> AttendingPlayers
+    List<AttendingPlayerDto> AttendingPlayers,
+    Guid? Captain1PlayerId = null,
+    string? Captain1PlayerName = null,
+    Guid? Captain2PlayerId = null,
+    string? Captain2PlayerName = null
 );
 
 public record AttendingPlayerDto(
@@ -36,5 +40,7 @@ public record UpdateEventRequest(
 );
 
 public record UpdateEventAttendanceRequest(
-    [Required] List<Guid> PlayerIds
+    [Required] List<Guid> PlayerIds,
+    Guid? Captain1PlayerId = null,
+    Guid? Captain2PlayerId = null
 );

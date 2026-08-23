@@ -45,25 +45,48 @@ public class TrainingService : ITrainingService
         // Find future regular training events in DB (either marked as regular or with empty notes)
         var futureTrainingEvents = await _db.Events
             .Where(e => e.Type == "Training" && e.DateTime > now && (e.Notes == "Regular training session" || string.IsNullOrEmpty(e.Notes)))
+            .OrderBy(e => e.DateTime)
             .ToListAsync();
 
-        // Purge any outdated regular training sessions on wrong day, time, or location
-        foreach (var evt in futureTrainingEvents)
+        // 1. Purge events on wrong day of week
+        foreach (var evt in futureTrainingEvents.ToList())
         {
-            if (!validStartTimes.Contains(evt.DateTime) || evt.Location != settings.TrainingLocation)
+            var ukEvtTime = TimeZoneInfo.ConvertTimeFromUtc(evt.DateTime, UkTimeZone);
+            if (ukEvtTime.DayOfWeek != settings.TrainingDay)
             {
-                _logger.LogInformation("Removing outdated training session: {Date}", evt.DateTime);
+                _logger.LogInformation("Removing outdated training session on wrong day of week: {Date}", evt.DateTime);
                 _db.Events.Remove(evt);
+                futureTrainingEvents.Remove(evt);
             }
         }
 
         var currentSeason = await _db.Seasons.FirstOrDefaultAsync(s => s.IsCurrent);
 
-        // Ensure all valid upcoming sessions exist
-        foreach (var startTime in validStartTimes)
+        // 2. Ensure all valid upcoming sessions exist or are updated without removing registered players
+        for (int i = 0; i < validStartTimes.Count; i++)
         {
-            var exists = await _db.Events.AnyAsync(e => e.Type == "Training" && e.DateTime == startTime);
-            if (!exists)
+            var startTime = validStartTimes[i];
+            
+            var existingEvt = futureTrainingEvents.FirstOrDefault(e => e.DateTime == startTime);
+            if (existingEvt == null && i < futureTrainingEvents.Count)
+            {
+                existingEvt = futureTrainingEvents[i];
+                existingEvt.DateTime = startTime;
+            }
+
+            if (existingEvt != null)
+            {
+                if (existingEvt.Location != settings.TrainingLocation)
+                {
+                    _logger.LogInformation("Updating training session location for {Date} to {Location}", existingEvt.DateTime, settings.TrainingLocation);
+                    existingEvt.Location = settings.TrainingLocation;
+                }
+                if (currentSeason != null && existingEvt.SeasonId == null)
+                {
+                    existingEvt.SeasonId = currentSeason.Id;
+                }
+            }
+            else
             {
                 _logger.LogInformation("Generating training session for {Date}", startTime);
                 _db.Events.Add(new Event
@@ -74,6 +97,17 @@ public class TrainingService : ITrainingService
                     Location = settings.TrainingLocation,
                     Notes = "Regular training session"
                 });
+            }
+        }
+
+        // 3. Remove excess regular events beyond validStartTimes count
+        if (futureTrainingEvents.Count > validStartTimes.Count)
+        {
+            var excess = futureTrainingEvents.Skip(validStartTimes.Count).ToList();
+            foreach (var evt in excess)
+            {
+                _logger.LogInformation("Removing excess training session: {Date}", evt.DateTime);
+                _db.Events.Remove(evt);
             }
         }
 
