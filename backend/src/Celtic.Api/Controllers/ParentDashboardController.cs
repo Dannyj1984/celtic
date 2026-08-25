@@ -438,6 +438,7 @@ public class ParentDashboardController : ControllerBase
         {
             PlayerId = player.Id,
             FullName = player.FullName,
+            DateOfBirth = player.DateOfBirth,
             PreferredFoot = player.PreferredFoot,
             ShirtSize = player.ShirtSize,
             ShortSize = player.ShortSize,
@@ -453,6 +454,24 @@ public class ParentDashboardController : ControllerBase
             Badges = badges,
             RecentMatches = recentMatches
         });
+    }
+
+    [HttpPut("date-of-birth")]
+    public async Task<IActionResult> UpdateDateOfBirth([FromBody] UpdateDateOfBirthDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var playerParent = await _context.PlayerParents
+            .Include(pp => pp.Player)
+            .FirstOrDefaultAsync(pp => pp.UserId == userId);
+
+        if (playerParent == null) return NotFound("No linked player found");
+
+        playerParent.Player.DateOfBirth = request.DateOfBirth;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { dateOfBirth = playerParent.Player.DateOfBirth });
     }
 
     [HttpPut("preferred-foot")]

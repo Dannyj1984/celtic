@@ -155,4 +155,23 @@ describe('Profile Page', () => {
 
         expect(wrapper.text()).toContain('Update your child\'s official team kit sizes')
     })
+
+    it('renders DOB badge and allows opening DOB modal', async () => {
+        mockFetch.mockResolvedValue({
+            ...mockProfileData,
+            dateOfBirth: '2019-06-15T00:00:00Z'
+        })
+
+        const wrapper = mount(ProfilePage, { global: { stubs } })
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('DOB:')
+        expect(wrapper.text()).toContain('15 Jun 2019')
+
+        const dobToggle = wrapper.find('.dob-toggle')
+        await dobToggle.trigger('click')
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Update player\'s date of birth')
+    })
 })

@@ -101,6 +101,7 @@ public class PlayerProfileDto
 {
     public Guid PlayerId { get; set; }
     public string FullName { get; set; } = string.Empty;
+    public DateTime? DateOfBirth { get; set; }
     public string? PreferredFoot { get; set; }
     public string? ShirtSize { get; set; }
     public string? ShortSize { get; set; }
@@ -133,6 +134,11 @@ public class ProfileMatchDto
 public class UpdatePreferredFootDto
 {
     public string PreferredFoot { get; set; } = "Right";
+}
+
+public class UpdateDateOfBirthDto
+{
+    public DateTime? DateOfBirth { get; set; }
 }
 
 public class UpdateKitSizingDto

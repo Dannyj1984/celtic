@@ -27,6 +27,12 @@
                 <UIcon name="i-heroicons-sparkles-20-solid" class="w-4 h-4 text-celtic-gold" />
                 <span class="text-sm font-bold uppercase tracking-wider">{{ profile.preferredFoot }} {{  profile.preferredFoot.toLowerCase() === 'both' ? 'Feet' : 'Foot' }}</span>
               </div>
+              <div @click="openDobModal" class="dob-toggle flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm cursor-pointer hover:border-celtic-green/50 transition-all select-none" title="Click to edit Date of Birth">
+                <UIcon name="i-heroicons-calendar-days-20-solid" class="w-4 h-4 text-celtic-green" />
+                <span class="text-sm font-bold uppercase tracking-wider" data-testid="profile-dob">
+                  DOB: {{ profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Set DOB' }}
+                </span>
+              </div>
               <div class="flex items-center gap-2 text-text-secondary bg-surface px-3 py-1 rounded-full border border-border shadow-sm">
                 <UIcon name="i-heroicons-calendar-days-20-solid" class="w-4 h-4 text-celtic-green" />
                 <span class="text-sm font-bold uppercase tracking-wider">Class of {{ createdYear }}</span>
@@ -253,6 +259,31 @@
         </form>
       </div>
     </div>
+
+    <!-- Date of Birth Modal -->
+    <div v-if="showDobModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div class="card p-6 max-w-sm w-full bg-surface border border-border shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-black text-text-primary uppercase tracking-tight">Date of Birth</h3>
+          <button @click="showDobModal = false" class="text-text-muted hover:text-text-primary text-xl font-bold">&times;</button>
+        </div>
+        <p class="text-xs text-text-secondary font-medium">Update player's date of birth:</p>
+
+        <form @submit.prevent="saveDob" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-text-secondary uppercase mb-1">Date of Birth</label>
+            <input v-model="selectedDob" type="date" class="input text-xs py-2" required data-testid="dob-input" />
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="showDobModal = false" class="px-4 py-2 text-xs font-bold uppercase text-text-muted hover:text-text-primary">Cancel</button>
+            <button type="submit" :disabled="savingDob" class="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-celtic-green text-white hover:bg-celtic-green-light transition-all shadow-md disabled:opacity-50">
+              {{ savingDob ? 'Saving...' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -285,6 +316,10 @@ const selectedFoot = ref('Right')
 const savingFoot = ref(false)
 const toast = useToast()
 
+const showDobModal = ref(false)
+const selectedDob = ref('')
+const savingDob = ref(false)
+
 const ageOptions = ['4-5 yrs', '5-6 yrs', '7-8 yrs', '9-10 yrs', '11-12 yrs', '13-14 yrs']
 const showKitModal = ref(false)
 const savingKit = ref(false)
@@ -293,6 +328,32 @@ const kitForm = ref({
   shortSize: '',
   sockSize: null as number | null
 })
+
+function openDobModal() {
+  selectedDob.value = profile.value?.dateOfBirth ? new Date(profile.value.dateOfBirth).toISOString().split('T')[0] : ''
+  showDobModal.value = true
+}
+
+async function saveDob() {
+  if (!profile.value) return
+  savingDob.value = true
+  try {
+    const payloadDate = selectedDob.value ? new Date(selectedDob.value).toISOString() : null
+    await $fetch('/api/parent/date-of-birth', {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: { dateOfBirth: payloadDate }
+    })
+    profile.value.dateOfBirth = payloadDate
+    showDobModal.value = false
+    toast.add({ title: 'Success', description: 'Date of birth updated.', color: 'green' })
+  } catch (err: any) {
+    console.error('Failed to update date of birth:', err)
+    toast.add({ title: 'Error', description: 'Failed to update date of birth.', color: 'red' })
+  } finally {
+    savingDob.value = false
+  }
+}
 
 function openFootModal() {
   selectedFoot.value = profile.value?.preferredFoot || 'Right'

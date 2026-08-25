@@ -288,4 +288,32 @@ public class ParentDashboardControllerTests
         Assert.Equal("7-8 yrs", updatedPlayer.ShortSize);
         Assert.Equal(12, updatedPlayer.SockSize);
     }
+
+    [Fact]
+    public async Task UpdateDateOfBirth_UpdatesPlayerDateOfBirth()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        var userId = Guid.NewGuid().ToString();
+        var player = new Player { Id = Guid.NewGuid(), FirstName = "Leo", LastName = "Messi", DateOfBirth = new DateTime(2018, 1, 1) };
+        
+        dbContext.Users.Add(new ApplicationUser { Id = userId });
+        dbContext.Players.Add(player);
+        dbContext.PlayerParents.Add(new PlayerParent { UserId = userId, PlayerId = player.Id });
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, userId);
+        var expectedDob = new DateTime(2019, 6, 15);
+        var request = new UpdateDateOfBirthDto { DateOfBirth = expectedDob };
+
+        // Act
+        var result = await controller.UpdateDateOfBirth(request);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result);
+        var updatedPlayer = await dbContext.Players.FindAsync(player.Id);
+        Assert.NotNull(updatedPlayer);
+        Assert.Equal(expectedDob, updatedPlayer.DateOfBirth);
+    }
 }
