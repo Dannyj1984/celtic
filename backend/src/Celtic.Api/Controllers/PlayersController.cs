@@ -90,4 +90,22 @@ public class PlayersController : ControllerBase
             return NotFound();
         }
     }
+
+    [HttpPatch("{id}/cards")]
+    public async Task<ActionResult<PlayerDto>> UpdateTrainingCards(Guid id, [FromBody] UpdatePlayerCardsRequest request)
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can update training cards." });
+
+        try
+        {
+            var player = await _playerService.UpdateTrainingCardsAsync(id, request.TrainingCardsCount);
+            return Ok(player);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 }

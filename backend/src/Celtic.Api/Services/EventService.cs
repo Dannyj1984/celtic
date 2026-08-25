@@ -18,6 +18,8 @@ public class EventService : IEventService
     {
         var events = await _db.Events
             .Include(e => e.Season)
+            .Include(e => e.Captain1Player)
+            .Include(e => e.Captain2Player)
             .Include(e => e.Responses)
                 .ThenInclude(r => r.Player)
             .OrderBy(e => e.DateTime)
@@ -30,6 +32,8 @@ public class EventService : IEventService
     {
         var e = await _db.Events
             .Include(e => e.Season)
+            .Include(e => e.Captain1Player)
+            .Include(e => e.Captain2Player)
             .Include(e => e.Responses)
                 .ThenInclude(r => r.Player)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -83,10 +87,13 @@ public class EventService : IEventService
         }
     }
 
-    public async Task<EventDto> UpdateEventAttendanceAsync(Guid eventId, List<Guid> playerIds, string adminUserId)
+    public async Task<EventDto> UpdateEventAttendanceAsync(Guid eventId, List<Guid> playerIds, string adminUserId, Guid? captain1PlayerId = null, Guid? captain2PlayerId = null)
     {
         var e = await _db.Events.FindAsync(eventId);
         if (e == null) throw new KeyNotFoundException("Event not found");
+
+        e.Captain1PlayerId = captain1PlayerId;
+        e.Captain2PlayerId = captain2PlayerId;
 
         var validUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == adminUserId);
         var effectiveUserId = validUser?.Id ?? (await _db.Users.Select(u => u.Id).FirstOrDefaultAsync()) ?? adminUserId;
@@ -149,6 +156,10 @@ public class EventService : IEventService
         e.Responses
             .Where(r => r.Status == "Attending" && r.Player != null)
             .Select(r => new AttendingPlayerDto(r.PlayerId, r.Player.FullName))
-            .ToList()
+            .ToList(),
+        e.Captain1PlayerId,
+        e.Captain1Player?.FullName,
+        e.Captain2PlayerId,
+        e.Captain2Player?.FullName
     );
 }

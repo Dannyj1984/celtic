@@ -75,7 +75,8 @@ public class PlayerService : IPlayerService
             FanNumber = request.FanNumber,
             ShirtSize = request.ShirtSize,
             Allergies = request.Allergies,
-            AllowPhotos = request.AllowPhotos
+            AllowPhotos = request.AllowPhotos,
+            TrainingCardsCount = request.TrainingCardsCount
         };
 
         _db.Players.Add(player);
@@ -111,6 +112,7 @@ public class PlayerService : IPlayerService
         player.ShirtSize = request.ShirtSize;
         player.Allergies = request.Allergies;
         player.AllowPhotos = request.AllowPhotos;
+        player.TrainingCardsCount = Math.Max(0, request.TrainingCardsCount);
 
         await _db.SaveChangesAsync();
 
@@ -132,6 +134,26 @@ public class PlayerService : IPlayerService
             throw new KeyNotFoundException("Player not found");
 
         player.SubscriptionStatus = status;
+        await _db.SaveChangesAsync();
+
+        var trainingIds = await GetRecentEventIds("Training", 10);
+        var matchIds = await GetRecentEventIds("Match", 10);
+
+        return MapToDto(player, trainingIds, matchIds);
+    }
+
+    public async Task<PlayerDto> UpdateTrainingCardsAsync(Guid id, int cardsCount)
+    {
+        var player = await _db.Players
+            .Include(p => p.ParentLinks)
+            .ThenInclude(pl => pl.User)
+            .Include(p => p.EventResponses)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (player == null)
+            throw new KeyNotFoundException("Player not found");
+
+        player.TrainingCardsCount = Math.Max(0, cardsCount);
         await _db.SaveChangesAsync();
 
         var trainingIds = await GetRecentEventIds("Training", 10);
@@ -180,7 +202,8 @@ public class PlayerService : IPlayerService
             p.FanNumber,
             p.ShirtSize,
             p.Allergies,
-            p.AllowPhotos
+            p.AllowPhotos,
+            p.TrainingCardsCount
         );
     }
 }

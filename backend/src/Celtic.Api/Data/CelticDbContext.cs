@@ -51,6 +51,19 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
             .WithOne(m => m.Event)
             .HasForeignKey<Event>(e => e.MatchId);
 
+        // Event → Captains
+        builder.Entity<Event>()
+            .HasOne(e => e.Captain1Player)
+            .WithMany()
+            .HasForeignKey(e => e.Captain1PlayerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Event>()
+            .HasOne(e => e.Captain2Player)
+            .WithMany()
+            .HasForeignKey(e => e.Captain2PlayerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Match → Season
         builder.Entity<Match>()
             .HasOne(m => m.Season)

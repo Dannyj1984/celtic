@@ -132,6 +132,30 @@ public class ParentDashboardController : ControllerBase
             }
         };
 
+        // Calculate Training Cards Progress
+        var cardRewards = new List<CardRewardRuleDto>();
+        if (!string.IsNullOrEmpty(settings?.CardRewardsJson))
+        {
+            try
+            {
+                cardRewards = System.Text.Json.JsonSerializer.Deserialize<List<CardRewardRuleDto>>(settings.CardRewardsJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CardRewardRuleDto>();
+            }
+            catch { }
+        }
+
+        var sortedRewards = cardRewards.OrderBy(r => r.CardsRequired).ToList();
+        var cardsCount = playerParent.Player.TrainingCardsCount;
+        var unlocked = sortedRewards.Where(r => r.CardsRequired <= cardsCount).ToList();
+        var next = sortedRewards.FirstOrDefault(r => r.CardsRequired > cardsCount);
+
+        dto.CardsProgress = new PlayerCardProgressDto
+        {
+            CardsCount = cardsCount,
+            NextReward = next,
+            CardsUntilNextReward = next != null ? next.CardsRequired - cardsCount : null,
+            UnlockedRewards = unlocked
+        };
+
         return Ok(dto);
     }
 
