@@ -12,20 +12,48 @@ const futureDate = new Date(Date.now() + 86400000 * 7).toISOString()
 const pastDate = new Date(Date.now() - 86400000 * 7).toISOString()
 
 const mockEvents = ref([
-  { id: 'e1', type: 'Training', dateTime: futureDate, location: 'Pitch 1', isCancelled: false, notes: null, attendingPlayers: [{ playerId: 'p1', fullName: 'John Terry' }] },
+  { 
+    id: 'e1', 
+    type: 'Training', 
+    dateTime: futureDate, 
+    location: 'Pitch 1', 
+    isCancelled: false, 
+    notes: null, 
+    attendingPlayers: [{ playerId: 'p1', fullName: 'John Terry' }],
+    captain1PlayerId: 'p1',
+    captain1PlayerName: 'John Terry',
+    captain2PlayerId: 'p2',
+    captain2PlayerName: 'Frank Lampard'
+  },
   { id: 'e2', type: 'Match', dateTime: pastDate, location: 'Away Ground', isCancelled: true, notes: 'Cancelled due to weather', attendingPlayers: [], seasonName: '2025-26' }
 ])
 const mockFetchEvents = vi.fn()
 const mockCreateEvent = vi.fn(() => Promise.resolve({ success: true }))
 const mockUpdateEvent = vi.fn(() => Promise.resolve({ success: true }))
+const mockUpdateEventAttendance = vi.fn(() => Promise.resolve({ success: true }))
 const mockDeleteEvent = vi.fn(() => Promise.resolve({ success: true }))
 
 vi.mock('~/composables/useEvents', () => ({
-  useEvents: () => ({ events: mockEvents, loading: ref(false), error: ref(null), fetchEvents: mockFetchEvents, createEvent: mockCreateEvent, updateEvent: mockUpdateEvent, deleteEvent: mockDeleteEvent })
+  useEvents: () => ({ 
+    events: mockEvents, 
+    loading: ref(false), 
+    error: ref(null), 
+    fetchEvents: mockFetchEvents, 
+    createEvent: mockCreateEvent, 
+    updateEvent: mockUpdateEvent, 
+    updateEventAttendance: mockUpdateEventAttendance,
+    deleteEvent: mockDeleteEvent 
+  })
 }))
 
 vi.mock('~/composables/usePlayers', () => ({
-  usePlayers: () => ({ players: ref([]), fetchPlayers: vi.fn() })
+  usePlayers: () => ({ 
+    players: ref([
+      { id: 'p1', firstName: 'John', lastName: 'Terry', isActive: true },
+      { id: 'p2', firstName: 'Frank', lastName: 'Lampard', isActive: true }
+    ]), 
+    fetchPlayers: vi.fn() 
+  })
 }))
 
 import SchedulePage from '~/pages/admin/schedule.vue'
@@ -40,9 +68,21 @@ describe('Admin Schedule Page', () => {
     expect(wrapper.text()).toContain('Schedule')
   })
 
-  it('shows attendance count', () => {
+  it('shows attendance count and captains badge', () => {
     const wrapper = mount(SchedulePage, { global: { stubs } })
     expect(wrapper.text()).toContain('1 Attending')
+    expect(wrapper.text()).toContain('Captains:')
+    expect(wrapper.text()).toContain('John Terry & Frank Lampard')
+  })
+
+  it('opens manage squad modal with captain selects', async () => {
+    const wrapper = mount(SchedulePage, { global: { stubs } })
+    const manageBtn = wrapper.find('button.text-celtic-gold')
+    await manageBtn.trigger('click')
+    expect(wrapper.text()).toContain('Manage Attending Squad')
+    expect(wrapper.text()).toContain('Session Captains')
+    expect(wrapper.text()).toContain('Captain 1')
+    expect(wrapper.text()).toContain('Captain 2')
   })
 
   it('opens create modal on button click', async () => {

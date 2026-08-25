@@ -88,6 +88,23 @@ export function usePlayers() {
     }
   }
 
+  async function updatePlayerCards(id: string, cardsCount: number) {
+    try {
+      const updatedPlayer = await $fetch<Player>(`/api/players/${id}/cards`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: { trainingCardsCount: cardsCount },
+      })
+      const index = players.value.findIndex(p => p.id === id)
+      if (index !== -1) {
+        players.value[index] = updatedPlayer
+      }
+      return { success: true, player: updatedPlayer }
+    } catch (err: any) {
+      return { success: false, error: err?.data?.message || 'Failed to update cards count' }
+    }
+  }
+
   return {
     players,
     loading,
@@ -95,5 +112,6 @@ export function usePlayers() {
     fetchPlayers,
     createPlayer,
     updatePlayer,
+    updatePlayerCards,
   }
 }

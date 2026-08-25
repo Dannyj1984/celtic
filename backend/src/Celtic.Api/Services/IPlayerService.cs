@@ -9,4 +9,5 @@ public interface IPlayerService
     Task<PlayerDto> CreatePlayerAsync(CreatePlayerRequest request);
     Task<PlayerDto> UpdatePlayerAsync(Guid id, UpdatePlayerRequest request);
     Task<PlayerDto> UpdateSubscriptionStatusAsync(Guid id, string status);
+    Task<PlayerDto> UpdateTrainingCardsAsync(Guid id, int cardsCount);
 }

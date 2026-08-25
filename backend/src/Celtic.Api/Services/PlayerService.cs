@@ -146,6 +146,26 @@ public class PlayerService : IPlayerService
         return MapToDto(player, trainingIds, matchIds);
     }
 
+    public async Task<PlayerDto> UpdateTrainingCardsAsync(Guid id, int cardsCount)
+    {
+        var player = await _db.Players
+            .Include(p => p.ParentLinks)
+            .ThenInclude(pl => pl.User)
+            .Include(p => p.EventResponses)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (player == null)
+            throw new KeyNotFoundException("Player not found");
+
+        player.TrainingCardsCount = Math.Max(0, cardsCount);
+        await _db.SaveChangesAsync();
+
+        var trainingIds = await GetRecentEventIds("Training", 10);
+        var matchIds = await GetRecentEventIds("Match", 10);
+
+        return MapToDto(player, trainingIds, matchIds);
+    }
+
     private static PlayerDto MapToDto(Player p, List<Guid> recentTrainingIds, List<Guid> recentMatchIds)
     {
         var trainingAttended = p.EventResponses

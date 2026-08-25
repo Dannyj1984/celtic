@@ -17,6 +17,21 @@ public class DashboardDto
     public bool AttendingNextMatch { get; set; }
     public string? CoachNotes { get; set; }
     public bool AllowPhotos { get; set; }
+    public PlayerCardProgressDto? CardsProgress { get; set; }
+}
+
+public class CardRewardRuleDto
+{
+    public int CardsRequired { get; set; }
+    public string RewardText { get; set; } = string.Empty;
+}
+
+public class PlayerCardProgressDto
+{
+    public int CardsCount { get; set; }
+    public CardRewardRuleDto? NextReward { get; set; }
+    public int? CardsUntilNextReward { get; set; }
+    public List<CardRewardRuleDto> UnlockedRewards { get; set; } = new();
 }
 
 public class UpdatePhotoConsentRequest

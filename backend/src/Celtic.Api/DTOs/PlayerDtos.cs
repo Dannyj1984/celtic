@@ -87,3 +87,7 @@ public record UpdatePlayerRequest(
     bool AllowPhotos = false,
     int TrainingCardsCount = 0
 );
+
+public record UpdatePlayerCardsRequest(
+    int TrainingCardsCount
+);

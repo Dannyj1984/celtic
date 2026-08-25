@@ -89,6 +89,14 @@
               <div v-if="event.notes" class="text-xs text-text-muted italic bg-surface-hover p-2 rounded border border-border/50 mb-3">
                 {{ event.notes }}
               </div>
+
+              <!-- Captains Badge -->
+              <div v-if="event.captain1PlayerName || event.captain2PlayerName" class="text-xs text-celtic-gold font-semibold flex items-center gap-1.5 bg-celtic-gold/10 px-2.5 py-1 rounded-lg border border-celtic-gold/20 mb-3 w-fit">
+                <span>👑 Captains:</span>
+                <span>
+                  {{ [event.captain1PlayerName, event.captain2PlayerName].filter(Boolean).join(' & ') }}
+                </span>
+              </div>
             </div>
             
             <!-- Attendance Section -->
@@ -120,9 +128,15 @@
               
               <div v-if="expandedEvents[event.id]" class="mt-3 space-y-1 animate-fade-in max-h-40 overflow-y-auto pr-1">
                 <div v-for="player in event.attendingPlayers" :key="player.playerId" 
-                  class="text-[11px] text-text-secondary flex items-center gap-2 py-0.5">
-                  <div class="w-1.5 h-1.5 rounded-full bg-celtic-green shrink-0"></div>
-                  {{ player.fullName }}
+                  class="text-[11px] text-text-secondary flex items-center justify-between py-0.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-celtic-green shrink-0"></div>
+                    {{ player.fullName }}
+                  </div>
+                  <span v-if="player.playerId === event.captain1PlayerId || player.playerId === event.captain2PlayerId" 
+                    class="text-[10px] font-bold text-celtic-gold bg-celtic-gold/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-celtic-gold/20">
+                    👑 Captain
+                  </span>
                 </div>
               </div>
             </div>
@@ -217,6 +231,44 @@
           </button>
         </div>
 
+        <!-- Session Captains Section -->
+        <div class="my-4 p-3 bg-surface-hover/50 border border-celtic-gold/20 rounded-xl space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">👑</span>
+            <h3 class="text-xs font-bold text-celtic-gold uppercase tracking-wider">Session Captains</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-medium text-text-secondary mb-1">Captain 1</label>
+              <select v-model="selectedCaptain1Id" class="input text-xs py-1.5">
+                <option value="">-- None --</option>
+                <option 
+                  v-for="player in activePlayers" 
+                  :key="player.id" 
+                  :value="player.id"
+                  :disabled="player.id === selectedCaptain2Id"
+                >
+                  {{ player.firstName }} {{ player.lastName }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-text-secondary mb-1">Captain 2</label>
+              <select v-model="selectedCaptain2Id" class="input text-xs py-1.5">
+                <option value="">-- None --</option>
+                <option 
+                  v-for="player in activePlayers" 
+                  :key="player.id" 
+                  :value="player.id"
+                  :disabled="player.id === selectedCaptain1Id"
+                >
+                  {{ player.firstName }} {{ player.lastName }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <!-- Quick Controls: Search & Multi-Select Helpers -->
         <div class="my-4 space-y-3">
           <input 
@@ -262,13 +314,23 @@
               </div>
             </div>
 
-            <span 
-              v-if="selectedPlayerIds.includes(player.id)" 
-              class="badge badge-success text-xs"
-            >
-              Attending
-            </span>
-            <span v-else class="text-xs text-text-muted">Not Attending</span>
+            <div class="flex items-center gap-2">
+              <button 
+                @click.stop="quickAddCard(player)"
+                class="px-2 py-1 rounded bg-celtic-gold/10 hover:bg-celtic-gold/20 text-celtic-gold border border-celtic-gold/30 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                title="Award 1 training card to player"
+              >
+                <span>🎴 {{ player.trainingCardsCount || 0 }}</span>
+                <span class="font-extrabold text-xs">+1</span>
+              </button>
+              <span 
+                v-if="selectedPlayerIds.includes(player.id)" 
+                class="badge badge-success text-xs"
+              >
+                Attending
+              </span>
+              <span v-else class="text-xs text-text-muted">Not Attending</span>
+            </div>
           </div>
 
           <div v-if="filteredActivePlayers.length === 0" class="p-6 text-center text-text-muted text-sm">
@@ -348,11 +410,20 @@ useHead({
 })
 
 const { events, loading, error, fetchEvents, createEvent, updateEvent, updateEventAttendance, deleteEvent } = useEvents()
-const { players, fetchPlayers } = usePlayers()
+const { players, fetchPlayers, updatePlayerCards } = usePlayers()
 const toast = useToast()
 
 const expandedEvents = ref<Record<string, boolean>>({})
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
+
+async function quickAddCard(player: any) {
+  const newCount = (player.trainingCardsCount || 0) + 1
+  const result = await updatePlayerCards(player.id, newCount)
+  if (result.success && result.player) {
+    player.trainingCardsCount = result.player.trainingCardsCount
+    toast.add({ title: 'Card Awarded! 🎴', description: `Awarded 1 training card to ${player.firstName}.`, color: 'amber' })
+  }
+}
 
 onMounted(() => {
   fetchEvents()
@@ -386,6 +457,8 @@ const form = ref({
 const isAttendanceModalOpen = ref(false)
 const attendanceEvent = ref<Event | null>(null)
 const selectedPlayerIds = ref<string[]>([])
+const selectedCaptain1Id = ref<string>('')
+const selectedCaptain2Id = ref<string>('')
 const attendanceSearchQuery = ref('')
 const attendanceSaving = ref(false)
 const attendanceError = ref<string | null>(null)
@@ -402,6 +475,8 @@ function openAttendanceModal(event: Event) {
   attendanceEvent.value = event
   attendanceSearchQuery.value = ''
   attendanceError.value = null
+  selectedCaptain1Id.value = event.captain1PlayerId || ''
+  selectedCaptain2Id.value = event.captain2PlayerId || ''
   // Pre-check players who are already marked as attending (by parent or previous admin edit)
   selectedPlayerIds.value = event.attendingPlayers ? event.attendingPlayers.map(p => p.playerId) : []
   isAttendanceModalOpen.value = true
@@ -433,7 +508,12 @@ async function saveAttendance() {
   attendanceSaving.value = true
   attendanceError.value = null
 
-  const result = await updateEventAttendance(attendanceEvent.value.id, selectedPlayerIds.value)
+  const result = await updateEventAttendance(
+    attendanceEvent.value.id, 
+    selectedPlayerIds.value,
+    selectedCaptain1Id.value || null,
+    selectedCaptain2Id.value || null
+  )
   if (result.success) {
     isAttendanceModalOpen.value = false
     // Ensure expanded state shows the updated list

@@ -52,6 +52,7 @@ public class SettingsController : ControllerBase
             settings.CoachWhatsAppNumber = updatedSettings.CoachWhatsAppNumber;
             settings.TrainingFocus = updatedSettings.TrainingFocus;
             settings.GoodToKnow = updatedSettings.GoodToKnow;
+            settings.CardRewardsJson = updatedSettings.CardRewardsJson;
         }
 
         await _context.SaveChangesAsync();

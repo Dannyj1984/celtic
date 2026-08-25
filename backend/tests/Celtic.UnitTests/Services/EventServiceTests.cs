@@ -74,6 +74,55 @@ public class EventServiceTests
     }
 
     [Fact]
+    public async Task UpdateEventAttendanceAsync_SetsCaptainsCorrectly()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+
+        var adminUser = new ApplicationUser
+        {
+            Id = "admin-1",
+            UserName = "admin@celtic.app",
+            Email = "admin@celtic.app",
+            FullName = "Admin User"
+        };
+        dbContext.Users.Add(adminUser);
+
+        var player1 = new Player { Id = Guid.NewGuid(), FirstName = "John", LastName = "Terry", IsActive = true };
+        var player2 = new Player { Id = Guid.NewGuid(), FirstName = "Frank", LastName = "Lampard", IsActive = true };
+        dbContext.Players.AddRange(player1, player2);
+
+        var evt = new Event
+        {
+            Id = Guid.NewGuid(),
+            Type = "Training",
+            DateTime = DateTime.UtcNow,
+            Location = "Main Pitch"
+        };
+        dbContext.Events.Add(evt);
+        await dbContext.SaveChangesAsync();
+
+        var service = new EventService(dbContext);
+
+        // Act - Set player1 as Captain 1 and player2 as Captain 2
+        var updated = await service.UpdateEventAttendanceAsync(
+            evt.Id, 
+            new List<Guid> { player1.Id, player2.Id }, 
+            adminUser.Id, 
+            player1.Id, 
+            player2.Id
+        );
+
+        // Assert
+        Assert.NotNull(updated);
+        Assert.Equal(player1.Id, updated.Captain1PlayerId);
+        Assert.Equal("John Terry", updated.Captain1PlayerName);
+        Assert.Equal(player2.Id, updated.Captain2PlayerId);
+        Assert.Equal("Frank Lampard", updated.Captain2PlayerName);
+    }
+
+    [Fact]
     public async Task DeleteEventAsync_RemovesEventAndResponses()
     {
         // Arrange

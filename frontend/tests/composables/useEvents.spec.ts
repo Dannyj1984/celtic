@@ -73,4 +73,33 @@ describe('useEvents', () => {
       expect(result.error).toBe('Not found')
     })
   })
+
+  describe('updateEventAttendance', () => {
+    it('sends playerIds and captain IDs and updates state', async () => {
+      const updatedEvent = {
+        id: 'e1',
+        type: 'Training',
+        dateTime: '2026-05-12T18:00:00Z',
+        location: 'Pitch 1',
+        isCancelled: false,
+        attendingPlayers: [{ playerId: 'p1', fullName: 'John Terry' }],
+        captain1PlayerId: 'p1',
+        captain1PlayerName: 'John Terry',
+        captain2PlayerId: 'p2',
+        captain2PlayerName: 'Frank Lampard'
+      }
+      vi.mocked($fetch).mockResolvedValue(updatedEvent)
+      const { events, updateEventAttendance } = useEvents()
+      events.value = [{ id: 'e1', type: 'Training', dateTime: 'd', location: 'A', isCancelled: false, attendingPlayers: [] }]
+
+      const result = await updateEventAttendance('e1', ['p1'], 'p1', 'p2')
+
+      expect(result.success).toBe(true)
+      expect($fetch).toHaveBeenCalledWith('/api/events/e1/attendance', expect.objectContaining({
+        method: 'POST',
+        body: { playerIds: ['p1'], captain1PlayerId: 'p1', captain2PlayerId: 'p2' }
+      }))
+      expect(events.value[0]).toEqual(updatedEvent)
+    })
+  })
 })

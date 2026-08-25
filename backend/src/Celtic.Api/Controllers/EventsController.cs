@@ -79,7 +79,7 @@ public class EventsController : ControllerBase
 
         try
         {
-            var updated = await _eventService.UpdateEventAttendanceAsync(id, request.PlayerIds, userId);
+            var updated = await _eventService.UpdateEventAttendanceAsync(id, request.PlayerIds, userId, request.Captain1PlayerId, request.Captain2PlayerId);
             return Ok(updated);
         }
         catch (KeyNotFoundException)

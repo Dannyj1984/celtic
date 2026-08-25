@@ -16,6 +16,12 @@ public class Event
     public Guid? MatchId { get; set; }
     public Match? Match { get; set; }
 
+    // Session Captains
+    public Guid? Captain1PlayerId { get; set; }
+    public Player? Captain1Player { get; set; }
+    public Guid? Captain2PlayerId { get; set; }
+    public Player? Captain2Player { get; set; }
+
     // Navigation
     public ICollection<EventResponse> Responses { get; set; } = new List<EventResponse>();
 }

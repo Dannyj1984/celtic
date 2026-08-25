@@ -3,6 +3,7 @@ using System;
 using Celtic.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Celtic.Api.Migrations
 {
     [DbContext(typeof(CelticDbContext))]
-    partial class CelticDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260823201601_AddTrainingSessionCaptains")]
+    partial class AddTrainingSessionCaptains
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -137,9 +140,6 @@ namespace Celtic.Api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("CardRewardsJson")
-                        .HasColumnType("text");
 
                     b.Property<string>("CoachWhatsAppNumber")
                         .IsRequired()
@@ -421,18 +421,9 @@ namespace Celtic.Api.Migrations
                     b.Property<string>("ShirtSize")
                         .HasColumnType("text");
 
-                    b.Property<string>("ShortSize")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("SockSize")
-                        .HasColumnType("integer");
-
                     b.Property<string>("SubscriptionStatus")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("TrainingCardsCount")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

@@ -66,4 +66,65 @@ public class TrainingServiceTests
         Assert.Equal(4, futureEvents.Count);
         Assert.All(futureEvents, e => Assert.Equal(DayOfWeek.Wednesday, e.DateTime.DayOfWeek));
     }
+
+    [Fact]
+    public async Task GenerateTrainingSessionsAsync_PreservesRegisteredPlayers_WhenLocationChanges()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+
+        var settings = new ClubSettings
+        {
+            TrainingDay = DayOfWeek.Wednesday,
+            TrainingStartTime = new TimeSpan(18, 0, 0),
+            TrainingEndTime = new TimeSpan(19, 0, 0),
+            TrainingLocation = "Old Pitch Location"
+        };
+        dbContext.ClubSettings.Add(settings);
+
+        var now = DateTime.UtcNow;
+        var validStartTimes = TrainingService.GetUpcomingTrainingStartTimes(settings, now);
+        var nextWednesday = validStartTimes.First();
+
+        var player = new Player { Id = Guid.NewGuid(), FirstName = "Paul", LastName = "Scholes", IsActive = true };
+        dbContext.Players.Add(player);
+
+        var existingSession = new Event
+        {
+            Id = Guid.NewGuid(),
+            Type = "Training",
+            DateTime = nextWednesday,
+            Location = "Old Pitch Location",
+            Notes = "Regular training session"
+        };
+        dbContext.Events.Add(existingSession);
+
+        dbContext.EventResponses.Add(new EventResponse
+        {
+            Id = Guid.NewGuid(),
+            EventId = existingSession.Id,
+            PlayerId = player.Id,
+            Status = "Attending"
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        // Admin updates location in settings
+        settings.TrainingLocation = "New Shiny Pitch 1";
+        var service = new TrainingService(dbContext, NullLogger<TrainingService>.Instance);
+
+        // Act
+        await service.GenerateTrainingSessionsAsync();
+
+        // Assert
+        var updatedSession = await dbContext.Events
+            .Include(e => e.Responses)
+            .FirstOrDefaultAsync(e => e.Id == existingSession.Id);
+
+        Assert.NotNull(updatedSession);
+        Assert.Equal("New Shiny Pitch 1", updatedSession.Location);
+        Assert.Single(updatedSession.Responses);
+        Assert.Equal(player.Id, updatedSession.Responses.First().PlayerId);
+    }
 }

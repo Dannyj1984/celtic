@@ -15,6 +15,10 @@ export interface Event {
     playerId: string
     fullName: string
   }[]
+  captain1PlayerId?: string | null
+  captain1PlayerName?: string | null
+  captain2PlayerId?: string | null
+  captain2PlayerName?: string | null
 }
 
 export function useEvents() {
@@ -81,12 +85,21 @@ export function useEvents() {
     }
   }
 
-  async function updateEventAttendance(eventId: string, playerIds: string[]) {
+  async function updateEventAttendance(
+    eventId: string,
+    playerIds: string[],
+    captain1PlayerId?: string | null,
+    captain2PlayerId?: string | null
+  ) {
     try {
       const updatedEvent = await $fetch<Event>(`/api/events/${eventId}/attendance`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: { playerIds },
+        body: {
+          playerIds,
+          captain1PlayerId: captain1PlayerId || null,
+          captain2PlayerId: captain2PlayerId || null,
+        },
       })
       const index = events.value.findIndex(e => e.id === eventId)
       if (index !== -1) {
