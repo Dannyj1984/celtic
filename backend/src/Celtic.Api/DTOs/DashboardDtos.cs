@@ -87,6 +87,9 @@ public class PlayerProfileDto
     public Guid PlayerId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string? PreferredFoot { get; set; }
+    public string? ShirtSize { get; set; }
+    public string? ShortSize { get; set; }
+    public int? SockSize { get; set; }
     public int JoinedYear { get; set; }
     public int CreatedYear { get; set; }
     public PerformanceStatsDto MatchAttendance { get; set; } = new();
@@ -115,6 +118,13 @@ public class ProfileMatchDto
 public class UpdatePreferredFootDto
 {
     public string PreferredFoot { get; set; } = "Right";
+}
+
+public class UpdateKitSizingDto
+{
+    public string? ShirtSize { get; set; }
+    public string? ShortSize { get; set; }
+    public int? SockSize { get; set; }
 }
 
 public class ParentAccountDto

@@ -210,4 +210,33 @@ public class ParentDashboardControllerTests
         Assert.Equal(player.Id, response.PlayerId);
         Assert.Equal(userId, response.RespondedByUserId);
     }
+
+    [Fact]
+    public async Task UpdateKitSizing_UpdatesPlayerKitSizes()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        var userId = Guid.NewGuid().ToString();
+        var player = new Player { Id = Guid.NewGuid(), FirstName = "Leo", LastName = "Messi", ShirtSize = "5-6 yrs", ShortSize = "5-6 yrs", SockSize = 10 };
+        
+        dbContext.Users.Add(new ApplicationUser { Id = userId });
+        dbContext.Players.Add(player);
+        dbContext.PlayerParents.Add(new PlayerParent { UserId = userId, PlayerId = player.Id });
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, userId);
+        var request = new UpdateKitSizingDto { ShirtSize = "7-8 yrs", ShortSize = "7-8 yrs", SockSize = 12 };
+
+        // Act
+        var result = await controller.UpdateKitSizing(request);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result);
+        var updatedPlayer = await dbContext.Players.FindAsync(player.Id);
+        Assert.NotNull(updatedPlayer);
+        Assert.Equal("7-8 yrs", updatedPlayer.ShirtSize);
+        Assert.Equal("7-8 yrs", updatedPlayer.ShortSize);
+        Assert.Equal(12, updatedPlayer.SockSize);
+    }
 }

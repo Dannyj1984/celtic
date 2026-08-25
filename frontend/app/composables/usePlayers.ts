@@ -30,8 +30,11 @@ export interface Player {
   coachNotes?: string | null
   fanNumber?: string | null
   shirtSize?: string | null
+  shortSize?: string | null
+  sockSize?: number | null
   allergies?: string | null
   allowPhotos?: boolean
+  trainingCardsCount?: number
 }
 
 export function usePlayers() {

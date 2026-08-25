@@ -17,8 +17,11 @@ public class Player
     public string? CoachNotes { get; set; }
     public string? FanNumber { get; set; }
     public string? ShirtSize { get; set; }
+    public string? ShortSize { get; set; }
+    public int? SockSize { get; set; }
     public string? Allergies { get; set; }
     public bool AllowPhotos { get; set; } = false;
+    public int TrainingCardsCount { get; set; } = 0;
 
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();
