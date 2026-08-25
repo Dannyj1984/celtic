@@ -61,6 +61,43 @@
             </div>
           </UCard>
 
+          <!-- Kit Sizing Card -->
+          <UCard class="bg-bg-card border-border-color shadow-md">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-black text-text-muted uppercase tracking-widest">Kit Sizing</h3>
+              <button @click="openKitModal" class="kit-toggle text-xs font-bold text-celtic-green hover:underline">Edit Sizes</button>
+            </div>
+            
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-2.5 bg-surface-hover/60 rounded-lg border border-border/40">
+                <span class="text-xs text-text-secondary font-medium flex items-center gap-2">
+                  <span>👕</span> Shirt Size (Age):
+                </span>
+                <span class="text-xs font-bold text-text-primary" data-testid="profile-shirt-size">
+                  {{ profile.shirtSize || 'Not specified' }}
+                </span>
+              </div>
+              
+              <div class="flex items-center justify-between p-2.5 bg-surface-hover/60 rounded-lg border border-border/40">
+                <span class="text-xs text-text-secondary font-medium flex items-center gap-2">
+                  <span>🩳</span> Short Size (Age):
+                </span>
+                <span class="text-xs font-bold text-text-primary" data-testid="profile-short-size">
+                  {{ profile.shortSize || 'Not specified' }}
+                </span>
+              </div>
+              
+              <div class="flex items-center justify-between p-2.5 bg-surface-hover/60 rounded-lg border border-border/40">
+                <span class="text-xs text-text-secondary font-medium flex items-center gap-2">
+                  <span>🧦</span> Sock Size:
+                </span>
+                <span class="text-xs font-bold text-text-primary" data-testid="profile-sock-size">
+                  {{ profile.sockSize !== null && profile.sockSize !== undefined ? profile.sockSize : 'Not specified' }}
+                </span>
+              </div>
+            </div>
+          </UCard>
+
           <!-- Badges & Achievements -->
           <UCard class="bg-bg-card border-border-color shadow-md">
             <h3 class="text-sm font-black text-text-muted uppercase tracking-widest mb-6">Achievements</h3>
@@ -175,6 +212,47 @@
         </div>
       </div>
     </div>
+
+    <!-- Kit Sizing Modal -->
+    <div v-if="showKitModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div class="card p-6 max-w-md w-full bg-surface border border-border shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-black text-text-primary uppercase tracking-tight">Kit Sizing</h3>
+          <button @click="showKitModal = false" class="text-text-muted hover:text-text-primary text-xl font-bold">&times;</button>
+        </div>
+        <p class="text-xs text-text-secondary font-medium">Update your child's official team kit sizes:</p>
+
+        <form @submit.prevent="saveKitSizing" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-text-secondary uppercase mb-1">Shirt Size (Age)</label>
+            <select v-model="kitForm.shirtSize" class="input text-xs py-2" data-testid="shirt-size-select">
+              <option value="">Select Shirt Size</option>
+              <option v-for="age in ageOptions" :key="age" :value="age">{{ age }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-text-secondary uppercase mb-1">Short Size (Age)</label>
+            <select v-model="kitForm.shortSize" class="input text-xs py-2" data-testid="short-size-select">
+              <option value="">Select Short Size</option>
+              <option v-for="age in ageOptions" :key="age" :value="age">{{ age }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-text-secondary uppercase mb-1">Sock Size (Numeric)</label>
+            <input v-model.number="kitForm.sockSize" type="number" min="1" max="15" placeholder="e.g. 12" class="input text-xs py-2" data-testid="sock-size-input" />
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="showKitModal = false" class="px-4 py-2 text-xs font-bold uppercase text-text-muted hover:text-text-primary">Cancel</button>
+            <button type="submit" :disabled="savingKit" class="px-4 py-2 text-xs font-bold uppercase rounded-lg bg-celtic-green text-white hover:bg-celtic-green-light transition-all shadow-md disabled:opacity-50">
+              {{ savingKit ? 'Saving...' : 'Save Sizes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -207,6 +285,15 @@ const selectedFoot = ref('Right')
 const savingFoot = ref(false)
 const toast = useToast()
 
+const ageOptions = ['4-5 yrs', '5-6 yrs', '7-8 yrs', '9-10 yrs', '11-12 yrs', '13-14 yrs']
+const showKitModal = ref(false)
+const savingKit = ref(false)
+const kitForm = ref({
+  shirtSize: '',
+  shortSize: '',
+  sockSize: null as number | null
+})
+
 function openFootModal() {
   selectedFoot.value = profile.value?.preferredFoot || 'Right'
   showFootModal.value = true
@@ -228,6 +315,44 @@ async function saveFoot() {
     console.error('Failed to update preferred foot:', err)
   } finally {
     savingFoot.value = false
+  }
+}
+
+function openKitModal() {
+  kitForm.value = {
+    shirtSize: profile.value?.shirtSize || '',
+    shortSize: profile.value?.shortSize || '',
+    sockSize: profile.value?.sockSize !== null && profile.value?.sockSize !== undefined ? profile.value.sockSize : null
+  }
+  showKitModal.value = true
+}
+
+async function saveKitSizing() {
+  if (!profile.value) return
+  savingKit.value = true
+  try {
+    const payload = {
+      shirtSize: kitForm.value.shirtSize || null,
+      shortSize: kitForm.value.shortSize || null,
+      sockSize: kitForm.value.sockSize ? parseInt(kitForm.value.sockSize.toString()) : null
+    }
+
+    const updated = await $fetch<any>('/api/parent/kit-sizing', {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: payload
+    })
+
+    profile.value.shirtSize = updated.shirtSize
+    profile.value.shortSize = updated.shortSize
+    profile.value.sockSize = updated.sockSize
+    showKitModal.value = false
+    toast.add({ title: 'Success', description: 'Kit sizing updated successfully.', color: 'green' })
+  } catch (err: any) {
+    console.error('Failed to update kit sizing:', err)
+    toast.add({ title: 'Error', description: 'Failed to update kit sizing.', color: 'red' })
+  } finally {
+    savingKit.value = false
   }
 }
 

@@ -41,6 +41,12 @@
           <span v-if="player.shirtSize" class="text-xs font-semibold px-2 py-0.5 rounded bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
             Shirt: {{ player.shirtSize }}
           </span>
+          <span v-if="player.shortSize" class="text-xs font-semibold px-2 py-0.5 rounded bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
+            Short: {{ player.shortSize }}
+          </span>
+          <span v-if="player.sockSize !== null && player.sockSize !== undefined" class="text-xs font-semibold px-2 py-0.5 rounded bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
+            Sock: {{ player.sockSize }}
+          </span>
           <span :class="['text-xs font-semibold px-2 py-0.5 rounded inline-flex items-center gap-1 border', player.allowPhotos ? 'bg-success/10 border-success/30 text-success' : 'bg-danger/10 border-danger/30 text-danger']"
             :title="player.allowPhotos ? 'Photo & Social Media consent granted by parent' : 'No photo consent granted'">
             <component :is="player.allowPhotos ? CheckCircleIcon : XCircleIcon" class="w-3.5 h-3.5" />
@@ -152,19 +158,34 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="block text-sm font-medium text-text-secondary mb-1">Shirt Size</label>
-              <input v-model="form.shirtSize" type="text" class="input" placeholder="e.g. YS, YM, S, M" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
-              <select v-model="form.preferredFoot" class="input">
-                <option value="Right">Right</option>
-                <option value="Left">Left</option>
-                <option value="Both">Both</option>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Shirt Size (Age)</label>
+              <select v-model="form.shirtSize" class="input text-xs py-1.5" data-testid="admin-shirt-size-input">
+                <option value="">Select</option>
+                <option v-for="age in ageOptions" :key="age" :value="age">{{ age }}</option>
               </select>
             </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Short Size (Age)</label>
+              <select v-model="form.shortSize" class="input text-xs py-1.5" data-testid="admin-short-size-input">
+                <option value="">Select</option>
+                <option v-for="age in ageOptions" :key="age" :value="age">{{ age }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Sock Size (Num)</label>
+              <input v-model.number="form.sockSize" type="number" min="1" max="15" class="input text-xs py-1.5" placeholder="e.g. 12" data-testid="admin-sock-size-input" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Preferred Foot</label>
+            <select v-model="form.preferredFoot" class="input">
+              <option value="Right">Right</option>
+              <option value="Left">Left</option>
+              <option value="Both">Both</option>
+            </select>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -306,6 +327,8 @@ function formatDateForInput(dateStr?: string | null): string {
   return d.toISOString().split('T')[0] ?? ''
 }
 
+const ageOptions = ['4-5 yrs', '5-6 yrs', '7-8 yrs', '9-10 yrs', '11-12 yrs', '13-14 yrs']
+
 const form = ref({
   firstName: '',
   lastName: '',
@@ -321,6 +344,8 @@ const form = ref({
   coachNotes: '',
   fanNumber: '',
   shirtSize: '',
+  shortSize: '',
+  sockSize: null as number | null,
   allergies: '',
   allowPhotos: false
 })
@@ -346,6 +371,8 @@ function openCreateModal() {
     coachNotes: '',
     fanNumber: '',
     shirtSize: '',
+    shortSize: '',
+    sockSize: null,
     allergies: '',
     allowPhotos: false
   }
@@ -370,6 +397,8 @@ function openEditModal(player: Player) {
     coachNotes: player.coachNotes || '',
     fanNumber: player.fanNumber || '',
     shirtSize: player.shirtSize || '',
+    shortSize: player.shortSize || '',
+    sockSize: player.sockSize !== null && player.sockSize !== undefined ? player.sockSize : null,
     allergies: player.allergies || '',
     allowPhotos: player.allowPhotos ?? false
   }

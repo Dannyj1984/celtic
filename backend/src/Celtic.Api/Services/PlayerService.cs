@@ -74,8 +74,11 @@ public class PlayerService : IPlayerService
             CoachNotes = request.CoachNotes,
             FanNumber = request.FanNumber,
             ShirtSize = request.ShirtSize,
+            ShortSize = request.ShortSize,
+            SockSize = request.SockSize,
             Allergies = request.Allergies,
-            AllowPhotos = request.AllowPhotos
+            AllowPhotos = request.AllowPhotos,
+            TrainingCardsCount = request.TrainingCardsCount
         };
 
         _db.Players.Add(player);
@@ -109,8 +112,11 @@ public class PlayerService : IPlayerService
         player.CoachNotes = request.CoachNotes;
         player.FanNumber = request.FanNumber;
         player.ShirtSize = request.ShirtSize;
+        player.ShortSize = request.ShortSize;
+        player.SockSize = request.SockSize;
         player.Allergies = request.Allergies;
         player.AllowPhotos = request.AllowPhotos;
+        player.TrainingCardsCount = Math.Max(0, request.TrainingCardsCount);
 
         await _db.SaveChangesAsync();
 
@@ -179,8 +185,11 @@ public class PlayerService : IPlayerService
             p.CoachNotes,
             p.FanNumber,
             p.ShirtSize,
+            p.ShortSize,
+            p.SockSize,
             p.Allergies,
-            p.AllowPhotos
+            p.AllowPhotos,
+            p.TrainingCardsCount
         );
     }
 }

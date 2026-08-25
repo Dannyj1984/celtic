@@ -415,6 +415,9 @@ public class ParentDashboardController : ControllerBase
             PlayerId = player.Id,
             FullName = player.FullName,
             PreferredFoot = player.PreferredFoot,
+            ShirtSize = player.ShirtSize,
+            ShortSize = player.ShortSize,
+            SockSize = player.SockSize,
             JoinedYear = createdYear,
             CreatedYear = createdYear,
             MatchAttendance = new PerformanceStatsDto
@@ -449,6 +452,30 @@ public class ParentDashboardController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { preferredFoot = playerParent.Player.PreferredFoot });
+    }
+
+    [HttpPut("kit-sizing")]
+    public async Task<IActionResult> UpdateKitSizing([FromBody] UpdateKitSizingDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var playerParent = await _context.PlayerParents
+            .Include(pp => pp.Player)
+            .FirstOrDefaultAsync(pp => pp.UserId == userId);
+
+        if (playerParent == null) return NotFound("No linked player found");
+
+        playerParent.Player.ShirtSize = request.ShirtSize;
+        playerParent.Player.ShortSize = request.ShortSize;
+        playerParent.Player.SockSize = request.SockSize;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { 
+            shirtSize = playerParent.Player.ShirtSize,
+            shortSize = playerParent.Player.ShortSize,
+            sockSize = playerParent.Player.SockSize
+        });
     }
 
     [HttpGet("account")]

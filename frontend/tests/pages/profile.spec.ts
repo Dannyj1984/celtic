@@ -133,4 +133,26 @@ describe('Profile Page', () => {
         await flushPromises()
         expect(wrapper.text()).toContain("Select foot")
     })
+
+    it('renders kit sizing section and allows opening kit sizing modal', async () => {
+        mockFetch.mockResolvedValue({
+            ...mockProfileData,
+            shirtSize: '5-6 yrs',
+            shortSize: '5-6 yrs',
+            sockSize: 12
+        })
+
+        const wrapper = mount(ProfilePage, { global: { stubs } })
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Kit Sizing')
+        expect(wrapper.text()).toContain('5-6 yrs')
+        expect(wrapper.text()).toContain('12')
+
+        const kitToggle = wrapper.find('.kit-toggle')
+        await kitToggle.trigger('click')
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Update your child\'s official team kit sizes')
+    })
 })
