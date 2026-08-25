@@ -21,7 +21,8 @@ public record PlayerDto(
     string? FanNumber = null,
     string? ShirtSize = null,
     string? Allergies = null,
-    bool AllowPhotos = false
+    bool AllowPhotos = false,
+    int TrainingCardsCount = 0
 );
 
 public record PlayerAttendanceDto(
@@ -57,7 +58,8 @@ public record CreatePlayerRequest(
     string? FanNumber = null,
     string? ShirtSize = null,
     string? Allergies = null,
-    bool AllowPhotos = false
+    bool AllowPhotos = false,
+    int TrainingCardsCount = 0
 );
 
 public record UpdatePlayerRequest(
@@ -76,5 +78,10 @@ public record UpdatePlayerRequest(
     string? FanNumber = null,
     string? ShirtSize = null,
     string? Allergies = null,
-    bool AllowPhotos = false
+    bool AllowPhotos = false,
+    int TrainingCardsCount = 0
+);
+
+public record UpdatePlayerCardsRequest(
+    int TrainingCardsCount
 );

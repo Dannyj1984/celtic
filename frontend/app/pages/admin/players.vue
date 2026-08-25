@@ -89,6 +89,26 @@
               </div>
             </div>
           </div>
+
+          <!-- Training Cards Counter -->
+          <div class="bg-surface-hover/50 p-2.5 rounded-lg border border-celtic-gold/20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🎴</span>
+              <div>
+                <span class="text-[10px] text-celtic-gold uppercase font-bold tracking-wider block">Training Cards</span>
+                <span class="text-sm font-bold text-text-primary">{{ player.trainingCardsCount || 0 }} Cards</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button @click="changeCards(player, -1)" class="w-7 h-7 rounded bg-surface hover:bg-surface-hover border border-border text-text-secondary font-bold text-xs flex items-center justify-center transition-colors">
+                -
+              </button>
+              <button @click="changeCards(player, 1)" class="px-2.5 py-1 rounded bg-celtic-gold/10 hover:bg-celtic-gold/20 text-celtic-gold border border-celtic-gold/30 font-bold text-xs flex items-center gap-1 transition-colors">
+                <span>+1</span>
+                <span>🎴</span>
+              </button>
+            </div>
+          </div>
           <div v-if="player.allergies">
             <span class="text-xs text-text-muted uppercase tracking-wide">Allergies</span>
             <p class="text-sm text-danger mt-1 bg-danger/10 p-2 rounded font-medium">{{ player.allergies }}</p>
@@ -262,7 +282,7 @@ useHead({
   title: 'Squad - Stalybridge Celtic U7',
 })
 
-const { players, loading, error, fetchPlayers, createPlayer, updatePlayer } = usePlayers()
+const { players, loading, error, fetchPlayers, createPlayer, updatePlayer, updatePlayerCards } = usePlayers()
 const { getAuthHeaders } = useAuth()
 
 const isModalOpen = ref(false)
@@ -277,6 +297,14 @@ function subStatusClass(status: string) {
   if (status === 'Active') return 'bg-success/20 text-success border border-success/30'
   if (status === 'Payment Due') return 'bg-warning/20 text-warning border border-warning/30'
   return 'bg-danger/20 text-danger border border-danger/30'
+}
+
+async function changeCards(player: Player, delta: number) {
+  const newCount = Math.max(0, (player.trainingCardsCount || 0) + delta)
+  const result = await updatePlayerCards(player.id, newCount)
+  if (result.success && result.player) {
+    player.trainingCardsCount = result.player.trainingCardsCount
+  }
 }
 
 async function cycleSubStatus(player: Player) {

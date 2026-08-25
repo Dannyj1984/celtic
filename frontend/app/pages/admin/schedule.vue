@@ -314,13 +314,23 @@
               </div>
             </div>
 
-            <span 
-              v-if="selectedPlayerIds.includes(player.id)" 
-              class="badge badge-success text-xs"
-            >
-              Attending
-            </span>
-            <span v-else class="text-xs text-text-muted">Not Attending</span>
+            <div class="flex items-center gap-2">
+              <button 
+                @click.stop="quickAddCard(player)"
+                class="px-2 py-1 rounded bg-celtic-gold/10 hover:bg-celtic-gold/20 text-celtic-gold border border-celtic-gold/30 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                title="Award 1 training card to player"
+              >
+                <span>🎴 {{ player.trainingCardsCount || 0 }}</span>
+                <span class="font-extrabold text-xs">+1</span>
+              </button>
+              <span 
+                v-if="selectedPlayerIds.includes(player.id)" 
+                class="badge badge-success text-xs"
+              >
+                Attending
+              </span>
+              <span v-else class="text-xs text-text-muted">Not Attending</span>
+            </div>
           </div>
 
           <div v-if="filteredActivePlayers.length === 0" class="p-6 text-center text-text-muted text-sm">
@@ -400,11 +410,20 @@ useHead({
 })
 
 const { events, loading, error, fetchEvents, createEvent, updateEvent, updateEventAttendance, deleteEvent } = useEvents()
-const { players, fetchPlayers } = usePlayers()
+const { players, fetchPlayers, updatePlayerCards } = usePlayers()
 const toast = useToast()
 
 const expandedEvents = ref<Record<string, boolean>>({})
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
+
+async function quickAddCard(player: any) {
+  const newCount = (player.trainingCardsCount || 0) + 1
+  const result = await updatePlayerCards(player.id, newCount)
+  if (result.success && result.player) {
+    player.trainingCardsCount = result.player.trainingCardsCount
+    toast.add({ title: 'Card Awarded! 🎴', description: `Awarded 1 training card to ${player.firstName}.`, color: 'amber' })
+  }
+}
 
 onMounted(() => {
   fetchEvents()

@@ -57,6 +57,35 @@
           </UFormGroup>
         </div>
 
+        <!-- Card Milestone Rewards Settings -->
+        <div>
+          <h2 class="text-lg font-semibold text-text-primary mb-4 border-b border-border-color pb-2 flex items-center justify-between">
+            <span>🎴 Card Milestone Rewards</span>
+            <button type="button" @click="addCardReward" class="text-xs text-celtic-green font-bold hover:underline">+ Add Reward</button>
+          </h2>
+          <p class="text-xs text-text-muted mb-4">Set how many training cards collected unlocks each reward for players.</p>
+
+          <div class="space-y-3">
+            <div v-for="(reward, index) in state.cardRewards" :key="index" class="flex items-center gap-3 p-3 bg-surface-hover/40 border border-border-color rounded-lg">
+              <div class="w-28 shrink-0">
+                <label class="block text-[11px] font-medium text-text-secondary mb-1">Cards Required</label>
+                <input v-model.number="reward.cardsRequired" type="number" min="1" class="input text-xs py-1.5" required placeholder="5" />
+              </div>
+              <div class="flex-1">
+                <label class="block text-[11px] font-medium text-text-secondary mb-1">Reward Description</label>
+                <input v-model="reward.rewardText" type="text" class="input text-xs py-1.5" required placeholder="e.g. Choose games in next session" />
+              </div>
+              <button type="button" @click="removeCardReward(index)" class="self-end p-2 text-danger hover:bg-danger/10 rounded-lg text-xs font-bold transition-colors">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div v-if="state.cardRewards.length === 0" class="text-center py-4 text-xs text-text-muted italic border border-dashed rounded-lg">
+            No card milestone rewards defined. Click "+ Add Reward" to create one.
+          </div>
+        </div>
+
         <!-- Contact Settings -->
         <div>
           <h2 class="text-lg font-semibold text-text-primary mb-4 border-b border-border-color pb-2">Contact Info</h2>
@@ -105,6 +134,11 @@ const dayOptions = [
   { label: 'Saturday', value: 6 },
 ]
 
+interface CardReward {
+  cardsRequired: number
+  rewardText: string
+}
+
 const state = ref({
   nextSubPaymentDate: '',
   trainingDay: 3,
@@ -113,7 +147,8 @@ const state = ref({
   trainingLocation: '',
   coachWhatsAppNumber: '',
   trainingFocus: '',
-  goodToKnow: ''
+  goodToKnow: '',
+  cardRewards: [] as CardReward[]
 })
 
 watch(settings, (newVal) => {
@@ -126,12 +161,32 @@ watch(settings, (newVal) => {
     state.value.coachWhatsAppNumber = newVal.coachWhatsAppNumber || ''
     state.value.trainingFocus = newVal.trainingFocus || ''
     state.value.goodToKnow = newVal.goodToKnow || ''
+    try {
+      state.value.cardRewards = newVal.cardRewardsJson ? JSON.parse(newVal.cardRewardsJson) : [
+        { cardsRequired: 5, rewardText: 'Choose what games to play in the next session' }
+      ]
+    } catch {
+      state.value.cardRewards = [{ cardsRequired: 5, rewardText: 'Choose what games to play in the next session' }]
+    }
   }
 }, { immediate: true })
+
+function addCardReward() {
+  const nextCount = (state.value.cardRewards.length + 1) * 5
+  state.value.cardRewards.push({
+    cardsRequired: nextCount,
+    rewardText: ''
+  })
+}
+
+function removeCardReward(index: number) {
+  state.value.cardRewards.splice(index, 1)
+}
 
 const saveSettings = async () => {
   saving.value = true
   try {
+    const sortedRewards = [...state.value.cardRewards].sort((a, b) => a.cardsRequired - b.cardsRequired)
     const payload = {
       nextSubPaymentDate: state.value.nextSubPaymentDate ? new Date(state.value.nextSubPaymentDate).toISOString() : new Date().toISOString(),
       trainingDay: parseInt(state.value.trainingDay.toString()),
@@ -140,7 +195,8 @@ const saveSettings = async () => {
       trainingLocation: state.value.trainingLocation,
       coachWhatsAppNumber: state.value.coachWhatsAppNumber,
       trainingFocus: state.value.trainingFocus,
-      goodToKnow: state.value.goodToKnow
+      goodToKnow: state.value.goodToKnow,
+      cardRewardsJson: JSON.stringify(sortedRewards)
     }
 
     await $fetch('/api/settings', {

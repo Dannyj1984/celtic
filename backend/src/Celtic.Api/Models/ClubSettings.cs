@@ -11,4 +11,5 @@ public class ClubSettings
     public string CoachWhatsAppNumber { get; set; } = string.Empty;
     public string? TrainingFocus { get; set; }
     public string? GoodToKnow { get; set; }
+    public string? CardRewardsJson { get; set; }
 }

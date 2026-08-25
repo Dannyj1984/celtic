@@ -148,6 +148,55 @@ public class ParentDashboardControllerTests
     }
 
     [Fact]
+    public async Task GetDashboard_IncludesCardsProgress_WhenPresent()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+
+        var settings = new ClubSettings
+        {
+            TrainingDay = DayOfWeek.Wednesday,
+            TrainingStartTime = new TimeSpan(18, 0, 0),
+            TrainingEndTime = new TimeSpan(19, 0, 0),
+            CardRewardsJson = "[{\"cardsRequired\":5,\"rewardText\":\"Choose game in next session\"},{\"cardsRequired\":10,\"rewardText\":\"Pick captain\"}]"
+        };
+        dbContext.ClubSettings.Add(settings);
+
+        var userId = Guid.NewGuid().ToString();
+        var user = new ApplicationUser { Id = userId, UserName = "parent@test.com", FullName = "Alex" };
+        var player = new Player
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Leo",
+            LastName = "Messi",
+            SubscriptionStatus = "Active",
+            TrainingCardsCount = 3
+        };
+
+        dbContext.Users.Add(user);
+        dbContext.Players.Add(player);
+        dbContext.PlayerParents.Add(new PlayerParent { UserId = userId, PlayerId = player.Id });
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, userId);
+
+        // Act
+        var result = await controller.GetDashboard();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var dto = okResult.Value as DashboardDto;
+        Assert.NotNull(dto);
+        Assert.NotNull(dto.CardsProgress);
+        Assert.Equal(3, dto.CardsProgress.CardsCount);
+        Assert.NotNull(dto.CardsProgress.NextReward);
+        Assert.Equal(5, dto.CardsProgress.NextReward.CardsRequired);
+        Assert.Equal("Choose game in next session", dto.CardsProgress.NextReward.RewardText);
+        Assert.Equal(2, dto.CardsProgress.CardsUntilNextReward);
+    }
+
+    [Fact]
     public async Task RegisterForTraining_ReturnsOk_CreatesEventResponse()
     {
         // Arrange

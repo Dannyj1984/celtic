@@ -19,6 +19,7 @@ public class Player
     public string? ShirtSize { get; set; }
     public string? Allergies { get; set; }
     public bool AllowPhotos { get; set; } = false;
+    public int TrainingCardsCount { get; set; } = 0;
 
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();

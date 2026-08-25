@@ -177,7 +177,7 @@
 
             <!-- Upcoming Activities -->
             <div>
-              <h2 class="text-xl font-bold text-text-primary mb-4">Upcoming Activities</h2>
+              <h2 class="text-xl font-bold text-text-primary mb-4">Upcoming Sessions</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Next Match -->
                 <UCard
@@ -192,7 +192,7 @@
                     'TBD' }}</h3>
                   <p class="text-sm text-text-muted mb-2">
                     {{ dashboardData.nextMatch ? new Date(dashboardData.nextMatch.date).toLocaleDateString() :
-                      'Noupcoming matches' }}
+                      'No upcoming matches' }}
                   </p>
                   <div class="flex justify-between items-center">
                     <p v-if="dashboardData.nextMatch?.location"
@@ -261,6 +261,77 @@
                   </div>
                 </UCard>
               </div>
+            </div>
+
+            <!-- Training Cards & Rewards -->
+            <div v-if="dashboardData.cardsProgress">
+              <h2 class="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+                <span>🎴 Training Cards & Rewards</span>
+              </h2>
+              <UCard class="bg-bg-card border border-celtic-gold/30 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-celtic-gold/15 border border-celtic-gold/30 flex items-center justify-center text-2xl shrink-0">
+                      🎴
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-extrabold text-text-primary">
+                        {{ dashboardData.cardsProgress.cardsCount }} {{ dashboardData.cardsProgress.cardsCount === 1 ? 'Card' : 'Cards' }} Collected
+                      </h3>
+                      <p class="text-xs text-text-muted">Earned for great effort and teamwork in training</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Next Reward Milestone Progress -->
+                <div v-if="dashboardData.cardsProgress.nextReward" class="mt-4 p-4 bg-celtic-gold/5 border border-celtic-gold/20 rounded-xl space-y-3">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-celtic-gold uppercase tracking-wider">
+                      🎯 Next Reward at {{ dashboardData.cardsProgress.nextReward.cardsRequired }} Cards
+                    </span>
+                    <span class="font-semibold text-text-secondary">
+                      {{ dashboardData.cardsProgress.cardsCount }} / {{ dashboardData.cardsProgress.nextReward.cardsRequired }}
+                    </span>
+                  </div>
+
+                  <!-- Progress Bar -->
+                  <div class="w-full bg-surface-hover rounded-full h-3 overflow-hidden border border-border/60">
+                    <div 
+                      class="bg-gradient-to-r from-celtic-gold to-yellow-400 h-full rounded-full transition-all duration-500"
+                      :style="{ width: Math.min(100, Math.round((dashboardData.cardsProgress.cardsCount / dashboardData.cardsProgress.nextReward.cardsRequired) * 100)) + '%' }"
+                    ></div>
+                  </div>
+
+                  <div class="flex items-start gap-2 pt-1">
+                    <span class="text-sm">🎁</span>
+                    <div>
+                      <p class="text-xs font-bold text-text-primary">Reward:</p>
+                      <p class="text-sm font-semibold text-celtic-gold">
+                        {{ dashboardData.cardsProgress.nextReward.rewardText }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else-if="dashboardData.cardsProgress.unlockedRewards && dashboardData.cardsProgress.unlockedRewards.length > 0" class="mt-4 p-3 bg-success/10 border border-success/20 rounded-xl text-center">
+                  <span class="text-xs font-bold text-success">🏆 Maximum Reward Tier Reached! Outstanding work!</span>
+                </div>
+
+                <!-- Unlocked Rewards List -->
+                <div v-if="dashboardData.cardsProgress.unlockedRewards && dashboardData.cardsProgress.unlockedRewards.length > 0" class="mt-4 pt-3 border-t border-border-color/60">
+                  <h4 class="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Unlocked Rewards</h4>
+                  <div class="space-y-1.5">
+                    <div 
+                      v-for="(unlocked, idx) in dashboardData.cardsProgress.unlockedRewards" 
+                      :key="idx"
+                      class="flex items-center gap-2 text-xs text-text-secondary bg-surface-hover/60 px-3 py-1.5 rounded-lg border border-border/40"
+                    >
+                      <span class="text-celtic-green font-bold">✓ {{ unlocked.cardsRequired }} Cards:</span>
+                      <span class="font-medium text-text-primary">{{ unlocked.rewardText }}</span>
+                    </div>
+                  </div>
+                </div>
+              </UCard>
             </div>
 
             <!-- Parent Quick Actions -->

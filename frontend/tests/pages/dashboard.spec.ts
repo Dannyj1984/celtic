@@ -105,7 +105,7 @@ describe('Dashboard Page', () => {
     expect(wrapper.text()).toContain('Active')
 
     // Check Upcoming Activities
-    expect(wrapper.text()).toContain('Upcoming Activities')
+    expect(wrapper.text()).toContain('Upcoming Sessions')
     expect(wrapper.text()).toContain('JNR Tigers')
 
     // Check Training
