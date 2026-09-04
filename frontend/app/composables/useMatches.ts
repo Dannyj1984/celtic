@@ -8,6 +8,8 @@ export interface Match {
   date: string
   opposition: string
   location?: string | null
+  halfDurationMinutes?: number
+  format?: string
   goalsFor: number
   goalsAgainst: number
   matchReport?: string | null

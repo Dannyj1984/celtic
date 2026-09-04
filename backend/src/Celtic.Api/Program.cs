@@ -69,6 +69,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITrainingService, TrainingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IMatchSquadService, MatchSquadService>();
 
 builder.Services.AddHostedService<TrainingGeneratorService>();
 

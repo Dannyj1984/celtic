@@ -21,6 +21,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<ClubSettings> ClubSettings => Set<ClubSettings>();
     public DbSet<UserPushSubscription> UserPushSubscriptions => Set<UserPushSubscription>();
+    public DbSet<MatchSquad> MatchSquads => Set<MatchSquad>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -161,6 +162,31 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(e => e.Team)
             .WithMany(t => t.Events)
             .HasForeignKey(e => e.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // MatchSquad
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.Match)
+            .WithMany()
+            .HasForeignKey(ms => ms.MatchId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.Event)
+            .WithMany()
+            .HasForeignKey(ms => ms.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.FirstHalfGoalkeeperPlayer)
+            .WithMany()
+            .HasForeignKey(ms => ms.FirstHalfGoalkeeperPlayerId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.SecondHalfGoalkeeperPlayer)
+            .WithMany()
+            .HasForeignKey(ms => ms.SecondHalfGoalkeeperPlayerId)
             .OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -154,8 +154,15 @@
               </div>
             </div>
             
-            <div v-if="event.type === 'Match'" class="mt-3 pt-3 border-t border-border/50 flex justify-between items-center">
-               <NuxtLink :to="'/admin/matches'" class="text-[10px] text-celtic-gold hover:underline font-bold uppercase">View Match Details →</NuxtLink>
+            <div v-if="event.type === 'Match'" class="mt-3 pt-3 border-t border-border/50 flex flex-wrap justify-between items-center gap-2">
+               <button 
+                 @click="openSquadModal(event)" 
+                 class="text-[10px] font-bold uppercase flex items-center gap-1.5 bg-celtic-gold/15 hover:bg-celtic-gold/25 text-celtic-gold px-2.5 py-1 rounded-lg border border-celtic-gold/30 transition-colors shadow-sm"
+               >
+                 <span>⚽</span>
+                 <span>Create / View Squad</span>
+               </button>
+               <NuxtLink :to="'/admin/matches'" class="text-[10px] text-text-muted hover:text-celtic-gold hover:underline font-medium">Match Details →</NuxtLink>
             </div>
           </div>
         </div>
@@ -406,6 +413,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Match Squad Rotation Modal -->
+    <MatchSquadModal
+      :is-open="isSquadModalOpen"
+      :event="squadEvent"
+      @close="isSquadModalOpen = false"
+    />
   </div>
 </template>
 
@@ -414,6 +428,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useEvents, type Event } from '~/composables/useEvents'
 import { usePlayers } from '~/composables/usePlayers'
 import { useTeams } from '~/composables/useTeams'
+import MatchSquadModal from '~/components/MatchSquadModal.vue'
 
 definePageMeta({
   layout: 'app',
@@ -431,6 +446,15 @@ const toast = useToast()
 const expandedEvents = ref<Record<string, boolean>>({})
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
 const selectedTeamFilter = ref<string>('All')
+
+// Match Squad Modal
+const isSquadModalOpen = ref(false)
+const squadEvent = ref<Event | null>(null)
+
+function openSquadModal(event: Event) {
+  squadEvent.value = event
+  isSquadModalOpen.value = true
+}
 
 async function quickAddCard(player: any) {
   const newCount = (player.trainingCardsCount || 0) + 1

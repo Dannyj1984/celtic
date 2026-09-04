@@ -49,6 +49,8 @@ public class MatchService : IMatchService
             Date = request.Date,
             Opposition = request.Opposition,
             Location = request.Location,
+            HalfDurationMinutes = request.HalfDurationMinutes > 0 ? request.HalfDurationMinutes : 20,
+            Format = !string.IsNullOrWhiteSpace(request.Format) ? request.Format : "5v5",
             IsPublished = false
         };
 
@@ -96,6 +98,8 @@ public class MatchService : IMatchService
         m.Date = request.Date;
         m.Opposition = request.Opposition;
         m.Location = request.Location;
+        m.HalfDurationMinutes = request.HalfDurationMinutes > 0 ? request.HalfDurationMinutes : 20;
+        m.Format = !string.IsNullOrWhiteSpace(request.Format) ? request.Format : "5v5";
         m.GoalsFor = request.GoalsFor;
         m.GoalsAgainst = request.GoalsAgainst;
         m.MatchReport = request.MatchReport;
@@ -150,6 +154,7 @@ public class MatchService : IMatchService
         m.Date,
         m.Opposition,
         m.Location,
+        m.HalfDurationMinutes > 0 ? m.HalfDurationMinutes : 20,
         m.GoalsFor,
         m.GoalsAgainst,
         m.MatchReport,
@@ -159,6 +164,7 @@ public class MatchService : IMatchService
         m.PlayerOfTheMatchId,
         m.PlayerOfTheMatch?.FullName,
         m.TeamId,
-        m.Team?.Name
+        m.Team?.Name,
+        string.IsNullOrEmpty(m.Format) ? "5v5" : m.Format
     );
 }

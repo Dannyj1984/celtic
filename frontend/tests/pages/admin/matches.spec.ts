@@ -4,6 +4,8 @@ import { ref } from 'vue'
 
 vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
+vi.stubGlobal('useCookie', vi.fn(() => ref(null)))
+vi.stubGlobal('useState', vi.fn((_key, init) => ref(init ? init() : null)))
 vi.stubGlobal('$fetch', vi.fn())
 
 const mockMatches = ref([

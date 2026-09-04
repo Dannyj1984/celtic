@@ -12,6 +12,8 @@ public class Match
     public DateTime Date { get; set; }
     public string Opposition { get; set; } = string.Empty;
     public string? Location { get; set; }
+    public int HalfDurationMinutes { get; set; } = 20;
+    public string Format { get; set; } = "5v5";
     public int GoalsFor { get; set; }
     public int GoalsAgainst { get; set; }
     public string? MatchReport { get; set; }

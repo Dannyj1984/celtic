@@ -48,6 +48,10 @@
                 </span>
                 <span v-if="!match.seasonId" class="badge bg-orange-500/10 text-orange-500 border-orange-500/20 text-[10px] px-1.5 py-0.5">Friendly</span>
                 <span v-else class="text-[10px] sm:text-xs text-text-muted font-medium">{{ match.seasonName }}</span>
+                <span class="badge text-[10px] px-1.5 py-0.5" :class="match.format === '3v3' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30 font-bold' : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold'">
+                  {{ match.format === '3v3' ? '3v3 (no GK)' : '5v5 (with GK)' }}
+                </span>
+                <span class="badge bg-surface-hover text-text-secondary border border-border text-[10px] px-1.5 py-0.5">2 × {{ match.halfDurationMinutes || 20 }} mins</span>
                 <span v-if="match.isPublished" class="text-[9px] sm:text-[10px] text-celtic-green font-bold uppercase tracking-wider">● Published</span>
               </div>
               <div class="text-md sm:text-lg font-bold text-text-primary leading-tight">
@@ -59,7 +63,7 @@
               </div>
             </div>
           </div>
- 
+
           <div class="flex items-center justify-between sm:justify-end gap-4 sm:gap-8 w-full sm:w-auto pt-3 sm:pt-0 border-t border-border/50 sm:border-0">
             <div v-if="new Date(match.date) < new Date()" class="flex flex-col sm:items-end">
               <div class="text-xl sm:text-2xl font-black text-text-primary tracking-widest leading-none">
@@ -72,8 +76,16 @@
               </div>
             </div>
             <div v-else class="hidden sm:block"></div> <!-- Spacer for upcoming matches on desktop -->
- 
-            <div class="flex items-center gap-1">
+
+            <div class="flex items-center gap-2">
+              <button 
+                @click="openSquadModal(match)"
+                class="px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-lg text-xs font-bold border border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-sm"
+                title="Squad & Live Match Mode"
+              >
+                <span>⚽</span>
+                <span>Squad</span>
+              </button>
               <button @click="openEditModal(match)" class="p-2 text-text-muted hover:text-celtic-gold transition-colors rounded-lg hover:bg-celtic-gold/10">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
@@ -114,6 +126,25 @@
               <select v-model="form.seasonId" class="input" required>
                 <option value="" disabled>Select season...</option>
                 <option v-for="s in seasons" :key="s.id" :value="s.id">{{ s.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-sm font-medium text-text-secondary mb-1">Format</label>
+              <select v-model="form.format" class="input bg-surface font-semibold text-text-primary">
+                <option value="5v5">5v5 League (with Goalkeeper)</option>
+                <option value="3v3">3v3 League (no Goalkeeper)</option>
+              </select>
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-sm font-medium text-text-secondary mb-1">Half Duration</label>
+              <select v-model.number="form.halfDurationMinutes" class="input bg-surface">
+                <option :value="15">2 × 15 mins (30m total)</option>
+                <option :value="18">2 × 18 mins (36m total)</option>
+                <option :value="20">2 × 20 mins (40m total)</option>
+                <option :value="25">2 × 25 mins (50m total)</option>
               </select>
             </div>
           </div>
@@ -188,6 +219,14 @@
         </form>
       </div>
     </div>
+
+    <!-- Match Squad & Live Match Assistant Modal -->
+    <MatchSquadModal
+      :is-open="isSquadModalOpen"
+      :match-id="selectedSquadMatch?.id"
+      :event="selectedSquadMatchEvent"
+      @close="isSquadModalOpen = false"
+    />
   </div>
 </template>
 
@@ -197,6 +236,7 @@ import { useMatches, type Match } from '~/composables/useMatches'
 import { useSeasons } from '~/composables/useSeasons'
 import { usePlayers } from '~/composables/usePlayers'
 import { useTeams } from '~/composables/useTeams'
+import MatchSquadModal from '~/components/MatchSquadModal.vue'
 
 definePageMeta({
   layout: 'app',
@@ -218,6 +258,28 @@ const editingMatch = ref<Match | null>(null)
 const saving = ref(false)
 const formError = ref<string | null>(null)
 
+const isSquadModalOpen = ref(false)
+const selectedSquadMatch = ref<Match | null>(null)
+
+const selectedSquadMatchEvent = computed(() => {
+  if (!selectedSquadMatch.value) return undefined
+  return {
+    id: selectedSquadMatch.value.eventId,
+    matchId: selectedSquadMatch.value.id,
+    opposition: selectedSquadMatch.value.opposition,
+    notes: `Match vs ${selectedSquadMatch.value.opposition}`,
+    dateTime: selectedSquadMatch.value.date,
+    location: selectedSquadMatch.value.location,
+    halfDurationMinutes: selectedSquadMatch.value.halfDurationMinutes || 20,
+    format: selectedSquadMatch.value.format || '5v5'
+  }
+})
+
+function openSquadModal(match: Match) {
+  selectedSquadMatch.value = match
+  isSquadModalOpen.value = true
+}
+
 const filteredMatches = computed(() => {
   if (selectedTeamFilter.value === 'All') return matches.value
   if (selectedTeamFilter.value === 'AllTeamsOnly') return matches.value.filter(m => !m.teamId)
@@ -230,6 +292,8 @@ const form = ref({
   date: '',
   opposition: '',
   location: '',
+  format: '5v5',
+  halfDurationMinutes: 20,
   notes: '',
   goalsFor: 0,
   goalsAgainst: 0,
@@ -255,6 +319,8 @@ function openCreateModal() {
     date: '',
     opposition: '',
     location: '',
+    format: '5v5',
+    halfDurationMinutes: 20,
     notes: '',
     goalsFor: 0,
     goalsAgainst: 0,
@@ -276,6 +342,8 @@ function openEditModal(match: Match) {
     date: new Date(match.date).toISOString().slice(0, 16),
     opposition: match.opposition,
     location: match.location || '',
+    format: match.format || '5v5',
+    halfDurationMinutes: match.halfDurationMinutes || 20,
     notes: '',
     goalsFor: match.goalsFor,
     goalsAgainst: match.goalsAgainst,
@@ -301,6 +369,8 @@ async function submitForm() {
     date: new Date(form.value.date).toISOString(),
     opposition: form.value.opposition,
     location: form.value.location,
+    format: form.value.format || '5v5',
+    halfDurationMinutes: form.value.halfDurationMinutes || 20,
     notes: form.value.notes,
     goalsFor: form.value.goalsFor,
     goalsAgainst: form.value.goalsAgainst,
