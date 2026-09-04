@@ -68,6 +68,7 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITrainingService, TrainingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 builder.Services.AddHostedService<TrainingGeneratorService>();
 
@@ -158,6 +159,16 @@ using (var scope = app.Services.CreateScope())
             TrainingLocation = "Standard Pitch 1",
             CoachWhatsAppNumber = "07000000000"
         });
+        await db.SaveChangesAsync();
+    }
+
+    // Seed Default Teams (Stripes & Hoops) if none exist
+    if (!await db.Teams.AnyAsync())
+    {
+        db.Teams.AddRange(
+            new Team { Id = Guid.NewGuid(), Name = "Stripes", ColorHex = "#006837", IsActive = true },
+            new Team { Id = Guid.NewGuid(), Name = "Hoops", ColorHex = "#F59E0B", IsActive = true }
+        );
         await db.SaveChangesAsync();
     }
 

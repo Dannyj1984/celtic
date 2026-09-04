@@ -24,7 +24,9 @@ public record PlayerDto(
     int? SockSize = null,
     string? Allergies = null,
     bool AllowPhotos = false,
-    int TrainingCardsCount = 0
+    int TrainingCardsCount = 0,
+    Guid? TeamId = null,
+    string? TeamName = null
 );
 
 public record PlayerAttendanceDto(
@@ -63,7 +65,8 @@ public record CreatePlayerRequest(
     int? SockSize = null,
     string? Allergies = null,
     bool AllowPhotos = false,
-    int TrainingCardsCount = 0
+    int TrainingCardsCount = 0,
+    Guid? TeamId = null
 );
 
 public record UpdatePlayerRequest(
@@ -85,7 +88,8 @@ public record UpdatePlayerRequest(
     int? SockSize = null,
     string? Allergies = null,
     bool AllowPhotos = false,
-    int TrainingCardsCount = 0
+    int TrainingCardsCount = 0,
+    Guid? TeamId = null
 );
 
 public record UpdatePlayerCardsRequest(

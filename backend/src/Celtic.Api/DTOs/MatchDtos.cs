@@ -16,7 +16,9 @@ public record MatchDto(
     string Result,
     Guid? EventId,
     Guid? PlayerOfTheMatchId = null,
-    string? PlayerOfTheMatchName = null
+    string? PlayerOfTheMatchName = null,
+    Guid? TeamId = null,
+    string? TeamName = null
 );
 
 public record CreateMatchRequest(
@@ -24,7 +26,8 @@ public record CreateMatchRequest(
     [Required] DateTime Date,
     [Required] string Opposition,
     string? Location,
-    string? Notes // For the associated event
+    string? Notes, // For the associated event
+    Guid? TeamId = null
 );
 
 public record UpdateMatchRequest(
@@ -36,5 +39,6 @@ public record UpdateMatchRequest(
     int GoalsAgainst,
     string? MatchReport,
     bool IsPublished,
-    Guid? PlayerOfTheMatchId = null
+    Guid? PlayerOfTheMatchId = null,
+    Guid? TeamId = null
 );

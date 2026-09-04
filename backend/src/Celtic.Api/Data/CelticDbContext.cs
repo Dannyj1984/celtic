@@ -8,6 +8,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
 {
     public CelticDbContext(DbContextOptions<CelticDbContext> options) : base(options) { }
 
+    public DbSet<Team> Teams => Set<Team>();
     public DbSet<Player> Players => Set<Player>();
     public DbSet<PlayerParent> PlayerParents => Set<PlayerParent>();
     public DbSet<Season> Seasons => Set<Season>();
@@ -142,5 +143,24 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(a => a.CreatedBy)
             .WithMany()
             .HasForeignKey(a => a.CreatedByUserId);
+
+        // Team
+        builder.Entity<Player>()
+            .HasOne(p => p.Team)
+            .WithMany(t => t.Players)
+            .HasForeignKey(p => p.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Match>()
+            .HasOne(m => m.Team)
+            .WithMany(t => t.Matches)
+            .HasForeignKey(m => m.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Event>()
+            .HasOne(e => e.Team)
+            .WithMany(t => t.Events)
+            .HasForeignKey(e => e.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

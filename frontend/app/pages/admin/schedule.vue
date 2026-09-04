@@ -1,12 +1,19 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-bold text-text-primary">Schedule</h1>
         <p class="text-text-secondary mt-1">Calendar of all training and match events</p>
       </div>
-      <div class="flex gap-3">
-         <button @click="openCreateModal" class="btn-secondary">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <select v-model="selectedTeamFilter" class="input text-sm py-2 bg-surface max-w-[160px]">
+          <option value="All">All Teams</option>
+          <option value="AllTeamsOnly">All-Team Events</option>
+          <option v-for="team in teams" :key="team.id" :value="team.id">
+            {{ team.name }}
+          </option>
+        </select>
+        <button @click="openCreateModal" class="btn-secondary whitespace-nowrap">
           + One-off Event
         </button>
       </div>
@@ -59,10 +66,16 @@
 
             <div>
               <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                   <span :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded', 
                     event.type === 'Match' ? 'bg-celtic-gold/20 text-celtic-gold' : 'bg-celtic-green/20 text-celtic-green']">
                     {{ event.type }}
+                  </span>
+                  <span v-if="event.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5">
+                    {{ event.teamName }}
+                  </span>
+                  <span v-else class="badge bg-surface-hover text-text-secondary border border-border text-[10px] px-1.5 py-0.5">
+                    All Teams
                   </span>
                   <span v-if="event.seasonName" class="text-[10px] text-text-muted font-medium">{{ event.seasonName }}</span>
                 </div>
@@ -105,7 +118,7 @@
                 <div class="flex items-center gap-2">
                   <UIcon name="i-heroicons-users" class="w-4 h-4 text-text-muted" />
                   <span class="text-xs font-bold text-text-primary">
-                    {{ event.attendingPlayers?.length || 0 }} Attending
+                    {{ event.attendingPlayers?.length || 0 }} {{  activeTab === 'past' ? 'Played': 'Playing'}}
                   </span>
                 </div>
 
@@ -223,7 +236,7 @@
           <div>
             <h2 class="text-xl font-bold text-text-primary">Manage Attending Squad</h2>
             <p class="text-xs text-text-secondary mt-0.5">
-              Select attending players for {{ attendanceEvent?.type }} on {{ new Date(attendanceEvent?.dateTime || '').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
+              Select attending players for <span v-if="attendanceEvent?.teamName" class="font-bold text-celtic-gold">{{ attendanceEvent.teamName }} </span>{{ attendanceEvent?.type }} on {{ new Date(attendanceEvent?.dateTime || '').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
             </p>
           </div>
           <button @click="isAttendanceModalOpen = false" class="text-text-muted hover:text-text-primary p-1">
@@ -279,7 +292,7 @@
           />
           <div class="flex items-center justify-between text-xs">
             <span class="text-text-secondary font-medium">
-              {{ selectedPlayerIds.length }} of {{ activePlayers.length }} players selected
+              {{ selectedPlayerIds.length }} of {{ targetTeamPlayers.length }} players selected
             </span>
             <div class="flex items-center gap-2">
               <button @click="selectAllActivePlayers" class="text-celtic-green hover:underline font-semibold">
@@ -400,6 +413,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useEvents, type Event } from '~/composables/useEvents'
 import { usePlayers } from '~/composables/usePlayers'
+import { useTeams } from '~/composables/useTeams'
 
 definePageMeta({
   layout: 'app',
@@ -411,10 +425,12 @@ useHead({
 
 const { events, loading, error, fetchEvents, createEvent, updateEvent, updateEventAttendance, deleteEvent } = useEvents()
 const { players, fetchPlayers, updatePlayerCards } = usePlayers()
+const { teams, fetchTeams } = useTeams()
 const toast = useToast()
 
 const expandedEvents = ref<Record<string, boolean>>({})
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
+const selectedTeamFilter = ref<string>('All')
 
 async function quickAddCard(player: any) {
   const newCount = (player.trainingCardsCount || 0) + 1
@@ -428,6 +444,7 @@ async function quickAddCard(player: any) {
 onMounted(() => {
   fetchEvents()
   fetchPlayers()
+  fetchTeams()
 })
 
 const activePlayers = computed(() => {
@@ -463,12 +480,23 @@ const attendanceSearchQuery = ref('')
 const attendanceSaving = ref(false)
 const attendanceError = ref<string | null>(null)
 
+const targetTeamPlayers = computed(() => {
+  let list = activePlayers.value
+  if (attendanceEvent.value?.teamId) {
+    list = list.filter(p => p.teamId === attendanceEvent.value?.teamId)
+  }
+  return list
+})
+
 const filteredActivePlayers = computed(() => {
-  if (!attendanceSearchQuery.value.trim()) return activePlayers.value
-  const q = attendanceSearchQuery.value.toLowerCase()
-  return activePlayers.value.filter(p => 
-    `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
-  )
+  let list = targetTeamPlayers.value
+  if (attendanceSearchQuery.value.trim()) {
+    const q = attendanceSearchQuery.value.toLowerCase()
+    list = list.filter(p => 
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
+    )
+  }
+  return list
 })
 
 function openAttendanceModal(event: Event) {
@@ -496,7 +524,7 @@ function togglePlayerSelection(playerId: string) {
 }
 
 function selectAllActivePlayers() {
-  selectedPlayerIds.value = activePlayers.value.map(p => p.id)
+  selectedPlayerIds.value = targetTeamPlayers.value.map(p => p.id)
 }
 
 function clearAllAttendance() {
@@ -516,7 +544,6 @@ async function saveAttendance() {
   )
   if (result.success) {
     isAttendanceModalOpen.value = false
-    // Ensure expanded state shows the updated list
     expandedEvents.value[attendanceEvent.value.id] = true
   } else {
     attendanceError.value = result.error || 'Failed to save attendance'
@@ -526,12 +553,18 @@ async function saveAttendance() {
 }
 
 // --- Events Filtering & Grouping ---
+const filteredByTeam = computed(() => {
+  if (selectedTeamFilter.value === 'All') return events.value
+  if (selectedTeamFilter.value === 'AllTeamsOnly') return events.value.filter(e => !e.teamId)
+  return events.value.filter(e => e.teamId === selectedTeamFilter.value)
+})
+
 const upcomingEventsList = computed(() => {
-  return events.value.filter(e => new Date(e.dateTime) >= new Date())
+  return filteredByTeam.value.filter(e => new Date(e.dateTime) >= new Date())
 })
 
 const pastEventsList = computed(() => {
-  return events.value.filter(e => new Date(e.dateTime) < new Date())
+  return filteredByTeam.value.filter(e => new Date(e.dateTime) < new Date())
 })
 
 const filteredEvents = computed(() => {

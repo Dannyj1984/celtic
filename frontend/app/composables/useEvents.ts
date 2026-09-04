@@ -19,6 +19,8 @@ export interface Event {
   captain1PlayerName?: string | null
   captain2PlayerId?: string | null
   captain2PlayerName?: string | null
+  teamId?: string | null
+  teamName?: string | null
 }
 
 export function useEvents() {

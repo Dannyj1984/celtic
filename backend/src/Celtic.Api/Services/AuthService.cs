@@ -86,12 +86,15 @@ public class AuthService : IAuthService
         var children = await _db.PlayerParents
             .Where(pp => pp.UserId == userId)
             .Include(pp => pp.Player)
+                .ThenInclude(p => p.Team)
             .Select(pp => new LinkedPlayerDto(
                 pp.PlayerId,
                 pp.Player.FirstName,
                 pp.Player.LastName,
                 pp.Relationship,
-                pp.Player.SubscriptionStatus
+                pp.Player.SubscriptionStatus,
+                pp.Player.TeamId,
+                pp.Player.Team != null ? pp.Player.Team.Name : null
             ))
             .ToListAsync();
 
@@ -116,6 +119,7 @@ public class AuthService : IAuthService
         var allChildren = await _db.PlayerParents
             .Where(pp => parentIds.Contains(pp.UserId))
             .Include(pp => pp.Player)
+                .ThenInclude(p => p.Team)
             .ToListAsync();
 
         var responses = users.Select(u => new UserInfoResponse(
@@ -131,7 +135,9 @@ public class AuthService : IAuthService
                     pp.Player.FirstName,
                     pp.Player.LastName,
                     pp.Relationship,
-                    pp.Player.SubscriptionStatus
+                    pp.Player.SubscriptionStatus,
+                    pp.Player.TeamId,
+                    pp.Player.Team?.Name
                 ))
                 .ToList()
         )).ToList();

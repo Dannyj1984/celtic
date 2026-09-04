@@ -113,6 +113,8 @@ public class PlayerSubStatusDto
     public decimal TotalPaidThisSeason { get; set; }
     public decimal TotalDueThisSeason { get; set; }
     public bool IsUpToDate { get; set; }
+    public Guid? TeamId { get; set; }
+    public string? TeamName { get; set; }
 }
 
 public class FinancialSummaryDto

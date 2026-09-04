@@ -35,6 +35,8 @@ export interface PlayerSubStatus {
   totalPaidThisSeason: number
   totalDueThisSeason: number
   isUpToDate: boolean
+  teamId?: string | null
+  teamName?: string | null
 }
 
 export interface Expense {
