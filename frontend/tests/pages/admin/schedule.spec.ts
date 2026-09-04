@@ -5,6 +5,7 @@ import { ref } from 'vue'
 vi.stubGlobal('useHead', vi.fn())
 vi.stubGlobal('definePageMeta', vi.fn())
 vi.stubGlobal('useCookie', vi.fn(() => ref(null)))
+vi.stubGlobal('useState', vi.fn((_key, init) => ref(init ? init() : null)))
 vi.stubGlobal('$fetch', vi.fn())
 vi.stubGlobal('useToast', vi.fn(() => ({ add: vi.fn() })))
 
@@ -70,7 +71,7 @@ describe('Admin Schedule Page', () => {
 
   it('shows attendance count and captains badge', () => {
     const wrapper = mount(SchedulePage, { global: { stubs } })
-    expect(wrapper.text()).toContain('1 Attending')
+    expect(wrapper.text()).toContain('1 Playing')
     expect(wrapper.text()).toContain('Captains:')
     expect(wrapper.text()).toContain('John Terry & Frank Lampard')
   })

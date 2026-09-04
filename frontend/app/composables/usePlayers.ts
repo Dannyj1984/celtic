@@ -35,6 +35,7 @@ export interface Player {
   allergies?: string | null
   allowPhotos?: boolean
   trainingCardsCount?: number
+  teamId?: string | null
 }
 
 export function usePlayers() {

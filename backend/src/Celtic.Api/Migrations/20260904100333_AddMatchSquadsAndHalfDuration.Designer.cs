@@ -3,6 +3,7 @@ using System;
 using Celtic.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Celtic.Api.Migrations
 {
     [DbContext(typeof(CelticDbContext))]
-    partial class CelticDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260904100333_AddMatchSquadsAndHalfDuration")]
+    partial class AddMatchSquadsAndHalfDuration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -311,10 +314,6 @@ namespace Celtic.Api.Migrations
                     b.Property<Guid?>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Format")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("GoalsAgainst")
                         .HasColumnType("integer");
 
@@ -398,10 +397,6 @@ namespace Celtic.Api.Migrations
 
                     b.Property<Guid?>("FirstHalfGoalkeeperPlayerId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("Format")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<int>("HalfDurationMinutes")
                         .HasColumnType("integer");

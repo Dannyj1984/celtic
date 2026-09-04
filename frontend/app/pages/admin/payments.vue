@@ -126,11 +126,20 @@
       <!-- Tab Content: Monthly Subs -->
       <div v-if="activeTab === 'subs'" class="p-6 space-y-6">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
             <span class="text-sm font-medium text-text-secondary">Period / Month:</span>
             <select v-model="selectedMonth" @change="loadSubStatuses" class="input py-1.5 text-sm bg-surface">
               <option v-for="m in availableMonths" :key="m.value" :value="m.value">
                 {{ m.label }}
+              </option>
+            </select>
+
+            <span class="text-sm font-medium text-text-secondary ml-2">Team:</span>
+            <select v-model="selectedTeamFilter" class="input py-1.5 text-sm bg-surface max-w-[150px]">
+              <option value="All">All Teams</option>
+              <option value="Unassigned">Unassigned</option>
+              <option v-for="team in teams" :key="team.id" :value="team.id">
+                {{ team.name }}
               </option>
             </select>
           </div>
@@ -159,7 +168,12 @@
             <tbody class="divide-y divide-border text-sm">
               <tr v-for="player in filteredPlayers" :key="player.playerId" class="hover:bg-surface-hover/50 transition-colors">
                 <td class="py-3.5 px-4 font-semibold text-text-primary">
-                  {{ player.playerName }}
+                  <div class="flex items-center gap-2">
+                    <span>{{ player.playerName }}</span>
+                    <span v-if="player.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-medium">
+                      {{ player.teamName }}
+                    </span>
+                  </div>
                 </td>
                 <td class="py-3.5 px-4">
                   <span v-if="getPeriodStatus(player)?.isPaid" class="badge badge-success flex items-center gap-1 w-max">
@@ -401,6 +415,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useSeasons, type Season } from '~/composables/useSeasons'
 import { usePayments, type PlayerSubStatus, type Expense } from '~/composables/usePayments'
+import { useTeams } from '~/composables/useTeams'
 
 definePageMeta({
   layout: 'app',
@@ -411,6 +426,7 @@ useHead({
 })
 
 const { seasons, fetchSeasons } = useSeasons()
+const { teams, fetchTeams } = useTeams()
 const {
   summary,
   playerSubStatuses,
@@ -430,6 +446,7 @@ const selectedSeasonId = ref<string>('')
 const activeTab = ref<'subs' | 'expenses'>('subs')
 const searchQuery = ref('')
 const selectedCategoryFilter = ref('All')
+const selectedTeamFilter = ref('All')
 
 const selectedSeason = computed(() => seasons.value.find(s => s.id === selectedSeasonId.value))
 
@@ -473,6 +490,7 @@ function updateSelectedMonthForSeason() {
 }
 
 onMounted(async () => {
+  fetchTeams()
   await fetchSeasons()
   if (seasons.value.length > 0) {
     const current = seasons.value.find(s => s.isCurrent) || seasons.value[0]
@@ -503,9 +521,19 @@ async function loadSubStatuses() {
 }
 
 const filteredPlayers = computed(() => {
-  if (!searchQuery.value.trim()) return playerSubStatuses.value
-  const q = searchQuery.value.toLowerCase()
-  return playerSubStatuses.value.filter(p => p.playerName.toLowerCase().includes(q))
+  let list = playerSubStatuses.value
+  if (selectedTeamFilter.value !== 'All') {
+    if (selectedTeamFilter.value === 'Unassigned') {
+      list = list.filter(p => !p.teamId)
+    } else {
+      list = list.filter(p => p.teamId === selectedTeamFilter.value)
+    }
+  }
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter(p => p.playerName.toLowerCase().includes(q))
+  }
+  return list
 })
 
 function getPeriodStatus(player: PlayerSubStatus) {

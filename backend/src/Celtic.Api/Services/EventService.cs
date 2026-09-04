@@ -20,6 +20,7 @@ public class EventService : IEventService
             .Include(e => e.Season)
             .Include(e => e.Captain1Player)
             .Include(e => e.Captain2Player)
+            .Include(e => e.Team)
             .Include(e => e.Responses)
                 .ThenInclude(r => r.Player)
             .OrderBy(e => e.DateTime)
@@ -34,6 +35,7 @@ public class EventService : IEventService
             .Include(e => e.Season)
             .Include(e => e.Captain1Player)
             .Include(e => e.Captain2Player)
+            .Include(e => e.Team)
             .Include(e => e.Responses)
                 .ThenInclude(r => r.Player)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -48,6 +50,7 @@ public class EventService : IEventService
         var e = new Event
         {
             SeasonId = request.SeasonId,
+            TeamId = request.TeamId,
             Type = request.Type,
             DateTime = request.DateTime,
             Location = request.Location,
@@ -57,20 +60,35 @@ public class EventService : IEventService
         _db.Events.Add(e);
         await _db.SaveChangesAsync();
 
+        if (e.TeamId.HasValue)
+        {
+            await _db.Entry(e).Reference(x => x.Team).LoadAsync();
+        }
+
         return MapToDto(e);
     }
 
     public async Task<EventDto> UpdateEventAsync(Guid id, UpdateEventRequest request)
     {
-        var e = await _db.Events.FindAsync(id);
+        var e = await _db.Events
+            .Include(x => x.Team)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
         if (e == null) throw new KeyNotFoundException("Event not found");
 
         e.DateTime = request.DateTime;
         e.Location = request.Location;
         e.Notes = request.Notes;
         e.IsCancelled = request.IsCancelled;
+        e.TeamId = request.TeamId;
 
         await _db.SaveChangesAsync();
+
+        if (e.TeamId.HasValue && (e.Team == null || e.Team.Id != e.TeamId))
+        {
+            await _db.Entry(e).Reference(x => x.Team).LoadAsync();
+        }
+
         return MapToDto(e);
     }
 
@@ -160,6 +178,8 @@ public class EventService : IEventService
         e.Captain1PlayerId,
         e.Captain1Player?.FullName,
         e.Captain2PlayerId,
-        e.Captain2Player?.FullName
+        e.Captain2Player?.FullName,
+        e.TeamId,
+        e.Team?.Name
     );
 }

@@ -3,6 +3,7 @@ using System;
 using Celtic.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Celtic.Api.Migrations
 {
     [DbContext(typeof(CelticDbContext))]
-    partial class CelticDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807195856_AddTeams")]
+    partial class AddTeams
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -138,9 +141,6 @@ namespace Celtic.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CardRewardsJson")
-                        .HasColumnType("text");
-
                     b.Property<string>("CoachWhatsAppNumber")
                         .IsRequired()
                         .HasColumnType("text");
@@ -178,12 +178,6 @@ namespace Celtic.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("Captain1PlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("Captain2PlayerId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -211,10 +205,6 @@ namespace Celtic.Api.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Captain1PlayerId");
-
-                    b.HasIndex("Captain2PlayerId");
 
                     b.HasIndex("MatchId")
                         .IsUnique();
@@ -311,17 +301,10 @@ namespace Celtic.Api.Migrations
                     b.Property<Guid?>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Format")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("GoalsAgainst")
                         .HasColumnType("integer");
 
                     b.Property<int>("GoalsFor")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HalfDurationMinutes")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsPublished")
@@ -384,60 +367,6 @@ namespace Celtic.Api.Migrations
                     b.ToTable("MatchAppearances");
                 });
 
-            modelBuilder.Entity("Celtic.Api.Models.MatchSquad", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("EventId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("FirstHalfGoalkeeperPlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Format")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("HalfDurationMinutes")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("MatchId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("PeriodDurationMinutes")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("SecondHalfGoalkeeperPlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("SquadDataJson")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("TotalPeriods")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventId");
-
-                    b.HasIndex("FirstHalfGoalkeeperPlayerId");
-
-                    b.HasIndex("MatchId");
-
-                    b.HasIndex("SecondHalfGoalkeeperPlayerId");
-
-                    b.ToTable("MatchSquads");
-                });
-
             modelBuilder.Entity("Celtic.Api.Models.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -492,21 +421,12 @@ namespace Celtic.Api.Migrations
                     b.Property<string>("ShirtSize")
                         .HasColumnType("text");
 
-                    b.Property<string>("ShortSize")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("SockSize")
-                        .HasColumnType("integer");
-
                     b.Property<string>("SubscriptionStatus")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid?>("TeamId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("TrainingCardsCount")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -801,16 +721,6 @@ namespace Celtic.Api.Migrations
 
             modelBuilder.Entity("Celtic.Api.Models.Event", b =>
                 {
-                    b.HasOne("Celtic.Api.Models.Player", "Captain1Player")
-                        .WithMany()
-                        .HasForeignKey("Captain1PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Celtic.Api.Models.Player", "Captain2Player")
-                        .WithMany()
-                        .HasForeignKey("Captain2PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Celtic.Api.Models.Match", "Match")
                         .WithOne("Event")
                         .HasForeignKey("Celtic.Api.Models.Event", "MatchId");
@@ -823,10 +733,6 @@ namespace Celtic.Api.Migrations
                         .WithMany("Events")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Captain1Player");
-
-                    b.Navigation("Captain2Player");
 
                     b.Navigation("Match");
 
@@ -911,37 +817,6 @@ namespace Celtic.Api.Migrations
                     b.Navigation("Match");
 
                     b.Navigation("Player");
-                });
-
-            modelBuilder.Entity("Celtic.Api.Models.MatchSquad", b =>
-                {
-                    b.HasOne("Celtic.Api.Models.Event", "Event")
-                        .WithMany()
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Celtic.Api.Models.Player", "FirstHalfGoalkeeperPlayer")
-                        .WithMany()
-                        .HasForeignKey("FirstHalfGoalkeeperPlayerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Celtic.Api.Models.Match", "Match")
-                        .WithMany()
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Celtic.Api.Models.Player", "SecondHalfGoalkeeperPlayer")
-                        .WithMany()
-                        .HasForeignKey("SecondHalfGoalkeeperPlayerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Event");
-
-                    b.Navigation("FirstHalfGoalkeeperPlayer");
-
-                    b.Navigation("Match");
-
-                    b.Navigation("SecondHalfGoalkeeperPlayer");
                 });
 
             modelBuilder.Entity("Celtic.Api.Models.Player", b =>

@@ -1,13 +1,22 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-bold text-text-primary">Squad Management</h1>
-        <p class="text-text-secondary mt-1">Manage team players, status, and emergency contacts</p>
+        <p class="text-text-secondary mt-1">Manage team roster, sub status, and team assignments</p>
       </div>
-      <button @click="openCreateModal" class="btn-primary">
-        + Add Player
-      </button>
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <select v-model="selectedTeamFilter" class="input text-sm py-2 bg-surface max-w-[160px]">
+          <option value="All">All Teams</option>
+          <option value="Unassigned">Unassigned</option>
+          <option v-for="team in teams" :key="team.id" :value="team.id">
+            {{ team.name }}
+          </option>
+        </select>
+        <button @click="openCreateModal" class="btn-primary whitespace-nowrap">
+          + Add Player
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
@@ -20,10 +29,13 @@
 
     <!-- Squad Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="player in players" :key="player.id" class="card p-5 relative group">
+      <div v-for="player in filteredPlayers" :key="player.id" class="card p-5 relative group">
 
         <!-- Top badges row -->
         <div class="absolute top-4 right-4 flex items-center gap-2">
+          <span v-if="player.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-xs font-semibold">
+            {{ player.teamName }}
+          </span>
           <!-- Subscription Status Badge (clickable to cycle) -->
           <button @click="cycleSubStatus(player)" :disabled="updatingSubStatus === player.id"
             :class="['badge text-xs font-semibold transition-all hover:opacity-80 cursor-pointer', subStatusClass(player.subscriptionStatus)]"
@@ -230,6 +242,16 @@
             </div>
           </div>
 
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Sub-Team Assignment</label>
+            <select v-model="form.teamId" class="input bg-surface">
+              <option value="">No Team (Unassigned)</option>
+              <option v-for="team in teams" :key="team.id" :value="team.id">
+                {{ team.name }}
+              </option>
+            </select>
+          </div>
+
           <div v-if="editingPlayer">
             <label class="block text-sm font-medium text-text-secondary mb-1">Subscription Status</label>
             <select v-model="form.subscriptionStatus" class="input">
@@ -290,9 +312,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/solid'
 import { usePlayers, type Player } from '~/composables/usePlayers'
+import { useTeams } from '~/composables/useTeams'
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
@@ -304,13 +327,21 @@ useHead({
 })
 
 const { players, loading, error, fetchPlayers, createPlayer, updatePlayer, updatePlayerCards } = usePlayers()
+const { teams, fetchTeams } = useTeams()
 const { getAuthHeaders } = useAuth()
 
+const selectedTeamFilter = ref<string>('All')
 const isModalOpen = ref(false)
 const editingPlayer = ref<Player | null>(null)
 const formSaving = ref(false)
 const formError = ref<string | null>(null)
 const updatingSubStatus = ref<string | null>(null)
+
+const filteredPlayers = computed(() => {
+  if (selectedTeamFilter.value === 'All') return players.value
+  if (selectedTeamFilter.value === 'Unassigned') return players.value.filter(p => !p.teamId)
+  return players.value.filter(p => p.teamId === selectedTeamFilter.value)
+})
 
 const SUB_STATUSES = ['Active', 'Payment Due', 'Inactive']
 
@@ -339,7 +370,6 @@ async function cycleSubStatus(player: Player) {
       headers: getAuthHeaders(),
       body: { subscriptionStatus: next }
     })
-    // Update local state immediately
     player.subscriptionStatus = next ?? ''
   } catch (e) {
     console.error('Failed to update subscription status', e)
@@ -348,7 +378,6 @@ async function cycleSubStatus(player: Player) {
   }
 }
 
-// Format date for date-input value
 function formatDateForInput(dateStr?: string | null): string {
   if (!dateStr) return ''
   const d = new Date(dateStr)
@@ -375,11 +404,13 @@ const form = ref({
   shortSize: '',
   sockSize: null as number | null,
   allergies: '',
-  allowPhotos: false
+  allowPhotos: false,
+  teamId: ''
 })
 
 onMounted(() => {
   fetchPlayers()
+  fetchTeams()
 })
 
 function openCreateModal() {
@@ -402,7 +433,8 @@ function openCreateModal() {
     shortSize: '',
     sockSize: null,
     allergies: '',
-    allowPhotos: false
+    allowPhotos: false,
+    teamId: ''
   }
   formError.value = null
   isModalOpen.value = true
@@ -428,7 +460,8 @@ function openEditModal(player: Player) {
     shortSize: player.shortSize || '',
     sockSize: player.sockSize !== null && player.sockSize !== undefined ? player.sockSize : null,
     allergies: player.allergies || '',
-    allowPhotos: player.allowPhotos ?? false
+    allowPhotos: player.allowPhotos ?? false,
+    teamId: player.teamId || ''
   }
   formError.value = null
   isModalOpen.value = true
@@ -444,7 +477,8 @@ async function submitForm() {
 
   const payload = {
     ...form.value,
-    dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null
+    dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null,
+    teamId: form.value.teamId ? form.value.teamId : null
   }
 
   const result = editingPlayer.value

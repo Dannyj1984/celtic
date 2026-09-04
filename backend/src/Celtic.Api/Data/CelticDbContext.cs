@@ -8,6 +8,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
 {
     public CelticDbContext(DbContextOptions<CelticDbContext> options) : base(options) { }
 
+    public DbSet<Team> Teams => Set<Team>();
     public DbSet<Player> Players => Set<Player>();
     public DbSet<PlayerParent> PlayerParents => Set<PlayerParent>();
     public DbSet<Season> Seasons => Set<Season>();
@@ -20,6 +21,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<ClubSettings> ClubSettings => Set<ClubSettings>();
     public DbSet<UserPushSubscription> UserPushSubscriptions => Set<UserPushSubscription>();
+    public DbSet<MatchSquad> MatchSquads => Set<MatchSquad>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -142,5 +144,49 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(a => a.CreatedBy)
             .WithMany()
             .HasForeignKey(a => a.CreatedByUserId);
+
+        // Team
+        builder.Entity<Player>()
+            .HasOne(p => p.Team)
+            .WithMany(t => t.Players)
+            .HasForeignKey(p => p.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Match>()
+            .HasOne(m => m.Team)
+            .WithMany(t => t.Matches)
+            .HasForeignKey(m => m.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Event>()
+            .HasOne(e => e.Team)
+            .WithMany(t => t.Events)
+            .HasForeignKey(e => e.TeamId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // MatchSquad
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.Match)
+            .WithMany()
+            .HasForeignKey(ms => ms.MatchId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.Event)
+            .WithMany()
+            .HasForeignKey(ms => ms.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.FirstHalfGoalkeeperPlayer)
+            .WithMany()
+            .HasForeignKey(ms => ms.FirstHalfGoalkeeperPlayerId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<MatchSquad>()
+            .HasOne(ms => ms.SecondHalfGoalkeeperPlayer)
+            .WithMany()
+            .HasForeignKey(ms => ms.SecondHalfGoalkeeperPlayerId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

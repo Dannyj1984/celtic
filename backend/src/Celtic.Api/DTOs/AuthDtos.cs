@@ -51,7 +51,9 @@ public record LinkedPlayerDto(
     string FirstName,
     string LastName,
     string Relationship,
-    string SubscriptionStatus
+    string SubscriptionStatus,
+    Guid? TeamId = null,
+    string? TeamName = null
 );
 
 public record LinkPlayerRequest(

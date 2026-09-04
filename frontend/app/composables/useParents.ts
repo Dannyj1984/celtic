@@ -13,6 +13,8 @@ export interface ParentAccount {
     lastName: string
     relationship: string
     subscriptionStatus: string
+    teamId?: string | null
+    teamName?: string | null
   }[]
 }
 

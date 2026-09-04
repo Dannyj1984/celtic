@@ -9,6 +9,7 @@ public record MatchDto(
     DateTime Date,
     string Opposition,
     string? Location,
+    int HalfDurationMinutes,
     int GoalsFor,
     int GoalsAgainst,
     string? MatchReport,
@@ -16,7 +17,10 @@ public record MatchDto(
     string Result,
     Guid? EventId,
     Guid? PlayerOfTheMatchId = null,
-    string? PlayerOfTheMatchName = null
+    string? PlayerOfTheMatchName = null,
+    Guid? TeamId = null,
+    string? TeamName = null,
+    string Format = "5v5"
 );
 
 public record CreateMatchRequest(
@@ -24,7 +28,10 @@ public record CreateMatchRequest(
     [Required] DateTime Date,
     [Required] string Opposition,
     string? Location,
-    string? Notes // For the associated event
+    string? Notes, // For the associated event
+    Guid? TeamId = null,
+    int HalfDurationMinutes = 20,
+    string Format = "5v5"
 );
 
 public record UpdateMatchRequest(
@@ -36,5 +43,8 @@ public record UpdateMatchRequest(
     int GoalsAgainst,
     string? MatchReport,
     bool IsPublished,
-    Guid? PlayerOfTheMatchId = null
+    Guid? PlayerOfTheMatchId = null,
+    Guid? TeamId = null,
+    int HalfDurationMinutes = 20,
+    string Format = "5v5"
 );

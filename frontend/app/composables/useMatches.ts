@@ -8,6 +8,8 @@ export interface Match {
   date: string
   opposition: string
   location?: string | null
+  halfDurationMinutes?: number
+  format?: string
   goalsFor: number
   goalsAgainst: number
   matchReport?: string | null
@@ -16,6 +18,8 @@ export interface Match {
   eventId?: string | null
   playerOfTheMatchId?: string | null
   playerOfTheMatchName?: string | null
+  teamId?: string | null
+  teamName?: string | null
 }
 
 export function useMatches() {

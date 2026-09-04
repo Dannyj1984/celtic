@@ -6,9 +6,14 @@ public class Match
     public Guid? SeasonId { get; set; }
     public Season? Season { get; set; }
 
+    public Guid? TeamId { get; set; }
+    public Team? Team { get; set; }
+
     public DateTime Date { get; set; }
     public string Opposition { get; set; } = string.Empty;
     public string? Location { get; set; }
+    public int HalfDurationMinutes { get; set; } = 20;
+    public string Format { get; set; } = "5v5";
     public int GoalsFor { get; set; }
     public int GoalsAgainst { get; set; }
     public string? MatchReport { get; set; }

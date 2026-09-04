@@ -69,9 +69,11 @@ public class ParentDashboardControllerTests
         dbContext.Events.Add(new Event { Id = Guid.NewGuid(), SeasonId = season.Id, Type = "Match", DateTime = nextMatch.Date, Location = nextMatch.Location, MatchId = nextMatch.Id, Match = nextMatch });
 
         // Add 20 training events in the past, Leo attended 18
+        // Use small hourly intervals to ensure all events fall within the current training period
+        // (the dashboard filters training from Sep 1st of the current season year)
         for (int i = 0; i < 20; i++)
         {
-            var evt = new Event { Id = Guid.NewGuid(), SeasonId = season.Id, Type = "Training", DateTime = DateTime.UtcNow.AddDays(-i - 1) };
+            var evt = new Event { Id = Guid.NewGuid(), SeasonId = season.Id, Type = "Training", DateTime = DateTime.UtcNow.AddHours(-(i + 1)) };
             dbContext.Events.Add(evt);
             
             if (i < 18)

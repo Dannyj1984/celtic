@@ -23,6 +23,9 @@ public class Player
     public bool AllowPhotos { get; set; } = false;
     public int TrainingCardsCount { get; set; } = 0;
 
+    public Guid? TeamId { get; set; }
+    public Team? Team { get; set; }
+
     // Navigation
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();
     public ICollection<EventResponse> EventResponses { get; set; } = new List<EventResponse>();

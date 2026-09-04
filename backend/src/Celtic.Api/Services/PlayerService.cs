@@ -19,6 +19,7 @@ public class PlayerService : IPlayerService
         var players = await _db.Players
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
+            .Include(p => p.Team)
             .Include(p => p.ParentLinks)
             .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
@@ -33,6 +34,7 @@ public class PlayerService : IPlayerService
     public async Task<PlayerDto> GetPlayerByIdAsync(Guid id)
     {
         var player = await _db.Players
+            .Include(p => p.Team)
             .Include(p => p.ParentLinks)
             .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
@@ -78,11 +80,17 @@ public class PlayerService : IPlayerService
             SockSize = request.SockSize,
             Allergies = request.Allergies,
             AllowPhotos = request.AllowPhotos,
-            TrainingCardsCount = request.TrainingCardsCount
+            TrainingCardsCount = request.TrainingCardsCount,
+            TeamId = request.TeamId
         };
 
         _db.Players.Add(player);
         await _db.SaveChangesAsync();
+
+        if (player.TeamId.HasValue)
+        {
+            await _db.Entry(player).Reference(p => p.Team).LoadAsync();
+        }
 
         return MapToDto(player, new List<Guid>(), new List<Guid>());
     }
@@ -90,6 +98,7 @@ public class PlayerService : IPlayerService
     public async Task<PlayerDto> UpdatePlayerAsync(Guid id, UpdatePlayerRequest request)
     {
         var player = await _db.Players
+            .Include(p => p.Team)
             .Include(p => p.ParentLinks)
             .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
@@ -117,8 +126,14 @@ public class PlayerService : IPlayerService
         player.Allergies = request.Allergies;
         player.AllowPhotos = request.AllowPhotos;
         player.TrainingCardsCount = Math.Max(0, request.TrainingCardsCount);
+        player.TeamId = request.TeamId;
 
         await _db.SaveChangesAsync();
+
+        if (player.TeamId.HasValue && (player.Team == null || player.Team.Id != player.TeamId))
+        {
+            await _db.Entry(player).Reference(p => p.Team).LoadAsync();
+        }
 
         var trainingIds = await GetRecentEventIds("Training", 10);
         var matchIds = await GetRecentEventIds("Match", 10);
@@ -129,6 +144,7 @@ public class PlayerService : IPlayerService
     public async Task<PlayerDto> UpdateSubscriptionStatusAsync(Guid id, string status)
     {
         var player = await _db.Players
+            .Include(p => p.Team)
             .Include(p => p.ParentLinks)
             .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
@@ -209,7 +225,9 @@ public class PlayerService : IPlayerService
             p.SockSize,
             p.Allergies,
             p.AllowPhotos,
-            p.TrainingCardsCount
+            p.TrainingCardsCount,
+            p.TeamId,
+            p.Team?.Name
         );
     }
 }

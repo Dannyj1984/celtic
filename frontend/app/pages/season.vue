@@ -26,89 +26,92 @@
 
     <div v-else class="space-y-4">
       <div v-for="event in filteredMatches" :key="event.id"
-        class="card p-4 hover:border-celtic-green/50 transition-all overflow-hidden relative">
+        class="card p-4 sm:p-5 hover:border-celtic-green/50 transition-all overflow-hidden relative group">
         
-        <!-- Past Match Indicator -->
-        <div v-if="activeTab === 'past'" :class="['absolute top-0 right-0 px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-bl-lg',
-          event.result === 'Win' ? 'bg-celtic-green text-white' : 
-          event.result === 'Loss' ? 'bg-danger text-white' : 'bg-text-muted text-white']">
-          {{ event.result }}
+        <!-- Card Header: Date, Time, Type & Match Result / Status -->
+        <div class="flex items-center justify-between gap-2 pb-3 border-b border-border/50 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Date Pill -->
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-hover border border-border/80 text-xs font-bold text-text-primary">
+              <CalendarDaysIcon class="w-3.5 h-3.5 text-celtic-gold" />
+              <span>{{ new Date(event.dateTime).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }}</span>
+            </div>
+
+            <!-- Time Pill -->
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-surface border border-border text-text-secondary">
+              {{ new Date(event.dateTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}
+            </span>
+
+            <UBadge color="primary" variant="subtle" size="xs">Match</UBadge>
+          </div>
+
+          <!-- Result / Status Badge -->
+          <div class="flex items-center gap-2">
+            <span v-if="activeTab === 'past' && event.result" :class="['px-2.5 py-1 text-xs font-black uppercase tracking-wider rounded-lg border shadow-sm',
+              event.result === 'Win' ? 'bg-celtic-green/10 text-celtic-green border-celtic-green/30' : 
+              event.result === 'Loss' ? 'bg-danger/10 text-danger border-danger/30' : 'bg-surface-hover text-text-muted border-border']">
+              {{ event.result }} {{ event.score ? `• ${event.score}` : '' }}
+            </span>
+
+            <span v-if="event.played || event.status === 'Attending'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
+              <CheckCircleIcon class="w-3.5 h-3.5 text-celtic-green" />
+              {{ activeTab === 'past' ? 'Played' : 'Playing' }}
+            </span>
+          </div>
         </div>
 
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-6">
-            <div class="text-center min-w-[80px]">
-              <div class="text-xs text-text-muted uppercase font-bold">{{ new
-                Date(event.dateTime).toLocaleDateString('en-GB', { weekday: 'short' }) }}</div>
-              <div class="text-xl font-bold text-text-primary">{{ new Date(event.dateTime).toLocaleDateString('en-GB', {
-                day: 'numeric', month: 'short'
-              }) }}</div>
-            </div>
-
-            <div class="h-10 w-[1px] bg-border"></div>
-
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <UBadge color="primary" variant="subtle" size="xs">Match</UBadge>
-                <span class="text-xs text-text-muted font-medium">{{ new
-                  Date(event.dateTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}</span>
+        <!-- Fixture Matchup Box -->
+        <div class="py-3 sm:py-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="text-xs font-bold text-text-muted uppercase tracking-wider">
+                Stalybridge Celtic U7
               </div>
-              <div class="text-lg font-bold text-text-primary uppercase tracking-tight">
-                Stalybridge Celtic U7 
-                <span class="text-text-muted mx-2">{{ activeTab === 'past' ? event.score : 'vs' }}</span> 
-                {{ event.opposition || 'TBD' }}
-              </div>
-              <div class="text-sm text-text-secondary flex items-center gap-1">
-                <UIcon name="i-heroicons-map-pin-20-solid" class="w-4 h-4" />
-                {{ event.location || 'TBC' }}
+              <div class="text-lg sm:text-xl font-black text-text-primary flex items-center gap-2 flex-wrap">
+                <span class="text-celtic-gold font-bold text-xs sm:text-sm bg-celtic-gold/10 px-2 py-0.5 rounded border border-celtic-gold/20">
+                  {{ activeTab === 'past' && event.score ? event.score : 'VS' }}
+                </span>
+                <span class="uppercase tracking-tight">{{ event.opposition || 'TBD' }}</span>
               </div>
             </div>
-          </div>
 
-          <div v-if="activeTab === 'upcoming'" class="flex items-center gap-2">
-            <span v-if="event.played || event.status === 'Attending'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
-              <CheckCircleIcon class="w-4 h-4 text-celtic-green" />
-              Playing
-            </span>
-            <UButton v-if="event.location" color="gray" variant="ghost" size="xs" class="hidden sm:inline-flex" label="Maps" @click="openInMaps(event.location)">
-              <template #leading>
-                <MapPinIcon class="w-4 h-4" />
-              </template>
-            </UButton>
-            <UButton v-if="event.location" color="gray" variant="ghost" size="xs" class="sm:hidden" square @click="openInMaps(event.location)">
-              <MapPinIcon class="w-4 h-4" />
-            </UButton>
-
-            <UDropdown :items="calendarMenuItems(event)" :popper="{ placement: 'bottom-end' }">
-              <UButton color="gray" variant="ghost" size="xs" class="hidden sm:inline-flex" label="Calendar">
-                <template #leading>
-                  <CalendarDaysIcon class="w-4 h-4" />
-                </template>
-              </UButton>
-              <UButton color="gray" variant="ghost" size="xs" class="sm:hidden" square>
-                <CalendarDaysIcon class="w-4 h-4" />
-              </UButton>
-              <template #item="{ item }">
-                <component :is="item.icon" class="w-4 h-4 mr-2" v-if="item.icon && typeof item.icon !== 'string'" />
-                <UIcon :name="item.icon" class="w-4 h-4 mr-2" v-else-if="item.icon" />
-                <span>{{ item.label }}</span>
-              </template>
-            </UDropdown>
+            <!-- Location pill -->
+            <div class="flex items-center gap-1.5 text-xs text-text-secondary bg-surface/80 px-3 py-1.5 rounded-lg border border-border/50 w-fit">
+              <MapPinIcon class="w-4 h-4 text-celtic-gold shrink-0" />
+              <span class="truncate max-w-[220px] sm:max-w-xs">{{ event.location || 'TBC' }}</span>
+            </div>
           </div>
+        </div>
 
-          <div v-else-if="activeTab === 'past' && (event.played || event.status === 'Attending')" class="flex items-center gap-1 mt-4">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-celtic-green/10 border border-celtic-green/30 text-celtic-green">
-              <CheckCircleIcon class="w-4 h-4 text-celtic-green" />
-              Played
-            </span>
-          </div>
+        <!-- Card Footer: Mobile-Friendly Actions -->
+        <div v-if="activeTab === 'upcoming'" class="pt-3 border-t border-border/50 flex items-center justify-between sm:justify-end gap-2">
+          <button 
+            v-if="event.location"
+            @click="openInMaps(event.location)"
+            class="flex-1 sm:flex-none px-3.5 py-2 bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-primary rounded-xl text-xs font-bold border border-border flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+          >
+            <MapPinIcon class="w-4 h-4 text-celtic-gold" />
+            <span>Open in Maps</span>
+          </button>
+
+          <UDropdown :items="calendarMenuItems(event)" :popper="{ placement: 'bottom-end' }" class="flex-1 sm:flex-none">
+            <button class="w-full px-3.5 py-2 bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-primary rounded-xl text-xs font-bold border border-border flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+              <CalendarDaysIcon class="w-4 h-4 text-celtic-green" />
+              <span>Add to Calendar</span>
+            </button>
+            <template #item="{ item }">
+              <component :is="item.icon" class="w-4 h-4 mr-2" v-if="item.icon && typeof item.icon !== 'string'" />
+              <UIcon :name="item.icon" class="w-4 h-4 mr-2" v-else-if="item.icon" />
+              <span>{{ item.label }}</span>
+            </template>
+          </UDropdown>
         </div>
 
         <!-- Match Details (Report & PotM) -->
         <div v-if="activeTab === 'past' && (event.matchReport || event.playerOfTheMatchName)" 
-          class="mt-4 pt-4 border-t border-border/50">
-          <div v-if="event.playerOfTheMatchName" class="flex items-center gap-2 mb-3">
-            <div class="p-1 bg-celtic-gold/10 rounded-md">
+          class="mt-3 pt-3 border-t border-border/50 space-y-3">
+          <div v-if="event.playerOfTheMatchName" class="flex items-center gap-2">
+            <div class="p-1 bg-celtic-gold/10 rounded-md border border-celtic-gold/20">
               <UIcon name="i-heroicons-star-20-solid" class="w-4 h-4 text-celtic-gold" />
             </div>
             <span class="text-xs font-bold text-text-primary uppercase tracking-tight">
@@ -116,9 +119,9 @@
             </span>
           </div>
           
-          <div v-if="event.matchReport" class="bg-surface-hover/50 p-4 rounded-lg border border-border/30">
-            <h4 class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Match Report</h4>
-            <p class="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{{ event.matchReport }}</p>
+          <div v-if="event.matchReport" class="bg-surface-hover/50 p-3.5 rounded-xl border border-border/40">
+            <h4 class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Match Report</h4>
+            <p class="text-xs sm:text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">{{ event.matchReport }}</p>
           </div>
         </div>
       </div>

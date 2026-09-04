@@ -18,6 +18,7 @@ public class MatchService : IMatchService
     {
         var matches = await _db.Matches
             .Include(m => m.Season)
+            .Include(m => m.Team)
             .Include(m => m.PlayerOfTheMatch)
             .OrderByDescending(m => m.Date)
             .ToListAsync();
@@ -29,6 +30,7 @@ public class MatchService : IMatchService
     {
         var m = await _db.Matches
             .Include(m => m.Season)
+            .Include(m => m.Team)
             .Include(m => m.PlayerOfTheMatch)
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -43,9 +45,12 @@ public class MatchService : IMatchService
         var match = new Match
         {
             SeasonId = request.SeasonId,
+            TeamId = request.TeamId,
             Date = request.Date,
             Opposition = request.Opposition,
             Location = request.Location,
+            HalfDurationMinutes = request.HalfDurationMinutes > 0 ? request.HalfDurationMinutes : 20,
+            Format = !string.IsNullOrWhiteSpace(request.Format) ? request.Format : "5v5",
             IsPublished = false
         };
 
@@ -55,6 +60,7 @@ public class MatchService : IMatchService
         var ev = new Event
         {
             SeasonId = request.SeasonId,
+            TeamId = request.TeamId,
             Type = "Match",
             DateTime = request.Date,
             Location = request.Location ?? "TBC",
@@ -66,9 +72,13 @@ public class MatchService : IMatchService
         
         await _db.SaveChangesAsync();
 
-        // Link back (though EF handles this via navigation)
         match.EventId = ev.Id;
         await _db.SaveChangesAsync();
+
+        if (match.TeamId.HasValue)
+        {
+            await _db.Entry(match).Reference(x => x.Team).LoadAsync();
+        }
 
         return MapToDto(match);
     }
@@ -77,15 +87,19 @@ public class MatchService : IMatchService
     {
         var m = await _db.Matches
             .Include(m => m.Event)
+            .Include(m => m.Team)
             .Include(m => m.PlayerOfTheMatch)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (m == null) throw new KeyNotFoundException("Match not found");
 
         m.SeasonId = request.SeasonId;
+        m.TeamId = request.TeamId;
         m.Date = request.Date;
         m.Opposition = request.Opposition;
         m.Location = request.Location;
+        m.HalfDurationMinutes = request.HalfDurationMinutes > 0 ? request.HalfDurationMinutes : 20;
+        m.Format = !string.IsNullOrWhiteSpace(request.Format) ? request.Format : "5v5";
         m.GoalsFor = request.GoalsFor;
         m.GoalsAgainst = request.GoalsAgainst;
         m.MatchReport = request.MatchReport;
@@ -96,13 +110,18 @@ public class MatchService : IMatchService
         if (m.Event != null)
         {
             m.Event.SeasonId = request.SeasonId;
+            m.Event.TeamId = request.TeamId;
             m.Event.DateTime = request.Date;
             m.Event.Location = request.Location ?? "TBC";
         }
 
         await _db.SaveChangesAsync();
 
-        // Reload to get PlayerOfTheMatch name if it was just set
+        if (m.TeamId.HasValue && (m.Team == null || m.Team.Id != m.TeamId))
+        {
+            await _db.Entry(m).Reference(x => x.Team).LoadAsync();
+        }
+
         if (m.PlayerOfTheMatchId.HasValue && (m.PlayerOfTheMatch == null || m.PlayerOfTheMatch.Id != m.PlayerOfTheMatchId))
         {
              await _db.Entry(m).Reference(x => x.PlayerOfTheMatch).LoadAsync();
@@ -135,6 +154,7 @@ public class MatchService : IMatchService
         m.Date,
         m.Opposition,
         m.Location,
+        m.HalfDurationMinutes > 0 ? m.HalfDurationMinutes : 20,
         m.GoalsFor,
         m.GoalsAgainst,
         m.MatchReport,
@@ -142,6 +162,9 @@ public class MatchService : IMatchService
         m.Result,
         m.EventId,
         m.PlayerOfTheMatchId,
-        m.PlayerOfTheMatch?.FullName
+        m.PlayerOfTheMatch?.FullName,
+        m.TeamId,
+        m.Team?.Name,
+        string.IsNullOrEmpty(m.Format) ? "5v5" : m.Format
     );
 }
