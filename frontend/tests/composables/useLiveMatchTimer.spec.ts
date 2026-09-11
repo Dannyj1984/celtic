@@ -22,58 +22,14 @@ describe('useLiveMatchTimer', () => {
         { id: 'p6', name: 'Player 6' },
       ],
       periods: [
-        {
-          periodNumber: 1,
-          half: 1,
-          startMinute: 0,
-          endMinute: 6, // 6m
-          goalkeeper: { id: 'p1', name: 'Player 1' },
-          outfieldPlayers: [
-            { id: 'p2', name: 'Player 2' },
-            { id: 'p3', name: 'Player 3' },
-            { id: 'p4', name: 'Player 4' },
-            { id: 'p5', name: 'Player 5' },
-          ],
-          benchPlayers: [{ id: 'p6', name: 'Player 6' }],
-          substitutions: [],
-        },
-        {
-          periodNumber: 2,
-          half: 1,
-          startMinute: 6,
-          endMinute: 12, // 6m
-          goalkeeper: { id: 'p1', name: 'Player 1' },
-          outfieldPlayers: [
-            { id: 'p6', name: 'Player 6' },
-            { id: 'p3', name: 'Player 3' },
-            { id: 'p4', name: 'Player 4' },
-            { id: 'p5', name: 'Player 5' },
-          ],
-          benchPlayers: [{ id: 'p2', name: 'Player 2' }],
-          substitutions: [
-            { playerInId: 'p6', playerInName: 'Player 6', playerOutId: 'p2', playerOutName: 'Player 2' },
-          ],
-        },
-        {
-          periodNumber: 3,
-          half: 1,
-          startMinute: 12,
-          endMinute: 18, // 6m
-          goalkeeper: { id: 'p1', name: 'Player 1' },
-          outfieldPlayers: [],
-          benchPlayers: [],
-          substitutions: [],
-        },
-        {
-          periodNumber: 4,
-          half: 1,
-          startMinute: 18,
-          endMinute: 25, // 7m (final slot)
-          goalkeeper: { id: 'p1', name: 'Player 1' },
-          outfieldPlayers: [],
-          benchPlayers: [],
-          substitutions: [],
-        },
+        { periodNumber: 1, half: 1, startMinute: 0, endMinute: 6, goalkeeper: { id: 'p1', name: 'Player 1' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 2, half: 1, startMinute: 6, endMinute: 12, goalkeeper: { id: 'p1', name: 'Player 1' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 3, half: 1, startMinute: 12, endMinute: 18, goalkeeper: { id: 'p1', name: 'Player 1' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 4, half: 1, startMinute: 18, endMinute: 25, goalkeeper: { id: 'p1', name: 'Player 1' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 5, half: 2, startMinute: 25, endMinute: 31, goalkeeper: { id: 'p2', name: 'Player 2' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 6, half: 2, startMinute: 31, endMinute: 37, goalkeeper: { id: 'p2', name: 'Player 2' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 7, half: 2, startMinute: 37, endMinute: 43, goalkeeper: { id: 'p2', name: 'Player 2' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
+        { periodNumber: 8, half: 2, startMinute: 43, endMinute: 50, goalkeeper: { id: 'p2', name: 'Player 2' }, outfieldPlayers: [], benchPlayers: [], substitutions: [] },
       ],
       playerMinutes: [],
       updatedAt: '2026-09-04T10:00:00Z',
@@ -94,13 +50,16 @@ describe('useLiveMatchTimer', () => {
     expect(timer.formattedTotalElapsed.value).toBe('00:00')
     expect(timer.isRunning.value).toBe(false)
     expect(timer.showSubAlert.value).toBe(false)
+    expect(timer.intervalProgressPercent.value).toBe(0)
+    expect(timer.isHalfTime.value).toBe(false)
+    expect(timer.isFullTime.value).toBe(false)
   })
 
   it('runs timer on startTimer and increments totalElapsed while decrementing interval', () => {
     const timer = useLiveMatchTimer(squadRef)
     timer.initTimerForCurrentPeriod()
 
-    timer.startTimer()
+    timer.toggleTimer()
     expect(timer.isRunning.value).toBe(true)
 
     // Advance 5 seconds
@@ -111,7 +70,7 @@ describe('useLiveMatchTimer', () => {
     expect(timer.formattedIntervalTimer.value).toBe('05:55')
     expect(timer.formattedTotalElapsed.value).toBe('00:05')
 
-    timer.pauseTimer()
+    timer.toggleTimer()
     expect(timer.isRunning.value).toBe(false)
   })
 
@@ -157,6 +116,27 @@ describe('useLiveMatchTimer', () => {
     expect(timer.isRunning.value).toBe(true) // auto starts
   })
 
+  it('navigates periods manually with nextPeriod, prevPeriod, and goToPeriod', () => {
+    const timer = useLiveMatchTimer(squadRef)
+    timer.initTimerForCurrentPeriod()
+
+    timer.nextPeriod(false)
+    expect(timer.currentPeriodIndex.value).toBe(1)
+    expect(timer.isRunning.value).toBe(false)
+
+    timer.prevPeriod()
+    expect(timer.currentPeriodIndex.value).toBe(0)
+
+    // cannot go below 0
+    timer.prevPeriod()
+    expect(timer.currentPeriodIndex.value).toBe(0)
+
+    timer.goToPeriod(3) // Period 4 (last period of 1st half for 8 periods total)
+    expect(timer.currentPeriodIndex.value).toBe(3)
+    timer.intervalSecondsRemaining.value = 0
+    expect(timer.isHalfTime.value).toBe(true)
+  })
+
   it('handles 7-minute duration on the final slot of the half (Period 4)', () => {
     const timer = useLiveMatchTimer(squadRef)
     timer.goToPeriod(3) // Period 4 (18' - 25' = 7 mins)
@@ -179,5 +159,10 @@ describe('useLiveMatchTimer', () => {
     expect(timer.isRunning.value).toBe(false)
     expect(timer.intervalSecondsRemaining.value).toBe(360)
     expect(timer.showSubAlert.value).toBe(false)
+  })
+
+  it('triggers audio context whistle sound without throwing', () => {
+    const timer = useLiveMatchTimer(squadRef)
+    expect(() => timer.playWhistleSound()).not.toThrow()
   })
 })

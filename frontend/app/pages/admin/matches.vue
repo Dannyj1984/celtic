@@ -141,6 +141,7 @@
             <div class="col-span-2 sm:col-span-1">
               <label class="block text-sm font-medium text-text-secondary mb-1">Half Duration</label>
               <select v-model.number="form.halfDurationMinutes" class="input bg-surface">
+                <option :value="10">1 × 10 mins (10m total)</option>
                 <option :value="15">2 × 15 mins (30m total)</option>
                 <option :value="18">2 × 18 mins (36m total)</option>
                 <option :value="20">2 × 20 mins (40m total)</option>
@@ -333,13 +334,24 @@ function openCreateModal() {
   isModalOpen.value = true
 }
 
+// Formats a Date object to a local "YYYY-MM-DDTHH:mm" string for datetime-local inputs
+function toLocalDateTimeString(dateStr: string): string {
+  const d = new Date(dateStr)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 function openEditModal(match: Match) {
   isEditing.value = true
   editingMatch.value = match
   form.value = {
     matchType: match.seasonId ? 'season' : 'friendly',
     seasonId: match.seasonId || '',
-    date: new Date(match.date).toISOString().slice(0, 16),
+    date: toLocalDateTimeString(match.date),
     opposition: match.opposition,
     location: match.location || '',
     format: match.format || '5v5',

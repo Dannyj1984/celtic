@@ -19,6 +19,7 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SubPayment> SubPayments => Set<SubPayment>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<PlayerTeam> PlayerTeams => Set<PlayerTeam>();
     public DbSet<ClubSettings> ClubSettings => Set<ClubSettings>();
     public DbSet<UserPushSubscription> UserPushSubscriptions => Set<UserPushSubscription>();
     public DbSet<MatchSquad> MatchSquads => Set<MatchSquad>();
@@ -144,6 +145,22 @@ public class CelticDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(a => a.CreatedBy)
             .WithMany()
             .HasForeignKey(a => a.CreatedByUserId);
+
+        // PlayerTeam — composite key
+        builder.Entity<PlayerTeam>()
+            .HasKey(pt => new { pt.PlayerId, pt.TeamId });
+
+        builder.Entity<PlayerTeam>()
+            .HasOne(pt => pt.Player)
+            .WithMany(p => p.PlayerTeams)
+            .HasForeignKey(pt => pt.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PlayerTeam>()
+            .HasOne(pt => pt.Team)
+            .WithMany(t => t.PlayerTeams)
+            .HasForeignKey(pt => pt.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Team
         builder.Entity<Player>()

@@ -45,6 +45,8 @@ public class DashboardMatchDto
     public DateTime Date { get; set; }
     public string Opposition { get; set; } = string.Empty;
     public string? Location { get; set; }
+    public Guid? TeamId { get; set; }
+    public string? TeamName { get; set; }
 }
 
 public class DashboardTrainingDto
@@ -84,6 +86,8 @@ public class UpcomingEventDto
     public string? Result { get; set; }
     public string? MatchReport { get; set; }
     public string? PlayerOfTheMatchName { get; set; }
+    public Guid? TeamId { get; set; }
+    public string? TeamName { get; set; }
 }
 
 public class BulkRegisterRequest
@@ -129,6 +133,8 @@ public class ProfileMatchDto
     public string Result { get; set; } = string.Empty;
     public string Score { get; set; } = string.Empty;
     public bool WasPlayerOfTheMatch { get; set; }
+    public Guid? TeamId { get; set; }
+    public string? TeamName { get; set; }
 }
 
 public class UpdatePreferredFootDto

@@ -147,8 +147,11 @@
                   </div>
                   
                   <div>
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
                       <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">{{ new Date(match.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+                      <span v-if="match.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-bold rounded">
+                        {{ match.teamName }}
+                      </span>
                       <UBadge v-if="match.wasPlayerOfTheMatch" color="yellow" variant="solid" size="xs" class="font-black uppercase tracking-tighter">POTM</UBadge>
                     </div>
                     <div class="text-lg font-black text-text-primary uppercase tracking-tight">

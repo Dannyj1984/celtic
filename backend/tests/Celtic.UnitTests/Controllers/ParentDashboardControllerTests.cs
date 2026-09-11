@@ -318,4 +318,112 @@ public class ParentDashboardControllerTests
         Assert.NotNull(updatedPlayer);
         Assert.Equal(expectedDob, updatedPlayer.DateOfBirth);
     }
+
+    [Fact]
+    public async Task GetUpcomingEvents_ReturnsTeamInfo_AndFiltersByPlayerMultipleTeams()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        var userId = Guid.NewGuid().ToString();
+        var player = new Player { Id = Guid.NewGuid(), FirstName = "Leo", LastName = "Messi" };
+
+        var team1 = new Team { Id = Guid.NewGuid(), Name = "Blues" };
+        var team2 = new Team { Id = Guid.NewGuid(), Name = "Whites" };
+        var team3 = new Team { Id = Guid.NewGuid(), Name = "Reds" };
+
+        dbContext.Teams.AddRange(team1, team2, team3);
+        dbContext.Users.Add(new ApplicationUser { Id = userId });
+        dbContext.Players.Add(player);
+        dbContext.PlayerParents.Add(new PlayerParent { UserId = userId, PlayerId = player.Id });
+
+        // Player is in Blues and Whites, but not Reds
+        dbContext.PlayerTeams.Add(new PlayerTeam { PlayerId = player.Id, TeamId = team1.Id });
+        dbContext.PlayerTeams.Add(new PlayerTeam { PlayerId = player.Id, TeamId = team2.Id });
+
+        var matchBlues = new Match { Id = Guid.NewGuid(), Date = DateTime.UtcNow.AddDays(1), Opposition = "Tigers", TeamId = team1.Id, Team = team1 };
+        var matchWhites = new Match { Id = Guid.NewGuid(), Date = DateTime.UtcNow.AddDays(2), Opposition = "Lions", TeamId = team2.Id, Team = team2 };
+        var matchReds = new Match { Id = Guid.NewGuid(), Date = DateTime.UtcNow.AddDays(3), Opposition = "Bears", TeamId = team3.Id, Team = team3 };
+
+        dbContext.Matches.AddRange(matchBlues, matchWhites, matchReds);
+
+        dbContext.Events.Add(new Event { Id = Guid.NewGuid(), Type = "Match", DateTime = matchBlues.Date, TeamId = team1.Id, Team = team1, Match = matchBlues, MatchId = matchBlues.Id });
+        dbContext.Events.Add(new Event { Id = Guid.NewGuid(), Type = "Match", DateTime = matchWhites.Date, TeamId = team2.Id, Team = team2, Match = matchWhites, MatchId = matchWhites.Id });
+        dbContext.Events.Add(new Event { Id = Guid.NewGuid(), Type = "Match", DateTime = matchReds.Date, TeamId = team3.Id, Team = team3, Match = matchReds, MatchId = matchReds.Id });
+
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, userId);
+
+        // Act
+        var result = await controller.GetUpcomingEvents("Match");
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var events = Assert.IsType<List<UpcomingEventDto>>(okResult.Value);
+
+        Assert.Equal(2, events.Count);
+        Assert.Contains(events, e => e.TeamName == "Blues" && e.Opposition == "Tigers");
+        Assert.Contains(events, e => e.TeamName == "Whites" && e.Opposition == "Lions");
+        Assert.DoesNotContain(events, e => e.TeamName == "Reds");
+    }
+
+    [Fact]
+    public async Task GetPastEvents_ReturnsTeamInfo()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        var userId = Guid.NewGuid().ToString();
+        var player = new Player { Id = Guid.NewGuid(), FirstName = "Leo", LastName = "Messi" };
+        var team = new Team { Id = Guid.NewGuid(), Name = "Blues" };
+
+        dbContext.Teams.Add(team);
+        dbContext.Users.Add(new ApplicationUser { Id = userId });
+        dbContext.Players.Add(player);
+        dbContext.PlayerParents.Add(new PlayerParent { UserId = userId, PlayerId = player.Id });
+        dbContext.PlayerTeams.Add(new PlayerTeam { PlayerId = player.Id, TeamId = team.Id });
+
+        var pastMatch = new Match 
+        { 
+            Id = Guid.NewGuid(), 
+            Date = DateTime.UtcNow.AddDays(-2), 
+            Opposition = "Sharks", 
+            TeamId = team.Id, 
+            Team = team,
+            GoalsFor = 3,
+            GoalsAgainst = 1
+        };
+        dbContext.Matches.Add(pastMatch);
+
+        dbContext.Events.Add(new Event 
+        { 
+            Id = Guid.NewGuid(), 
+            Type = "Match", 
+            DateTime = pastMatch.Date, 
+            TeamId = team.Id, 
+            Team = team, 
+            Match = pastMatch, 
+            MatchId = pastMatch.Id 
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var controller = CreateController(dbContext, userId);
+
+        // Act
+        var result = await controller.GetPastEvents("Match");
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var events = Assert.IsType<List<UpcomingEventDto>>(okResult.Value);
+
+        Assert.Single(events);
+        var ev = events[0];
+        Assert.Equal("Blues", ev.TeamName);
+        Assert.Equal(team.Id, ev.TeamId);
+        Assert.Equal("Sharks", ev.Opposition);
+        Assert.Equal("3 - 1", ev.Score);
+        Assert.Equal("Win", ev.Result);
+    }
 }

@@ -27,6 +27,7 @@ public class Player
     public Team? Team { get; set; }
 
     // Navigation
+    public ICollection<PlayerTeam> PlayerTeams { get; set; } = new List<PlayerTeam>();
     public ICollection<PlayerParent> ParentLinks { get; set; } = new List<PlayerParent>();
     public ICollection<EventResponse> EventResponses { get; set; } = new List<EventResponse>();
     public ICollection<MatchAppearance> MatchAppearances { get; set; } = new List<MatchAppearance>();

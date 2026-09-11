@@ -33,7 +33,18 @@
 
         <!-- Top badges row -->
         <div class="absolute top-4 right-4 flex items-center gap-2">
-          <span v-if="player.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-xs font-semibold">
+          <div v-if="player.teams && player.teams.length > 0" class="flex flex-wrap gap-1 items-center justify-end">
+            <span v-for="team in player.teams" :key="team.id"
+              class="badge text-xs font-semibold"
+              :style="{
+                backgroundColor: (team.colorHex || '#F59E0B') + '1A',
+                color: team.colorHex || '#F59E0B',
+                borderColor: (team.colorHex || '#F59E0B') + '50'
+              }">
+              {{ team.name }}
+            </span>
+          </div>
+          <span v-else-if="player.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-xs font-semibold">
             {{ player.teamName }}
           </span>
           <!-- Subscription Status Badge (clickable to cycle) -->
@@ -113,16 +124,27 @@
             <div class="flex items-center gap-2">
               <span class="text-base">🎴</span>
               <div>
-                <span class="text-[10px] text-celtic-gold uppercase font-bold tracking-wider block">Training Cards</span>
-                <span class="text-sm font-bold text-text-primary">{{ player.trainingCardsCount || 0 }} Cards</span>
+                <span class="text-[10px] text-celtic-gold uppercase font-bold tracking-wider block">Training Charms</span>
+                <span class="text-sm font-bold text-text-primary">{{ player.trainingCardsCount || 0 }} Charms</span>
               </div>
             </div>
             <div class="flex items-center gap-1">
-              <button @click="changeCards(player, -1)" class="w-7 h-7 rounded bg-surface hover:bg-surface-hover border border-border text-text-secondary font-bold text-xs flex items-center justify-center transition-colors">
+              <button
+                @click="changeCards(player, -1)"
+                :disabled="updatingCardsPlayerId === player.id"
+                class="w-7 h-7 rounded bg-surface hover:bg-surface-hover border border-border text-text-secondary font-bold text-xs flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
+                title="Remove 1 card"
+              >
                 -
               </button>
-              <button @click="changeCards(player, 1)" class="px-2.5 py-1 rounded bg-celtic-gold/10 hover:bg-celtic-gold/20 text-celtic-gold border border-celtic-gold/30 font-bold text-xs flex items-center gap-1 transition-colors">
-                <span>+1</span>
+              <button
+                @click="changeCards(player, 1)"
+                :disabled="updatingCardsPlayerId === player.id"
+                class="px-2.5 py-1 rounded bg-celtic-gold/10 hover:bg-celtic-gold/20 text-celtic-gold border border-celtic-gold/30 font-bold text-xs flex items-center gap-1 transition-colors disabled:opacity-50 cursor-pointer"
+                title="Award 1 card"
+              >
+                <span v-if="updatingCardsPlayerId === player.id" class="w-3 h-3 border border-celtic-gold border-t-transparent rounded-full animate-spin"></span>
+                <span v-else>+1</span>
                 <span>🎴</span>
               </button>
             </div>
@@ -243,13 +265,32 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1">Sub-Team Assignment</label>
-            <select v-model="form.teamId" class="input bg-surface">
-              <option value="">No Team (Unassigned)</option>
-              <option v-for="team in teams" :key="team.id" :value="team.id">
+            <label class="block text-sm font-medium text-text-secondary mb-1">Sub-Team Assignments</label>
+            <p class="text-xs text-text-muted mb-2">Select all teams this player plays for (e.g. Stripes, Hoops)</p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="team in teams"
+                :key="team.id"
+                type="button"
+                @click="toggleTeam(team.id)"
+                :class="[
+                  'px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer',
+                  form.teamIds.includes(team.id)
+                    ? 'ring-2 ring-celtic-green shadow-sm'
+                    : 'bg-surface hover:bg-surface-hover text-text-muted border-border'
+                ]"
+                :style="form.teamIds.includes(team.id) ? {
+                  backgroundColor: (team.colorHex || '#006837') + '25',
+                  color: team.colorHex || '#006837',
+                  borderColor: team.colorHex || '#006837'
+                } : {}"
+              >
+                <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: team.colorHex || '#006837' }"></span>
                 {{ team.name }}
-              </option>
-            </select>
+                <span v-if="form.teamIds.includes(team.id)" class="text-xs font-bold ml-1">✓</span>
+              </button>
+              <span v-if="teams.length === 0" class="text-xs text-text-muted italic">No teams configured</span>
+            </div>
           </div>
 
           <div v-if="editingPlayer">
@@ -276,6 +317,11 @@
             <label class="block text-sm font-medium text-text-secondary mb-1">Coach Notes (Parents only)</label>
             <textarea v-model="form.coachNotes" class="input min-h-[80px]"
               placeholder="Feedback for parents..."></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Training Charms Collected 🎴</label>
+            <input v-model.number="form.trainingCardsCount" type="number" min="0" class="input" placeholder="0" />
           </div>
 
           <div v-if="editingPlayer" class="p-3 rounded-lg bg-surface-hover border border-border/50 flex items-center justify-between">
@@ -339,11 +385,26 @@ const updatingSubStatus = ref<string | null>(null)
 
 const filteredPlayers = computed(() => {
   if (selectedTeamFilter.value === 'All') return players.value
-  if (selectedTeamFilter.value === 'Unassigned') return players.value.filter(p => !p.teamId)
-  return players.value.filter(p => p.teamId === selectedTeamFilter.value)
+  if (selectedTeamFilter.value === 'Unassigned') {
+    return players.value.filter(p => (!p.teamIds || p.teamIds.length === 0) && (!p.teams || p.teams.length === 0) && !p.teamId)
+  }
+  return players.value.filter(p =>
+    p.teamIds?.includes(selectedTeamFilter.value) ||
+    p.teams?.some(t => t.id === selectedTeamFilter.value) ||
+    p.teamId === selectedTeamFilter.value
+  )
 })
 
 const SUB_STATUSES = ['Active', 'Payment Due', 'Inactive']
+
+const updatingCardsPlayerId = ref<string | null>(null)
+
+function showToast(title: string, description: string, color: string) {
+  try {
+    const t = useToast()
+    t?.add?.({ title, description, color })
+  } catch {}
+}
 
 function subStatusClass(status: string) {
   if (status === 'Active') return 'bg-success/20 text-success border border-success/30'
@@ -352,11 +413,31 @@ function subStatusClass(status: string) {
 }
 
 async function changeCards(player: Player, delta: number) {
-  const newCount = Math.max(0, (player.trainingCardsCount || 0) + delta)
+  if (updatingCardsPlayerId.value === player.id) return
+  const current = player.trainingCardsCount || 0
+  const newCount = Math.max(0, current + delta)
+  if (newCount === current && delta < 0) return
+
+  updatingCardsPlayerId.value = player.id
+  player.trainingCardsCount = newCount
+
   const result = await updatePlayerCards(player.id, newCount)
   if (result.success && result.player) {
     player.trainingCardsCount = result.player.trainingCardsCount
+    showToast(
+      delta > 0 ? 'Charm Awarded! 🎴' : 'Charm Removed',
+      `${delta > 0 ? 'Awarded 1 charm to' : 'Updated charms for'} ${player.firstName} (Total: ${result.player.trainingCardsCount}).`,
+      'amber'
+    )
+  } else {
+    player.trainingCardsCount = current
+    showToast(
+      'Failed to update cards',
+      result.error || 'Could not update training charms. Please try again.',
+      'red'
+    )
   }
+  updatingCardsPlayerId.value = null
 }
 
 async function cycleSubStatus(player: Player) {
@@ -405,8 +486,20 @@ const form = ref({
   sockSize: null as number | null,
   allergies: '',
   allowPhotos: false,
-  teamId: ''
+  trainingCardsCount: 0,
+  teamId: '',
+  teamIds: [] as string[]
 })
+
+function toggleTeam(teamId: string) {
+  const idx = form.value.teamIds.indexOf(teamId)
+  if (idx === -1) {
+    form.value.teamIds.push(teamId)
+  } else {
+    form.value.teamIds.splice(idx, 1)
+  }
+  form.value.teamId = form.value.teamIds[0] || ''
+}
 
 onMounted(() => {
   fetchPlayers()
@@ -434,13 +527,21 @@ function openCreateModal() {
     sockSize: null,
     allergies: '',
     allowPhotos: false,
-    teamId: ''
+    trainingCardsCount: 0,
+    teamId: '',
+    teamIds: []
   }
   formError.value = null
   isModalOpen.value = true
 }
 
 function openEditModal(player: Player) {
+  const playerTeamIds = player.teamIds && player.teamIds.length > 0
+    ? [...player.teamIds]
+    : (player.teams && player.teams.length > 0
+      ? player.teams.map(t => t.id)
+      : (player.teamId ? [player.teamId] : []))
+
   editingPlayer.value = player
   form.value = {
     firstName: player.firstName,
@@ -461,7 +562,9 @@ function openEditModal(player: Player) {
     sockSize: player.sockSize !== null && player.sockSize !== undefined ? player.sockSize : null,
     allergies: player.allergies || '',
     allowPhotos: player.allowPhotos ?? false,
-    teamId: player.teamId || ''
+    trainingCardsCount: player.trainingCardsCount || 0,
+    teamId: playerTeamIds[0] || '',
+    teamIds: playerTeamIds
   }
   formError.value = null
   isModalOpen.value = true
@@ -478,7 +581,9 @@ async function submitForm() {
   const payload = {
     ...form.value,
     dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null,
-    teamId: form.value.teamId ? form.value.teamId : null
+    trainingCardsCount: Math.max(0, form.value.trainingCardsCount || 0),
+    teamIds: form.value.teamIds,
+    teamId: form.value.teamIds.length > 0 ? form.value.teamIds[0] : null
   }
 
   const result = editingPlayer.value

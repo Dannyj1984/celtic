@@ -37,6 +37,8 @@ export interface PlayerSubStatus {
   isUpToDate: boolean
   teamId?: string | null
   teamName?: string | null
+  teams?: { id: string; name: string; colorHex?: string }[]
+  teamIds?: string[]
 }
 
 export interface Expense {

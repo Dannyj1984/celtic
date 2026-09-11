@@ -168,9 +168,20 @@
             <tbody class="divide-y divide-border text-sm">
               <tr v-for="player in filteredPlayers" :key="player.playerId" class="hover:bg-surface-hover/50 transition-colors">
                 <td class="py-3.5 px-4 font-semibold text-text-primary">
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
                     <span>{{ player.playerName }}</span>
-                    <span v-if="player.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-medium">
+                    <div v-if="player.teams && player.teams.length > 0" class="flex items-center gap-1 flex-wrap">
+                      <span v-for="t in player.teams" :key="t.id"
+                        class="badge text-[10px] px-1.5 py-0.5 font-medium border"
+                        :style="{
+                          backgroundColor: (t.colorHex || '#F59E0B') + '1A',
+                          color: t.colorHex || '#F59E0B',
+                          borderColor: (t.colorHex || '#F59E0B') + '40'
+                        }">
+                        {{ t.name }}
+                      </span>
+                    </div>
+                    <span v-else-if="player.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-medium">
                       {{ player.teamName }}
                     </span>
                   </div>
@@ -524,9 +535,14 @@ const filteredPlayers = computed(() => {
   let list = playerSubStatuses.value
   if (selectedTeamFilter.value !== 'All') {
     if (selectedTeamFilter.value === 'Unassigned') {
-      list = list.filter(p => !p.teamId)
+      list = list.filter(p => (!p.teamIds || p.teamIds.length === 0) && (!p.teams || p.teams.length === 0) && !p.teamId)
     } else {
-      list = list.filter(p => p.teamId === selectedTeamFilter.value)
+      const tId = selectedTeamFilter.value
+      list = list.filter(p =>
+        p.teamIds?.includes(tId) ||
+        p.teams?.some(t => t.id === tId) ||
+        p.teamId === tId
+      )
     }
   }
   if (searchQuery.value.trim()) {

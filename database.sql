@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
     "MigrationId" character varying(150) NOT NULL,
     "ProductVersion" character varying(32) NOT NULL,
     CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
@@ -246,8 +246,21 @@ CREATE INDEX "IX_SubPayments_PlayerId" ON "SubPayments" ("PlayerId");
 
 CREATE INDEX "IX_SubPayments_SeasonId" ON "SubPayments" ("SeasonId");
 
+CREATE TABLE IF NOT EXISTS "PlayerTeams" (
+    "PlayerId" uuid NOT NULL,
+    "TeamId" uuid NOT NULL,
+    CONSTRAINT "PK_PlayerTeams" PRIMARY KEY ("PlayerId", "TeamId"),
+    CONSTRAINT "FK_PlayerTeams_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_PlayerTeams_Teams_TeamId" FOREIGN KEY ("TeamId") REFERENCES "Teams" ("Id") ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "IX_PlayerTeams_TeamId" ON "PlayerTeams" ("TeamId");
+
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20260426065402_InitialCreate', '8.0.8');
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260911025349_AddPlayerMultipleTeams', '8.0.8');
 
 COMMIT;
 

@@ -63,7 +63,18 @@
               class="flex items-center justify-between p-2 rounded-lg bg-surface-hover border border-border/50">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-sm font-medium text-text-primary">{{ child.firstName }} {{ child.lastName }}</span>
-                <span v-if="child.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-semibold">
+                <div v-if="child.teams && child.teams.length > 0" class="flex items-center gap-1 flex-wrap">
+                  <span v-for="t in child.teams" :key="t.id"
+                    class="badge text-[10px] px-1.5 py-0.5 font-semibold border"
+                    :style="{
+                      backgroundColor: (t.colorHex || '#F59E0B') + '1A',
+                      color: t.colorHex || '#F59E0B',
+                      borderColor: (t.colorHex || '#F59E0B') + '40'
+                    }">
+                    {{ t.name }}
+                  </span>
+                </div>
+                <span v-else-if="child.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[10px] px-1.5 py-0.5 font-semibold">
                   {{ child.teamName }}
                 </span>
                 <span v-else class="badge bg-surface text-text-muted border border-border text-[10px] px-1.5 py-0.5">

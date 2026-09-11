@@ -36,6 +36,9 @@ export interface Player {
   allowPhotos?: boolean
   trainingCardsCount?: number
   teamId?: string | null
+  teamName?: string | null
+  teamIds?: string[]
+  teams?: { id: string; name: string; colorHex?: string }[]
 }
 
 export function usePlayers() {

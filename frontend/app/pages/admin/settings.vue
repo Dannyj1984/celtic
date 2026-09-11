@@ -63,7 +63,7 @@
             <span>🎴 Card Milestone Rewards</span>
             <button type="button" @click="addCardReward" class="text-xs text-celtic-green font-bold hover:underline">+ Add Reward</button>
           </h2>
-          <p class="text-xs text-text-muted mb-4">Set how many training cards collected unlocks each reward for players.</p>
+          <p class="text-xs text-text-muted mb-4">Set how many training charms collected unlocks each reward for players.</p>
 
           <div class="space-y-3">
             <div v-for="(reward, index) in state.cardRewards" :key="index" class="flex items-center gap-3 p-3 bg-surface-hover/40 border border-border-color rounded-lg">

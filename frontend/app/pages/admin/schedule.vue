@@ -507,7 +507,12 @@ const attendanceError = ref<string | null>(null)
 const targetTeamPlayers = computed(() => {
   let list = activePlayers.value
   if (attendanceEvent.value?.teamId) {
-    list = list.filter(p => p.teamId === attendanceEvent.value?.teamId)
+    const tId = attendanceEvent.value.teamId
+    list = list.filter(p =>
+      p.teamIds?.includes(tId) ||
+      p.teams?.some(t => t.id === tId) ||
+      p.teamId === tId
+    )
   }
   return list
 })
@@ -631,12 +636,23 @@ function openCreateModal() {
   isModalOpen.value = true
 }
 
+// Formats a Date object to a local "YYYY-MM-DDTHH:mm" string for datetime-local inputs
+function toLocalDateTimeString(dateStr: string): string {
+  const d = new Date(dateStr)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 function openEditModal(event: Event) {
   isEditing.value = true
   editingEvent.value = event
   form.value = {
     type: event.type,
-    dateTime: new Date(event.dateTime).toISOString().slice(0, 16),
+    dateTime: toLocalDateTimeString(event.dateTime),
     location: event.location,
     notes: event.notes || '',
     isCancelled: event.isCancelled

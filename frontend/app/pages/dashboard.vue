@@ -186,7 +186,12 @@
                     <div class="p-2 bg-celtic-green/10 rounded-lg">
                       <CalendarDaysIcon class="w-6 h-6 text-celtic-green" />
                     </div>
-                    <UBadge color="primary" variant="subtle">Match</UBadge>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <UBadge color="primary" variant="subtle">Match</UBadge>
+                      <span v-if="dashboardData.nextMatch?.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-xs font-bold px-2 py-0.5 rounded-md">
+                        {{ dashboardData.nextMatch.teamName }}
+                      </span>
+                    </div>
                   </div>
                   <h3 class="text-lg font-bold text-text-primary mb-1">vs {{ dashboardData.nextMatch?.opposition ||
                     'TBD' }}</h3>
@@ -266,7 +271,7 @@
             <!-- Training Cards & Rewards -->
             <div v-if="dashboardData.cardsProgress">
               <h2 class="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
-                <span>🎴 Training Cards & Rewards</span>
+                <span>🎴 Training Charms & Rewards</span>
               </h2>
               <UCard class="bg-bg-card border border-celtic-gold/30 shadow-sm relative overflow-hidden">
                 <div class="flex items-center justify-between mb-4">
@@ -276,7 +281,7 @@
                     </div>
                     <div>
                       <h3 class="text-lg font-extrabold text-text-primary">
-                        {{ dashboardData.cardsProgress.cardsCount }} {{ dashboardData.cardsProgress.cardsCount === 1 ? 'Card' : 'Cards' }} Collected
+                        {{ dashboardData.cardsProgress.cardsCount }} {{ dashboardData.cardsProgress.cardsCount === 1 ? 'Charm' : 'Charms' }} Collected
                       </h3>
                       <p class="text-xs text-text-muted">Earned for great effort and teamwork in training</p>
                     </div>
@@ -287,7 +292,7 @@
                 <div v-if="dashboardData.cardsProgress.nextReward" class="mt-4 p-4 bg-celtic-gold/5 border border-celtic-gold/20 rounded-xl space-y-3">
                   <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-celtic-gold uppercase tracking-wider">
-                      🎯 Next Reward at {{ dashboardData.cardsProgress.nextReward.cardsRequired }} Cards
+                      🎯 Next Reward at {{ dashboardData.cardsProgress.nextReward.cardsRequired }} Charms
                     </span>
                     <span class="font-semibold text-text-secondary">
                       {{ dashboardData.cardsProgress.cardsCount }} / {{ dashboardData.cardsProgress.nextReward.cardsRequired }}
@@ -670,10 +675,10 @@ const getMatchCalendarEvent = () => {
   if (!dashboardData.value?.nextMatch) return null
   const match = dashboardData.value.nextMatch
   return {
-    title: `Stalybridge Celtic U7 vs ${match.opposition || 'TBD'}`,
+    title: `${match.teamName ? `${match.teamName} - ` : ''}Stalybridge Celtic U7 vs ${match.opposition || 'TBD'}`,
     dateTime: match.date,
     location: match.location,
-    description: `Match: Stalybridge Celtic U7 vs ${match.opposition || 'TBD'}`
+    description: `Match: ${match.teamName ? `${match.teamName} - ` : ''}Stalybridge Celtic U7 vs ${match.opposition || 'TBD'}`
   }
 }
 

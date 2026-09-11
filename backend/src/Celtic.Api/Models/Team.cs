@@ -11,6 +11,7 @@ public class Team
     public bool IsActive { get; set; } = true;
 
     // Navigation
+    public ICollection<PlayerTeam> PlayerTeams { get; set; } = new List<PlayerTeam>();
     public ICollection<Player> Players { get; set; } = new List<Player>();
     public ICollection<Match> Matches { get; set; } = new List<Match>();
     public ICollection<Event> Events { get; set; } = new List<Event>();

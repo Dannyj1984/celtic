@@ -32,6 +32,7 @@ public class ParentDashboardController : ControllerBase
 
         var playerParent = await _context.PlayerParents
             .Include(pp => pp.Player)
+                .ThenInclude(p => p.PlayerTeams)
             .FirstOrDefaultAsync(pp => pp.UserId == userId);
 
         if (playerParent == null) return NotFound("No linked player found for this parent");
@@ -74,13 +75,20 @@ public class ParentDashboardController : ControllerBase
 
         // Next Match Event
         var nextMatchQuery = _context.Events
+            .Include(e => e.Team)
             .Include(e => e.Match)
+                .ThenInclude(m => m!.Team)
             .Where(e => e.Type == "Match" && e.DateTime > DateTime.UtcNow && !e.IsCancelled);
 
-        if (playerParent.Player.TeamId.HasValue)
+        var childTeamIds = playerParent.Player.PlayerTeams.Select(pt => pt.TeamId).ToList();
+        if (playerParent.Player.TeamId.HasValue && !childTeamIds.Contains(playerParent.Player.TeamId.Value))
         {
-            var childTeamId = playerParent.Player.TeamId.Value;
-            nextMatchQuery = nextMatchQuery.Where(e => e.TeamId == null || e.TeamId == childTeamId);
+            childTeamIds.Add(playerParent.Player.TeamId.Value);
+        }
+
+        if (childTeamIds.Count > 0)
+        {
+            nextMatchQuery = nextMatchQuery.Where(e => e.TeamId == null || childTeamIds.Contains(e.TeamId.Value));
         }
 
         var nextMatchEvent = await nextMatchQuery
@@ -109,7 +117,9 @@ public class ParentDashboardController : ControllerBase
                 Id = nextMatchEvent.Match.Id,
                 Date = nextMatchEvent.Match.Date,
                 Opposition = nextMatchEvent.Match.Opposition,
-                Location = nextMatchEvent.Match.Location
+                Location = nextMatchEvent.Match.Location,
+                TeamId = nextMatchEvent.TeamId ?? nextMatchEvent.Match.TeamId,
+                TeamName = nextMatchEvent.Team?.Name ?? nextMatchEvent.Match.Team?.Name
             };
         }
 
@@ -205,17 +215,28 @@ public class ParentDashboardController : ControllerBase
 
         var playerParent = await _context.PlayerParents
             .Include(pp => pp.Player)
+                .ThenInclude(p => p.PlayerTeams)
             .FirstOrDefaultAsync(pp => pp.UserId == userId);
         if (playerParent == null) return NotFound("No linked player found for this parent");
 
         var query = _context.Events
+            .Include(e => e.Team)
             .Include(e => e.Match)
+                .ThenInclude(m => m!.Team)
             .Where(e => e.Type == type && e.DateTime > DateTime.UtcNow);
 
-        if (type == "Match" && playerParent.Player.TeamId.HasValue)
+        if (type == "Match")
         {
-            var childTeamId = playerParent.Player.TeamId.Value;
-            query = query.Where(e => e.TeamId == null || e.TeamId == childTeamId);
+            var childTeamIds = playerParent.Player.PlayerTeams.Select(pt => pt.TeamId).ToList();
+            if (playerParent.Player.TeamId.HasValue && !childTeamIds.Contains(playerParent.Player.TeamId.Value))
+            {
+                childTeamIds.Add(playerParent.Player.TeamId.Value);
+            }
+
+            if (childTeamIds.Count > 0)
+            {
+                query = query.Where(e => e.TeamId == null || childTeamIds.Contains(e.TeamId.Value));
+            }
         }
 
         var events = await query
@@ -236,7 +257,9 @@ public class ParentDashboardController : ControllerBase
             Notes = e.Notes,
             Status = responses.ContainsKey(e.Id) ? responses[e.Id] : "No Response",
             Played = responses.ContainsKey(e.Id) && responses[e.Id] == "Attending",
-            Opposition = e.Match?.Opposition
+            Opposition = e.Match?.Opposition,
+            TeamId = e.TeamId ?? e.Match?.TeamId,
+            TeamName = e.Team?.Name ?? e.Match?.Team?.Name
         }).ToList();
 
         return Ok(result);
@@ -250,18 +273,30 @@ public class ParentDashboardController : ControllerBase
 
         var playerParent = await _context.PlayerParents
             .Include(pp => pp.Player)
+                .ThenInclude(p => p.PlayerTeams)
             .FirstOrDefaultAsync(pp => pp.UserId == userId);
         if (playerParent == null) return NotFound("No linked player found for this parent");
 
         var query = _context.Events
+            .Include(e => e.Team)
             .Include(e => e.Match)
                 .ThenInclude(m => m!.PlayerOfTheMatch)
+            .Include(e => e.Match)
+                .ThenInclude(m => m!.Team)
             .Where(e => e.Type == type && e.DateTime <= DateTime.UtcNow);
 
-        if (type == "Match" && playerParent.Player.TeamId.HasValue)
+        if (type == "Match")
         {
-            var childTeamId = playerParent.Player.TeamId.Value;
-            query = query.Where(e => e.TeamId == null || e.TeamId == childTeamId);
+            var childTeamIds = playerParent.Player.PlayerTeams.Select(pt => pt.TeamId).ToList();
+            if (playerParent.Player.TeamId.HasValue && !childTeamIds.Contains(playerParent.Player.TeamId.Value))
+            {
+                childTeamIds.Add(playerParent.Player.TeamId.Value);
+            }
+
+            if (childTeamIds.Count > 0)
+            {
+                query = query.Where(e => e.TeamId == null || childTeamIds.Contains(e.TeamId.Value));
+            }
         }
 
         var events = await query
@@ -286,7 +321,9 @@ public class ParentDashboardController : ControllerBase
             Score = e.Match != null ? $"{e.Match.GoalsFor} - {e.Match.GoalsAgainst}" : null,
             Result = e.Match != null ? (e.Match.GoalsFor > e.Match.GoalsAgainst ? "Win" : e.Match.GoalsFor < e.Match.GoalsAgainst ? "Loss" : "Draw") : null,
             MatchReport = e.Match?.MatchReport,
-            PlayerOfTheMatchName = e.Match?.PlayerOfTheMatch?.FullName
+            PlayerOfTheMatchName = e.Match?.PlayerOfTheMatch?.FullName,
+            TeamId = e.TeamId ?? e.Match?.TeamId,
+            TeamName = e.Team?.Name ?? e.Match?.Team?.Name
         }).ToList();
 
         return Ok(result);
@@ -406,6 +443,7 @@ public class ParentDashboardController : ControllerBase
 
         // 3. Recent Matches (Last 3)
         var recentMatches = await _context.Matches
+            .Include(m => m.Team)
             .Where(m => m.IsPublished && m.Date <= DateTime.UtcNow)
             .OrderByDescending(m => m.Date)
             .Take(3)
@@ -416,7 +454,9 @@ public class ParentDashboardController : ControllerBase
                 Opposition = m.Opposition,
                 Result = m.GoalsFor > m.GoalsAgainst ? "Win" : m.GoalsFor < m.GoalsAgainst ? "Loss" : "Draw",
                 Score = $"{m.GoalsFor} - {m.GoalsAgainst}",
-                WasPlayerOfTheMatch = m.PlayerOfTheMatchId == player.Id
+                WasPlayerOfTheMatch = m.PlayerOfTheMatchId == player.Id,
+                TeamId = m.TeamId,
+                TeamName = m.Team != null ? m.Team.Name : null
             })
             .ToListAsync();
 

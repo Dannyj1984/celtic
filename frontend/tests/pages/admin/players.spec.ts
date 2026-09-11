@@ -14,6 +14,23 @@ vi.mock('~/composables/useAuth', () => ({
   })
 }))
 
+const mockTeams = ref([
+  { id: 't1', name: 'Stripes', colorHex: '#006837', isActive: true, playersCount: 1 },
+  { id: 't2', name: 'Hoops', colorHex: '#F59E0B', isActive: true, playersCount: 1 }
+])
+
+vi.mock('~/composables/useTeams', () => ({
+  useTeams: () => ({
+    teams: mockTeams,
+    loading: ref(false),
+    error: ref(null),
+    fetchTeams: vi.fn(),
+    createTeam: vi.fn(),
+    updateTeam: vi.fn(),
+    deleteTeam: vi.fn()
+  })
+}))
+
 const mockPlayers = ref([
   {
     id: 1,
@@ -21,6 +38,11 @@ const mockPlayers = ref([
     lastName: 'Terry',
     isActive: true,
     dateOfBirth: '2015-05-10',
+    teams: [
+      { id: 't1', name: 'Stripes', colorHex: '#006837' },
+      { id: 't2', name: 'Hoops', colorHex: '#F59E0B' }
+    ],
+    teamIds: ['t1', 't2'],
     attendance: {
       trainingAttended: 8,
       trainingTotal: 10,
@@ -95,5 +117,38 @@ describe('SquadManagement', () => {
     const wrapper = mount(SquadManagement)
     const attendanceSection = wrapper.find('[data-testid="attendance-match"]')
     expect(attendanceSection.text()).toContain('4 / 6')
+  })
+
+  it('should display multiple team badges for players assigned to multiple teams', () => {
+    const wrapper = mount(SquadManagement)
+    expect(wrapper.text()).toContain('Stripes')
+    expect(wrapper.text()).toContain('Hoops')
+  })
+
+  it('supports selecting multiple teams when creating a player', async () => {
+    const wrapper = mount(SquadManagement)
+
+    // Open modal
+    await wrapper.find('button.btn-primary').trigger('click')
+
+    // Click both team buttons to select them
+    const teamButtons = wrapper.findAll('form button[type="button"]')
+    // First 2 buttons correspond to Stripes and Hoops
+    await teamButtons[0].trigger('click')
+    await teamButtons[1].trigger('click')
+
+    const inputs = wrapper.findAll('input')
+    await inputs[0].setValue('Cole')
+    await inputs[1].setValue('Palmer')
+
+    // Submit
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(mockCreatePlayer).toHaveBeenCalledWith(expect.objectContaining({
+      firstName: 'Cole',
+      lastName: 'Palmer',
+      teamIds: ['t1', 't2'],
+      teamId: 't1'
+    }))
   })
 })
