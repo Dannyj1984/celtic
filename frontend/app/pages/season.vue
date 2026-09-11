@@ -43,6 +43,11 @@
             </span>
 
             <UBadge color="primary" variant="subtle" size="xs">Match</UBadge>
+
+            <!-- Sub Team Badge -->
+            <span v-if="event.teamName" class="badge bg-celtic-gold/10 text-celtic-gold border border-celtic-gold/30 text-[11px] font-bold px-2 py-0.5 rounded-md">
+              {{ event.teamName }}
+            </span>
           </div>
 
           <!-- Result / Status Badge -->
@@ -64,8 +69,9 @@
         <div class="py-3 sm:py-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="space-y-1">
-              <div class="text-xs font-bold text-text-muted uppercase tracking-wider">
-                Stalybridge Celtic U7
+              <div class="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                <span>Stalybridge Celtic U7</span>
+                <span v-if="event.teamName" class="text-celtic-gold font-bold">({{ event.teamName }})</span>
               </div>
               <div class="text-lg sm:text-xl font-black text-text-primary flex items-center gap-2 flex-wrap">
                 <span class="text-celtic-gold font-bold text-xs sm:text-sm bg-celtic-gold/10 px-2 py-0.5 rounded border border-celtic-gold/20">
@@ -184,10 +190,10 @@ async function fetchFixtures() {
 const { downloadIcs, openGoogleCalendar } = useCalendar()
 
 const getCalendarEvent = (event: any) => ({
-  title: `Stalybridge Celtic U7 vs ${event.opposition || 'TBD'}`,
+  title: `${event.teamName ? `${event.teamName} - ` : ''}Stalybridge Celtic U7 vs ${event.opposition || 'TBD'}`,
   dateTime: event.dateTime,
   location: event.location,
-  description: `Match: Stalybridge Celtic U7 vs ${event.opposition || 'TBD'}`
+  description: `Match: ${event.teamName ? `${event.teamName} - ` : ''}Stalybridge Celtic U7 vs ${event.opposition || 'TBD'}`
 })
 
 const calendarMenuItems = (event: any) => [[

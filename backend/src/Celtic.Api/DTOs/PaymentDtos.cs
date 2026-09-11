@@ -115,6 +115,8 @@ public class PlayerSubStatusDto
     public bool IsUpToDate { get; set; }
     public Guid? TeamId { get; set; }
     public string? TeamName { get; set; }
+    public List<TeamSummaryDto> Teams { get; set; } = new();
+    public List<Guid> TeamIds { get; set; } = new();
 }
 
 public class FinancialSummaryDto

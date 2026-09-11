@@ -20,8 +20,10 @@ public class PlayerService : IPlayerService
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
             .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
             .Include(p => p.ParentLinks)
-            .ThenInclude(pl => pl.User)
+                .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
             .ToListAsync();
 
@@ -35,8 +37,10 @@ public class PlayerService : IPlayerService
     {
         var player = await _db.Players
             .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
             .Include(p => p.ParentLinks)
-            .ThenInclude(pl => pl.User)
+                .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
             .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -61,6 +65,10 @@ public class PlayerService : IPlayerService
 
     public async Task<PlayerDto> CreatePlayerAsync(CreatePlayerRequest request)
     {
+        var targetTeamIds = (request.TeamIds != null && request.TeamIds.Count > 0)
+            ? request.TeamIds.Distinct().ToList()
+            : (request.TeamId.HasValue ? new List<Guid> { request.TeamId.Value } : new List<Guid>());
+
         var player = new Player
         {
             FirstName = request.FirstName,
@@ -81,15 +89,30 @@ public class PlayerService : IPlayerService
             Allergies = request.Allergies,
             AllowPhotos = request.AllowPhotos,
             TrainingCardsCount = request.TrainingCardsCount,
-            TeamId = request.TeamId
+            TeamId = targetTeamIds.Count > 0 ? targetTeamIds[0] : null
         };
 
         _db.Players.Add(player);
+
+        foreach (var tId in targetTeamIds)
+        {
+            player.PlayerTeams.Add(new PlayerTeam
+            {
+                PlayerId = player.Id,
+                TeamId = tId
+            });
+        }
+
         await _db.SaveChangesAsync();
 
         if (player.TeamId.HasValue)
         {
             await _db.Entry(player).Reference(p => p.Team).LoadAsync();
+        }
+
+        if (player.PlayerTeams.Count > 0)
+        {
+            await _db.Entry(player).Collection(p => p.PlayerTeams).Query().Include(pt => pt.Team).LoadAsync();
         }
 
         return MapToDto(player, new List<Guid>(), new List<Guid>());
@@ -99,13 +122,19 @@ public class PlayerService : IPlayerService
     {
         var player = await _db.Players
             .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
             .Include(p => p.ParentLinks)
-            .ThenInclude(pl => pl.User)
+                .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (player == null)
             throw new KeyNotFoundException("Player not found");
+
+        var targetTeamIds = (request.TeamIds != null)
+            ? request.TeamIds.Distinct().ToList()
+            : (request.TeamId.HasValue ? new List<Guid> { request.TeamId.Value } : new List<Guid>());
 
         player.FirstName = request.FirstName;
         player.LastName = request.LastName;
@@ -125,8 +154,28 @@ public class PlayerService : IPlayerService
         player.SockSize = request.SockSize;
         player.Allergies = request.Allergies;
         player.AllowPhotos = request.AllowPhotos;
-        player.TrainingCardsCount = Math.Max(0, request.TrainingCardsCount);
-        player.TeamId = request.TeamId;
+        if (request.TrainingCardsCount.HasValue)
+        {
+            player.TrainingCardsCount = Math.Max(0, request.TrainingCardsCount.Value);
+        }
+        player.TeamId = targetTeamIds.Count > 0 ? targetTeamIds[0] : null;
+
+        // Synchronize PlayerTeams
+        var existingTeamIds = player.PlayerTeams.Select(pt => pt.TeamId).ToHashSet();
+        var toRemove = player.PlayerTeams.Where(pt => !targetTeamIds.Contains(pt.TeamId)).ToList();
+        foreach (var item in toRemove)
+        {
+            _db.PlayerTeams.Remove(item);
+        }
+
+        foreach (var tId in targetTeamIds.Where(tid => !existingTeamIds.Contains(tid)))
+        {
+            player.PlayerTeams.Add(new PlayerTeam
+            {
+                PlayerId = player.Id,
+                TeamId = tId
+            });
+        }
 
         await _db.SaveChangesAsync();
 
@@ -134,6 +183,8 @@ public class PlayerService : IPlayerService
         {
             await _db.Entry(player).Reference(p => p.Team).LoadAsync();
         }
+
+        await _db.Entry(player).Collection(p => p.PlayerTeams).Query().Include(pt => pt.Team).LoadAsync();
 
         var trainingIds = await GetRecentEventIds("Training", 10);
         var matchIds = await GetRecentEventIds("Match", 10);
@@ -145,8 +196,10 @@ public class PlayerService : IPlayerService
     {
         var player = await _db.Players
             .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
             .Include(p => p.ParentLinks)
-            .ThenInclude(pl => pl.User)
+                .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
             .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -165,8 +218,11 @@ public class PlayerService : IPlayerService
     public async Task<PlayerDto> UpdateTrainingCardsAsync(Guid id, int cardsCount)
     {
         var player = await _db.Players
+            .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
             .Include(p => p.ParentLinks)
-            .ThenInclude(pl => pl.User)
+                .ThenInclude(pl => pl.User)
             .Include(p => p.EventResponses)
             .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -197,6 +253,20 @@ public class PlayerService : IPlayerService
             recentMatchIds.Count
         );
 
+        var teams = p.PlayerTeams
+            .Where(pt => pt.Team != null)
+            .Select(pt => new TeamSummaryDto(pt.Team.Id, pt.Team.Name, pt.Team.ColorHex))
+            .ToList();
+
+        if (teams.Count == 0 && p.Team != null)
+        {
+            teams.Add(new TeamSummaryDto(p.Team.Id, p.Team.Name, p.Team.ColorHex));
+        }
+
+        var teamIds = teams.Select(t => t.Id).ToList();
+        var primaryTeamId = p.TeamId ?? (teamIds.Count > 0 ? teamIds[0] : (Guid?)null);
+        var primaryTeamName = p.Team?.Name ?? teams.FirstOrDefault()?.Name;
+
         return new PlayerDto(
             p.Id,
             p.FirstName,
@@ -226,8 +296,10 @@ public class PlayerService : IPlayerService
             p.Allergies,
             p.AllowPhotos,
             p.TrainingCardsCount,
-            p.TeamId,
-            p.Team?.Name
+            primaryTeamId,
+            primaryTeamName,
+            teams,
+            teamIds
         );
     }
 }

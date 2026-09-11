@@ -73,6 +73,8 @@ public class PaymentService : IPaymentService
 
         var players = await _context.Players
             .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
             .Where(p => p.IsActive)
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
@@ -119,6 +121,20 @@ public class PaymentService : IPaymentService
             var currentPeriodStatus = periodStatuses.FirstOrDefault(ps => ps.PeriodStart <= now && ps.PeriodEnd >= now);
             var isUpToDate = currentPeriodStatus == null || currentPeriodStatus.IsPaid;
 
+            var teams = player.PlayerTeams
+                .Where(pt => pt.Team != null)
+                .Select(pt => new TeamSummaryDto(pt.Team.Id, pt.Team.Name, pt.Team.ColorHex))
+                .ToList();
+
+            if (teams.Count == 0 && player.Team != null)
+            {
+                teams.Add(new TeamSummaryDto(player.Team.Id, player.Team.Name, player.Team.ColorHex));
+            }
+
+            var teamIds = teams.Select(t => t.Id).ToList();
+            var primaryTeamId = player.TeamId ?? (teamIds.Count > 0 ? teamIds[0] : (Guid?)null);
+            var primaryTeamName = player.Team?.Name ?? teams.FirstOrDefault()?.Name;
+
             result.Add(new PlayerSubStatusDto
             {
                 PlayerId = player.Id,
@@ -128,8 +144,10 @@ public class PaymentService : IPaymentService
                 TotalPaidThisSeason = totalPaid,
                 TotalDueThisSeason = totalDue,
                 IsUpToDate = isUpToDate,
-                TeamId = player.TeamId,
-                TeamName = player.Team?.Name
+                TeamId = primaryTeamId,
+                TeamName = primaryTeamName,
+                Teams = teams,
+                TeamIds = teamIds
             });
         }
 

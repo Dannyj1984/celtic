@@ -371,7 +371,7 @@ public class MatchSquadService : IMatchSquadService
             if (match?.TeamId != null)
             {
                 var teamPlayers = await _context.Players
-                    .Where(p => p.TeamId == match.TeamId && p.IsActive)
+                    .Where(p => (p.TeamId == match.TeamId || p.PlayerTeams.Any(pt => pt.TeamId == match.TeamId)) && p.IsActive)
                     .ToListAsync();
 
                 return teamPlayers

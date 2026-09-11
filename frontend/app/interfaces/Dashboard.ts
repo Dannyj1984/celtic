@@ -4,6 +4,15 @@ export interface IDashboardData {
     subscriptionStatus: string;
     nextSubPaymentDate: string;
     coachWhatsAppNumber: string;
+    cardsProgress: {
+        cardsCount: number;
+        cardsUntilNextReward: number;
+        nextReward: {
+            cardsRequired: number;
+            rewardText: string;
+        };
+        unlockedRewards: string[];
+    };
     attendingNextTraining: boolean;
     attendingNextMatch: boolean;
     coachNotes?: string;
@@ -14,6 +23,8 @@ export interface IDashboardData {
         opposition: string;
         location: string;
         status: string;
+        teamId?: string | null;
+        teamName?: string | null;
     };
     trainingSchedule: {
         day: string;

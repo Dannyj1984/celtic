@@ -96,7 +96,7 @@ public class PlayersController : ControllerBase
     {
         var role = User.FindFirstValue(ClaimTypes.Role);
         if (role != "Admin")
-            return StatusCode(403, new { message = "Only administrators can update training cards." });
+            return StatusCode(403, new { message = "Only administrators can update training charms." });
 
         try
         {

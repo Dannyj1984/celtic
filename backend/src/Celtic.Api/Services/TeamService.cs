@@ -18,6 +18,8 @@ public class TeamService : ITeamService
     {
         var teams = await _db.Teams
             .Include(t => t.Players)
+            .Include(t => t.PlayerTeams)
+                .ThenInclude(pt => pt.Player)
             .OrderBy(t => t.Name)
             .ToListAsync();
 
@@ -28,6 +30,8 @@ public class TeamService : ITeamService
     {
         var team = await _db.Teams
             .Include(t => t.Players)
+            .Include(t => t.PlayerTeams)
+                .ThenInclude(pt => pt.Player)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (team == null)
@@ -56,6 +60,8 @@ public class TeamService : ITeamService
     {
         var team = await _db.Teams
             .Include(t => t.Players)
+            .Include(t => t.PlayerTeams)
+                .ThenInclude(pt => pt.Player)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (team == null)
@@ -76,6 +82,9 @@ public class TeamService : ITeamService
         if (team != null)
         {
             // Unlink players, matches, events
+            var playerTeams = await _db.PlayerTeams.Where(pt => pt.TeamId == id).ToListAsync();
+            _db.PlayerTeams.RemoveRange(playerTeams);
+
             var players = await _db.Players.Where(p => p.TeamId == id).ToListAsync();
             foreach (var p in players) p.TeamId = null;
 
@@ -92,12 +101,22 @@ public class TeamService : ITeamService
 
     private static TeamDto MapToDto(Team t)
     {
+        var playerTeamPlayerIds = t.PlayerTeams?
+            .Where(pt => pt.Player != null && pt.Player.IsActive)
+            .Select(pt => pt.PlayerId) ?? Enumerable.Empty<Guid>();
+
+        var legacyPlayerIds = t.Players?
+            .Where(p => p.IsActive)
+            .Select(p => p.Id) ?? Enumerable.Empty<Guid>();
+
+        var activePlayerCount = playerTeamPlayerIds.Union(legacyPlayerIds).Count();
+
         return new TeamDto(
             t.Id,
             t.Name,
             t.ColorHex,
             t.IsActive,
-            t.Players?.Count(p => p.IsActive) ?? 0
+            activePlayerCount
         );
     }
 }

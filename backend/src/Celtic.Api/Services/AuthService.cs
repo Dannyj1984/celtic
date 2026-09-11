@@ -83,20 +83,43 @@ public class AuthService : IAuthService
         if (user == null)
             throw new KeyNotFoundException("User not found.");
 
-        var children = await _db.PlayerParents
+        var childrenEntities = await _db.PlayerParents
             .Where(pp => pp.UserId == userId)
             .Include(pp => pp.Player)
                 .ThenInclude(p => p.Team)
-            .Select(pp => new LinkedPlayerDto(
+            .Include(pp => pp.Player)
+                .ThenInclude(p => p.PlayerTeams)
+                    .ThenInclude(pt => pt.Team)
+            .ToListAsync();
+
+        var children = childrenEntities.Select(pp =>
+        {
+            var teams = pp.Player.PlayerTeams
+                .Where(pt => pt.Team != null)
+                .Select(pt => new TeamSummaryDto(pt.Team.Id, pt.Team.Name, pt.Team.ColorHex))
+                .ToList();
+
+            if (teams.Count == 0 && pp.Player.Team != null)
+            {
+                teams.Add(new TeamSummaryDto(pp.Player.Team.Id, pp.Player.Team.Name, pp.Player.Team.ColorHex));
+            }
+
+            var teamIds = teams.Select(t => t.Id).ToList();
+            var primaryTeamId = pp.Player.TeamId ?? (teamIds.Count > 0 ? teamIds[0] : (Guid?)null);
+            var primaryTeamName = pp.Player.Team?.Name ?? teams.FirstOrDefault()?.Name;
+
+            return new LinkedPlayerDto(
                 pp.PlayerId,
                 pp.Player.FirstName,
                 pp.Player.LastName,
                 pp.Relationship,
                 pp.Player.SubscriptionStatus,
-                pp.Player.TeamId,
-                pp.Player.Team != null ? pp.Player.Team.Name : null
-            ))
-            .ToListAsync();
+                primaryTeamId,
+                primaryTeamName,
+                teams,
+                teamIds
+            );
+        }).ToList();
 
         return new UserInfoResponse(
             UserId: user.Id,
@@ -120,6 +143,9 @@ public class AuthService : IAuthService
             .Where(pp => parentIds.Contains(pp.UserId))
             .Include(pp => pp.Player)
                 .ThenInclude(p => p.Team)
+            .Include(pp => pp.Player)
+                .ThenInclude(p => p.PlayerTeams)
+                    .ThenInclude(pt => pt.Team)
             .ToListAsync();
 
         var responses = users.Select(u => new UserInfoResponse(
@@ -130,15 +156,34 @@ public class AuthService : IAuthService
             Role: u.Role,
             Children: allChildren
                 .Where(pp => pp.UserId == u.Id)
-                .Select(pp => new LinkedPlayerDto(
-                    pp.PlayerId,
-                    pp.Player.FirstName,
-                    pp.Player.LastName,
-                    pp.Relationship,
-                    pp.Player.SubscriptionStatus,
-                    pp.Player.TeamId,
-                    pp.Player.Team?.Name
-                ))
+                .Select(pp =>
+                {
+                    var teams = pp.Player.PlayerTeams
+                        .Where(pt => pt.Team != null)
+                        .Select(pt => new TeamSummaryDto(pt.Team.Id, pt.Team.Name, pt.Team.ColorHex))
+                        .ToList();
+
+                    if (teams.Count == 0 && pp.Player.Team != null)
+                    {
+                        teams.Add(new TeamSummaryDto(pp.Player.Team.Id, pp.Player.Team.Name, pp.Player.Team.ColorHex));
+                    }
+
+                    var teamIds = teams.Select(t => t.Id).ToList();
+                    var primaryTeamId = pp.Player.TeamId ?? (teamIds.Count > 0 ? teamIds[0] : (Guid?)null);
+                    var primaryTeamName = pp.Player.Team?.Name ?? teams.FirstOrDefault()?.Name;
+
+                    return new LinkedPlayerDto(
+                        pp.PlayerId,
+                        pp.Player.FirstName,
+                        pp.Player.LastName,
+                        pp.Relationship,
+                        pp.Player.SubscriptionStatus,
+                        primaryTeamId,
+                        primaryTeamName,
+                        teams,
+                        teamIds
+                    );
+                })
                 .ToList()
         )).ToList();
 

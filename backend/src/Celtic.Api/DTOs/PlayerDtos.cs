@@ -2,6 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Celtic.Api.DTOs;
 
+public record TeamSummaryDto(
+    Guid Id,
+    string Name,
+    string? ColorHex = null
+);
+
 public record PlayerDto(
     Guid Id,
     string FirstName,
@@ -26,7 +32,9 @@ public record PlayerDto(
     bool AllowPhotos = false,
     int TrainingCardsCount = 0,
     Guid? TeamId = null,
-    string? TeamName = null
+    string? TeamName = null,
+    List<TeamSummaryDto>? Teams = null,
+    List<Guid>? TeamIds = null
 );
 
 public record PlayerAttendanceDto(
@@ -66,7 +74,8 @@ public record CreatePlayerRequest(
     string? Allergies = null,
     bool AllowPhotos = false,
     int TrainingCardsCount = 0,
-    Guid? TeamId = null
+    Guid? TeamId = null,
+    List<Guid>? TeamIds = null
 );
 
 public record UpdatePlayerRequest(
@@ -88,8 +97,9 @@ public record UpdatePlayerRequest(
     int? SockSize = null,
     string? Allergies = null,
     bool AllowPhotos = false,
-    int TrainingCardsCount = 0,
-    Guid? TeamId = null
+    int? TrainingCardsCount = null,
+    Guid? TeamId = null,
+    List<Guid>? TeamIds = null
 );
 
 public record UpdatePlayerCardsRequest(
