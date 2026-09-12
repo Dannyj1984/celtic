@@ -72,10 +72,10 @@ public class MatchSquadService : IMatchSquadService
 
         var intervals = (request.TotalPeriods.HasValue && request.TotalPeriods.Value > 0 && request.PeriodDurationMinutes.HasValue && request.PeriodDurationMinutes.Value > 0)
             ? null
-            : BuildPeriodIntervals(halfDuration);
+            : BuildPeriodIntervals(halfDuration, request.PeriodDurationMinutes ?? 0);
 
         var totalPeriods = intervals != null ? intervals.Count : request.TotalPeriods!.Value;
-        var periodMinutes = intervals != null ? (halfDuration == 15 ? 5 : 6) : request.PeriodDurationMinutes!.Value;
+        var periodMinutes = intervals != null ? intervals[0].DurationMinutes : request.PeriodDurationMinutes!.Value;
 
         SquadPlayerDto? gk1 = null;
         SquadPlayerDto? gk2 = null;
@@ -394,44 +394,23 @@ public class MatchSquadService : IMatchSquadService
 
     public record PeriodInterval(int PeriodNumber, int Half, int StartMinute, int EndMinute, int DurationMinutes);
 
-    public static List<PeriodInterval> BuildPeriodIntervals(int halfDurationMinutes)
+    public static List<PeriodInterval> BuildPeriodIntervals(int halfDurationMinutes, int requestedPeriodMinutes = 0)
     {
         var intervals = new List<PeriodInterval>();
         
+        // Use the requested period duration if provided (5, 6, 10, etc.), otherwise auto-detect
+        var baseDuration = requestedPeriodMinutes > 0 ? requestedPeriodMinutes : (halfDurationMinutes == 15 ? 5 : 6);
+        
         List<int> half1Durations;
-        if (halfDurationMinutes == 25)
+        var numPeriods = Math.Max(1, halfDurationMinutes / baseDuration);
+        half1Durations = new List<int>();
+        var remaining = halfDurationMinutes;
+        for (int i = 0; i < numPeriods - 1; i++)
         {
-            // 4 periods per half: 6m, 6m, 6m, 7m (total 25m)
-            half1Durations = new List<int> { 6, 6, 6, 7 };
+            half1Durations.Add(baseDuration);
+            remaining -= baseDuration;
         }
-        else if (halfDurationMinutes == 20)
-        {
-            // 3 periods per half: 6m, 6m, 8m (total 20m)
-            half1Durations = new List<int> { 6, 6, 8 };
-        }
-        else if (halfDurationMinutes == 18)
-        {
-            // 3 periods per half: 6m, 6m, 6m (total 18m)
-            half1Durations = new List<int> { 6, 6, 6 };
-        }
-        else if (halfDurationMinutes == 15)
-        {
-            // 3 periods per half: 5m, 5m, 5m (total 15m)
-            half1Durations = new List<int> { 5, 5, 5 };
-        }
-        else
-        {
-            // Generic: 6 min slots with remainder attached to the final slot of the half
-            var numPeriods = Math.Max(1, halfDurationMinutes / 6);
-            half1Durations = new List<int>();
-            var remaining = halfDurationMinutes;
-            for (int i = 0; i < numPeriods - 1; i++)
-            {
-                half1Durations.Add(6);
-                remaining -= 6;
-            }
-            half1Durations.Add(remaining);
-        }
+        half1Durations.Add(remaining);
 
         int periodNum = 1;
         int currentMin = 0;
@@ -481,7 +460,7 @@ public class MatchSquadService : IMatchSquadService
         }
         else
         {
-            intervals = BuildPeriodIntervals(halfDurationMinutes);
+            intervals = BuildPeriodIntervals(halfDurationMinutes, customPeriodMinutes ?? 0);
         }
 
         var totalPeriods = intervals.Count;

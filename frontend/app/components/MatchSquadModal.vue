@@ -13,7 +13,7 @@
               {{ selectedFormat === '3v3' ? '3v3 League (No GK)' : '5v5 League (With GK)' }}
             </span>
             <span class="text-xs text-text-muted font-medium">
-              • 2 × {{ squad?.halfDurationMinutes || selectedHalfDuration }}m ({{ (squad?.halfDurationMinutes || selectedHalfDuration) * 2 }} mins) • {{ squad?.periodDurationMinutes || 5 }}-min intervals • Equal Playing Time
+              • 2 × {{ squad?.halfDurationMinutes || selectedHalfDuration }}m ({{ (squad?.halfDurationMinutes || selectedHalfDuration) * 2 }} mins) • {{ squad?.periodDurationMinutes || selectedPeriodDuration }}-min intervals • Equal Playing Time
             </span>
           </div>
           <h2 class="text-2xl font-bold text-text-primary mt-1 flex items-center gap-2">
@@ -64,6 +64,17 @@
                 <option :value="18">2 × 18 min (36m)</option>
                 <option :value="20">2 × 20 min (40m)</option>
                 <option :value="25">2 × 25 min (50m)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">
+                🔄 Sub Interval
+              </label>
+              <select v-model.number="selectedPeriodDuration" @change="handleRegenerate" class="input text-xs py-1.5 min-w-[120px] bg-surface">
+                <option :value="5">Every 5 mins</option>
+                <option :value="6">Every 6 mins</option>
+                <option :value="10">Every 10 mins</option>
               </select>
             </div>
 
@@ -486,6 +497,7 @@ const selectedHalfDuration = ref<number>(18)
 const selectedGk1 = ref<string>('')
 const selectedGk2 = ref<string>('')
 const copyText = ref('Copy Schedule')
+const selectedPeriodDuration = ref<number>(6)
 
 const matchOpposition = computed(() => {
   return props.event?.opposition || props.event?.notes || 'Match'
@@ -521,6 +533,7 @@ watch(() => squad.value, (newSquad) => {
     if (newSquad.firstHalfGoalkeeperPlayerId) selectedGk1.value = newSquad.firstHalfGoalkeeperPlayerId
     if (newSquad.secondHalfGoalkeeperPlayerId) selectedGk2.value = newSquad.secondHalfGoalkeeperPlayerId
     if (newSquad.halfDurationMinutes) selectedHalfDuration.value = newSquad.halfDurationMinutes
+    if (newSquad.periodDurationMinutes) selectedPeriodDuration.value = newSquad.periodDurationMinutes
   }
 })
 
@@ -532,6 +545,9 @@ async function loadOrGenerateSquad() {
 
   selectedHalfDuration.value = halfDuration
   selectedFormat.value = format
+  if (props.event?.periodDurationMinutes || props.event?.match?.periodDurationMinutes) {
+    selectedPeriodDuration.value = props.event?.periodDurationMinutes || props.event?.match?.periodDurationMinutes
+  }
 
   // Try fetching existing squad first
   const res = await fetchSquad(matchId, eventId)
@@ -542,6 +558,7 @@ async function loadOrGenerateSquad() {
       eventId,
       format: selectedFormat.value,
       halfDurationMinutes: selectedHalfDuration.value,
+      periodMinutes: selectedPeriodDuration.value,
     })
   }
 }
@@ -551,6 +568,10 @@ async function handleFormatChange() {
 }
 
 async function handleHalfDurationChange() {
+  await handleRegenerate()
+}
+
+async function handlePeriodDurationChange() {
   await handleRegenerate()
 }
 
@@ -565,6 +586,7 @@ async function handleRegenerate() {
     gk1Id: selectedFormat.value === '3v3' ? undefined : (selectedGk1.value || undefined),
     gk2Id: selectedFormat.value === '3v3' ? undefined : (selectedGk2.value || undefined),
     halfDurationMinutes: selectedHalfDuration.value,
+    periodMinutes: selectedPeriodDuration.value,
   })
 
   if (res.success) {
