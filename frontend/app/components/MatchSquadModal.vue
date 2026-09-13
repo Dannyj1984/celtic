@@ -497,7 +497,7 @@ const selectedHalfDuration = ref<number>(18)
 const selectedGk1 = ref<string>('')
 const selectedGk2 = ref<string>('')
 const copyText = ref('Copy Schedule')
-const selectedPeriodDuration = ref<number>(6)
+const selectedPeriodDuration = ref<number>(5)
 
 const matchOpposition = computed(() => {
   return props.event?.opposition || props.event?.notes || 'Match'

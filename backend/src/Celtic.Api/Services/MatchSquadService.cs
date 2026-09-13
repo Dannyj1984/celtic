@@ -172,7 +172,7 @@ public class MatchSquadService : IMatchSquadService
         }
 
         var periods = request.Periods;
-        var periodMinutes = request.PeriodDurationMinutes > 0 ? request.PeriodDurationMinutes : 6;
+        var periodMinutes = request.PeriodDurationMinutes > 0 ? request.PeriodDurationMinutes : 5;
         var totalPeriods = request.TotalPeriods > 0 ? request.TotalPeriods : periods.Count;
 
         // Collect all distinct players from periods
@@ -398,8 +398,8 @@ public class MatchSquadService : IMatchSquadService
     {
         var intervals = new List<PeriodInterval>();
         
-        // Use the requested period duration if provided (5, 6, 10, etc.), otherwise auto-detect
-        var baseDuration = requestedPeriodMinutes > 0 ? requestedPeriodMinutes : (halfDurationMinutes == 15 ? 5 : 6);
+        // Use the requested period duration if provided (5, 6, 10, etc.), otherwise auto-detect (default 5)
+        var baseDuration = requestedPeriodMinutes > 0 ? requestedPeriodMinutes : 5;
         
         List<int> half1Durations;
         var numPeriods = Math.Max(1, halfDurationMinutes / baseDuration);

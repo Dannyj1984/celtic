@@ -71,7 +71,7 @@ public record SaveMatchSquadRequest(
     int HalfDurationMinutes = 18,
     string Format = "5v5",
     int TotalPeriods = 6,
-    int PeriodDurationMinutes = 6,
+    int PeriodDurationMinutes = 5,
     Guid? FirstHalfGoalkeeperPlayerId = null,
     Guid? SecondHalfGoalkeeperPlayerId = null,
     [Required] List<SquadPeriodDto> Periods = null!,

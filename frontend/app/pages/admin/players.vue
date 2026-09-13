@@ -75,6 +75,14 @@
             <component :is="player.allowPhotos ? CheckCircleIcon : XCircleIcon" class="w-3.5 h-3.5" />
             <span>Photos</span>
           </span>
+          <button @click="toggleSigningFee(player)" :disabled="updatingSigningFee === player.id"
+            :class="['text-xs font-semibold px-2 py-0.5 rounded inline-flex items-center gap-1 border transition-all cursor-pointer hover:opacity-80',
+              player.signingFeePaid ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400']"
+            :title="'Click to toggle signing fee status'">
+            <span v-if="updatingSigningFee === player.id" class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></span>
+            <component v-else :is="player.signingFeePaid ? CheckCircleIcon : XCircleIcon" class="w-3.5 h-3.5" />
+            <span>Fee: {{ player.signingFeePaid ? 'Paid' : 'Unpaid' }}</span>
+          </button>
         </div>
 
         <div class="mt-4 space-y-3">
@@ -335,6 +343,14 @@
             </span>
           </div>
 
+          <div class="flex items-center gap-2 p-3 rounded-lg bg-surface-hover border border-border/50">
+            <input type="checkbox" id="signingFeePaid" v-model="form.signingFeePaid"
+              class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4 cursor-pointer" />
+            <label for="signingFeePaid" class="text-sm font-medium text-text-primary cursor-pointer select-none">
+              Signing on fee paid for the season
+            </label>
+          </div>
+
           <div v-if="editingPlayer" class="flex items-center gap-2 mt-2">
             <input type="checkbox" id="isActive" v-model="form.isActive"
               class="rounded border-border text-celtic-green focus:ring-celtic-green w-4 h-4" />
@@ -372,7 +388,7 @@ useHead({
   title: 'Squad - Stalybridge Celtic U7',
 })
 
-const { players, loading, error, fetchPlayers, createPlayer, updatePlayer, updatePlayerCards } = usePlayers()
+const { players, loading, error, fetchPlayers, createPlayer, updatePlayer, updatePlayerCards, updateSigningFee } = usePlayers()
 const { teams, fetchTeams } = useTeams()
 const { getAuthHeaders } = useAuth()
 
@@ -382,6 +398,7 @@ const editingPlayer = ref<Player | null>(null)
 const formSaving = ref(false)
 const formError = ref<string | null>(null)
 const updatingSubStatus = ref<string | null>(null)
+const updatingSigningFee = ref<string | null>(null)
 
 const filteredPlayers = computed(() => {
   if (selectedTeamFilter.value === 'All') return players.value
@@ -410,6 +427,31 @@ function subStatusClass(status: string) {
   if (status === 'Active') return 'bg-success/20 text-success border border-success/30'
   if (status === 'Payment Due') return 'bg-warning/20 text-warning border border-warning/30'
   return 'bg-danger/20 text-danger border border-danger/30'
+}
+
+async function toggleSigningFee(player: Player) {
+  if (updatingSigningFee.value === player.id) return
+  const newStatus = !player.signingFeePaid
+  updatingSigningFee.value = player.id
+  player.signingFeePaid = newStatus
+
+  const result = await updateSigningFee(player.id, newStatus)
+  if (result.success && result.player) {
+    player.signingFeePaid = result.player.signingFeePaid
+    showToast(
+      newStatus ? 'Signing Fee Paid ✓' : 'Signing Fee Unpaid',
+      `Updated signing fee status for ${player.firstName} ${player.lastName}.`,
+      newStatus ? 'green' : 'amber'
+    )
+  } else {
+    player.signingFeePaid = !newStatus
+    showToast(
+      'Failed to update signing fee',
+      result.error || 'Could not update signing fee. Please try again.',
+      'red'
+    )
+  }
+  updatingSigningFee.value = null
 }
 
 async function changeCards(player: Player, delta: number) {
@@ -487,6 +529,7 @@ const form = ref({
   allergies: '',
   allowPhotos: false,
   trainingCardsCount: 0,
+  signingFeePaid: false,
   teamId: '',
   teamIds: [] as string[]
 })
@@ -528,6 +571,7 @@ function openCreateModal() {
     allergies: '',
     allowPhotos: false,
     trainingCardsCount: 0,
+    signingFeePaid: false,
     teamId: '',
     teamIds: []
   }
@@ -563,6 +607,7 @@ function openEditModal(player: Player) {
     allergies: player.allergies || '',
     allowPhotos: player.allowPhotos ?? false,
     trainingCardsCount: player.trainingCardsCount || 0,
+    signingFeePaid: player.signingFeePaid ?? false,
     teamId: playerTeamIds[0] || '',
     teamIds: playerTeamIds
   }
@@ -582,6 +627,7 @@ async function submitForm() {
     ...form.value,
     dateOfBirth: form.value.dateOfBirth ? new Date(form.value.dateOfBirth).toISOString() : null,
     trainingCardsCount: Math.max(0, form.value.trainingCardsCount || 0),
+    signingFeePaid: form.value.signingFeePaid,
     teamIds: form.value.teamIds,
     teamId: form.value.teamIds.length > 0 ? form.value.teamIds[0] : null
   }

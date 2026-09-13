@@ -291,6 +291,60 @@ public class MatchSquadServiceTests
     }
 
     [Fact]
+    public async Task GenerateSquad_With8Players_5MinIntervals_Rotates2SubsAndBalancesPlayingTime()
+    {
+        // Arrange: 8 players in 5v5, 2x15m match (30m total, 6 periods of 5m)
+        var dbName = Guid.NewGuid().ToString();
+        using var context = GetDbContext(dbName);
+        var players = CreatePlayers(context, 8);
+        var gk1 = players[0];
+        var gk2 = players[1];
+        await context.SaveChangesAsync();
+
+        var service = new MatchSquadService(context);
+
+        // Act
+        var squad = await service.GenerateSquadAsync(new GenerateMatchSquadRequest
+        {
+            CustomPlayerIds = players.Select(p => p.Id).ToList(),
+            FirstHalfGoalkeeperPlayerId = gk1.Id,
+            SecondHalfGoalkeeperPlayerId = gk2.Id,
+            HalfDurationMinutes = 15,
+            PeriodDurationMinutes = 5
+        });
+
+        // Assert
+        Assert.Equal(6, squad.Periods.Count);
+        Assert.Equal(5, squad.PeriodDurationMinutes);
+
+        // Period 1: gk1 in goal, 4 outfield, 3 on bench (including gk2)
+        Assert.Equal(gk1.Id, squad.Periods[0].Goalkeeper!.Id);
+        Assert.Equal(4, squad.Periods[0].OutfieldPlayers.Count);
+        Assert.Equal(3, squad.Periods[0].BenchPlayers.Count);
+        Assert.Empty(squad.Periods[0].Substitutions);
+
+        // Periods 2-6: exactly 2 subs each period
+        for (int i = 1; i < 6; i++)
+        {
+            var period = squad.Periods[i];
+            Assert.Equal(2, period.Substitutions.Count);
+            Assert.Equal(4, period.OutfieldPlayers.Count);
+            Assert.Equal(3, period.BenchPlayers.Count);
+        }
+
+        // Half 1 GK is gk1, Half 2 GK is gk2
+        Assert.Equal(gk1.Id, squad.Periods[0].Goalkeeper!.Id);
+        Assert.Equal(gk1.Id, squad.Periods[1].Goalkeeper!.Id);
+        Assert.Equal(gk1.Id, squad.Periods[2].Goalkeeper!.Id);
+        Assert.Equal(gk2.Id, squad.Periods[3].Goalkeeper!.Id);
+        Assert.Equal(gk2.Id, squad.Periods[4].Goalkeeper!.Id);
+        Assert.Equal(gk2.Id, squad.Periods[5].Goalkeeper!.Id);
+
+        // Equal / balanced playing time (all 8 players get 15-20 mins)
+        Assert.All(squad.PlayerMinutes, pm => Assert.InRange(pm.TotalMinutes, 15, 20));
+    }
+
+    [Fact]
     public async Task GenerateSquad_With2x25MinHalves_UsesHalfDurationAndGeneratesCorrectSchedule()
     {
         // Arrange
@@ -319,12 +373,10 @@ public class MatchSquadServiceTests
 
         // Assert
         Assert.Equal(25, squad.HalfDurationMinutes);
-        Assert.Equal(6, squad.PeriodDurationMinutes);
-        Assert.Equal(8, squad.TotalPeriods); // 4 periods per half (6m, 6m, 6m, 7m)
-        Assert.Equal(25, squad.Periods[3].EndMinute); // Period 4: 18' - 25' (7 mins)
-        Assert.Equal(7, squad.Periods[3].EndMinute - squad.Periods[3].StartMinute);
-        Assert.Equal(50, squad.Periods[7].EndMinute); // Period 8: 43' - 50' (7 mins)
-        Assert.Equal(7, squad.Periods[7].EndMinute - squad.Periods[7].StartMinute);
+        Assert.Equal(5, squad.PeriodDurationMinutes);
+        Assert.Equal(10, squad.TotalPeriods); // 5 periods per half (5m each)
+        Assert.Equal(25, squad.Periods[4].EndMinute);
+        Assert.Equal(50, squad.Periods[9].EndMinute);
         Assert.All(squad.PlayerMinutes, pm => Assert.InRange(pm.TotalMinutes, 30, 40));
     }
 
@@ -353,7 +405,8 @@ public class MatchSquadServiceTests
         var squad = await service.GenerateSquadAsync(new GenerateMatchSquadRequest
         {
             MatchId = match.Id,
-            CustomPlayerIds = players.Select(p => p.Id).ToList()
+            CustomPlayerIds = players.Select(p => p.Id).ToList(),
+            PeriodDurationMinutes = 6
         });
 
         // Assert
@@ -403,7 +456,8 @@ public class MatchSquadServiceTests
         {
             CustomPlayerIds = players.Select(p => p.Id).ToList(),
             Format = "3v3",
-            HalfDurationMinutes = 18
+            HalfDurationMinutes = 18,
+            PeriodDurationMinutes = 6
         });
 
         // Assert

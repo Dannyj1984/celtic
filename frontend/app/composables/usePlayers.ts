@@ -35,6 +35,7 @@ export interface Player {
   allergies?: string | null
   allowPhotos?: boolean
   trainingCardsCount?: number
+  signingFeePaid?: boolean
   teamId?: string | null
   teamName?: string | null
   teamIds?: string[]
@@ -109,6 +110,23 @@ export function usePlayers() {
     }
   }
 
+  async function updateSigningFee(id: string, signingFeePaid: boolean) {
+    try {
+      const updatedPlayer = await $fetch<Player>(`/api/players/${id}/signing-fee`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: { signingFeePaid },
+      })
+      const index = players.value.findIndex(p => p.id === id)
+      if (index !== -1) {
+        players.value[index] = updatedPlayer
+      }
+      return { success: true, player: updatedPlayer }
+    } catch (err: any) {
+      return { success: false, error: err?.data?.message || 'Failed to update signing fee status' }
+    }
+  }
+
   return {
     players,
     loading,
@@ -117,5 +135,6 @@ export function usePlayers() {
     createPlayer,
     updatePlayer,
     updatePlayerCards,
+    updateSigningFee,
   }
 }

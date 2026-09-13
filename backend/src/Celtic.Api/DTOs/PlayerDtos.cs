@@ -31,6 +31,7 @@ public record PlayerDto(
     string? Allergies = null,
     bool AllowPhotos = false,
     int TrainingCardsCount = 0,
+    bool SigningFeePaid = false,
     Guid? TeamId = null,
     string? TeamName = null,
     List<TeamSummaryDto>? Teams = null,
@@ -56,6 +57,10 @@ public record UpdateSubscriptionStatusRequest(
     [Required] string SubscriptionStatus
 );
 
+public record UpdateSigningFeeRequest(
+    bool SigningFeePaid
+);
+
 public record CreatePlayerRequest(
     [Required] string FirstName,
     [Required] string LastName,
@@ -74,6 +79,7 @@ public record CreatePlayerRequest(
     string? Allergies = null,
     bool AllowPhotos = false,
     int TrainingCardsCount = 0,
+    bool SigningFeePaid = false,
     Guid? TeamId = null,
     List<Guid>? TeamIds = null
 );
@@ -98,6 +104,7 @@ public record UpdatePlayerRequest(
     string? Allergies = null,
     bool AllowPhotos = false,
     int? TrainingCardsCount = null,
+    bool SigningFeePaid = false,
     Guid? TeamId = null,
     List<Guid>? TeamIds = null
 );

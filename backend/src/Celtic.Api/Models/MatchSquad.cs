@@ -13,7 +13,7 @@ public class MatchSquad
     public int HalfDurationMinutes { get; set; } = 18;
     public string Format { get; set; } = "5v5";
     public int TotalPeriods { get; set; } = 6;
-    public int PeriodDurationMinutes { get; set; } = 6;
+    public int PeriodDurationMinutes { get; set; } = 5;
 
     public Guid? FirstHalfGoalkeeperPlayerId { get; set; }
     public Player? FirstHalfGoalkeeperPlayer { get; set; }

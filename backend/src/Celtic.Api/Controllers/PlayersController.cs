@@ -108,4 +108,22 @@ public class PlayersController : ControllerBase
             return NotFound();
         }
     }
+
+    [HttpPatch("{id}/signing-fee")]
+    public async Task<ActionResult<PlayerDto>> UpdateSigningFee(Guid id, [FromBody] UpdateSigningFeeRequest request)
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "Admin")
+            return StatusCode(403, new { message = "Only administrators can update signing fee status." });
+
+        try
+        {
+            var player = await _playerService.UpdateSigningFeeAsync(id, request.SigningFeePaid);
+            return Ok(player);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 }

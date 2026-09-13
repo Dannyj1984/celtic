@@ -226,4 +226,62 @@ public class PlayerServiceTests
         var inDb = await dbContext.Players.FindAsync(player.Id);
         Assert.Equal(5, inDb!.TrainingCardsCount);
     }
+
+    [Fact]
+    public async Task CreatePlayerAsync_SavesSigningFeePaid()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        var service = new PlayerService(dbContext);
+
+        var request = new CreatePlayerRequest(
+            FirstName: "Declan",
+            LastName: "Rice",
+            DateOfBirth: null,
+            MedicalNotes: null,
+            EmergencyContact: null,
+            EmergencyPhone: null,
+            EmergencyContact2: null,
+            EmergencyPhone2: null,
+            SigningFeePaid: true
+        );
+
+        // Act
+        var result = await service.CreatePlayerAsync(request);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.SigningFeePaid);
+        var inDb = await dbContext.Players.FindAsync(result.Id);
+        Assert.True(inDb!.SigningFeePaid);
+    }
+
+    [Fact]
+    public async Task UpdateSigningFeeAsync_TogglesSigningFeePaid()
+    {
+        // Arrange
+        var dbName = Guid.NewGuid().ToString();
+        using var dbContext = GetDbContext(dbName);
+        var player = new Player
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Jude",
+            LastName = "Bellingham",
+            SigningFeePaid = false
+        };
+        dbContext.Players.Add(player);
+        await dbContext.SaveChangesAsync();
+
+        var service = new PlayerService(dbContext);
+
+        // Act
+        var result = await service.UpdateSigningFeeAsync(player.Id, true);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.SigningFeePaid);
+        var inDb = await dbContext.Players.FindAsync(player.Id);
+        Assert.True(inDb!.SigningFeePaid);
+    }
 }

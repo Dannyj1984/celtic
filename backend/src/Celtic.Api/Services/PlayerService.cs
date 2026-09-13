@@ -89,6 +89,7 @@ public class PlayerService : IPlayerService
             Allergies = request.Allergies,
             AllowPhotos = request.AllowPhotos,
             TrainingCardsCount = request.TrainingCardsCount,
+            SigningFeePaid = request.SigningFeePaid,
             TeamId = targetTeamIds.Count > 0 ? targetTeamIds[0] : null
         };
 
@@ -154,6 +155,7 @@ public class PlayerService : IPlayerService
         player.SockSize = request.SockSize;
         player.Allergies = request.Allergies;
         player.AllowPhotos = request.AllowPhotos;
+        player.SigningFeePaid = request.SigningFeePaid;
         if (request.TrainingCardsCount.HasValue)
         {
             player.TrainingCardsCount = Math.Max(0, request.TrainingCardsCount.Value);
@@ -238,6 +240,29 @@ public class PlayerService : IPlayerService
         return MapToDto(player, trainingIds, matchIds);
     }
 
+    public async Task<PlayerDto> UpdateSigningFeeAsync(Guid id, bool signingFeePaid)
+    {
+        var player = await _db.Players
+            .Include(p => p.Team)
+            .Include(p => p.PlayerTeams)
+                .ThenInclude(pt => pt.Team)
+            .Include(p => p.ParentLinks)
+                .ThenInclude(pl => pl.User)
+            .Include(p => p.EventResponses)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (player == null)
+            throw new KeyNotFoundException("Player not found");
+
+        player.SigningFeePaid = signingFeePaid;
+        await _db.SaveChangesAsync();
+
+        var trainingIds = await GetRecentEventIds("Training", 10);
+        var matchIds = await GetRecentEventIds("Match", 10);
+
+        return MapToDto(player, trainingIds, matchIds);
+    }
+
     private static PlayerDto MapToDto(Player p, List<Guid> recentTrainingIds, List<Guid> recentMatchIds)
     {
         var trainingAttended = p.EventResponses
@@ -296,6 +321,7 @@ public class PlayerService : IPlayerService
             p.Allergies,
             p.AllowPhotos,
             p.TrainingCardsCount,
+            p.SigningFeePaid,
             primaryTeamId,
             primaryTeamName,
             teams,

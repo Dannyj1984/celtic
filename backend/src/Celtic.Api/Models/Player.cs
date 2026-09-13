@@ -22,6 +22,7 @@ public class Player
     public string? Allergies { get; set; }
     public bool AllowPhotos { get; set; } = false;
     public int TrainingCardsCount { get; set; } = 0;
+    public bool SigningFeePaid { get; set; } = false;
 
     public Guid? TeamId { get; set; }
     public Team? Team { get; set; }
