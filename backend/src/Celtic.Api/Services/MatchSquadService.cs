@@ -508,7 +508,7 @@ public class MatchSquadService : IMatchSquadService
 
                 // Bench size for this period
                 var targetBenchCount = Math.Max(0, pool.Count - targetOutfieldCount);
-                var targetSubsCount = Math.Min(targetBenchCount, targetOutfieldCount);
+                var targetSubsCount = Math.Min(2, Math.Min(targetBenchCount, targetOutfieldCount));
 
                 // 1. Bench players from previous period COME ON (up to targetOutfieldCount)
                 var candidatePoolToComeOn = new List<SquadPlayerDto>(prevBench);

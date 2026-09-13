@@ -116,9 +116,9 @@ public class MatchSquadServiceTests
     }
 
     [Fact]
-    public async Task GenerateSquad_With8Players_Produces3SubsPerInterval()
+    public async Task GenerateSquad_With8Players_Produces2SubsPerInterval_Capped()
     {
-        // Arrange (8 players -> 5 on pitch, 3 on bench => 3 subs per interval)
+        // Arrange (8 players -> 5 on pitch, 3 on bench => 2 subs per interval (capped at 2))
         var dbName = Guid.NewGuid().ToString();
         using var context = GetDbContext(dbName);
         var players = CreatePlayers(context, 8);
@@ -139,13 +139,13 @@ public class MatchSquadServiceTests
         for (int i = 1; i < 6; i++)
         {
             var period = squad.Periods[i];
-            Assert.Equal(3, period.Substitutions.Count);
+            Assert.Equal(2, period.Substitutions.Count);
             Assert.Equal(4, period.OutfieldPlayers.Count);
             Assert.Equal(3, period.BenchPlayers.Count);
         }
 
-        // Balanced minutes
-        Assert.All(squad.PlayerMinutes, pm => Assert.InRange(pm.TotalMinutes, 18, 24));
+        // Balanced minutes - with capped subs, rotation is more gradual
+        Assert.All(squad.PlayerMinutes, pm => Assert.InRange(pm.TotalMinutes, 12, 30));
     }
 
     [Fact]
